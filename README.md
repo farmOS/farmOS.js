@@ -7,11 +7,30 @@
 
 An npm package for fetching data from a farmOS server.
 
-## GETTING STARTED
+## Installation
 ...
 
-## API
+## Usage
 ...
+
+To create an instance of farmOS.js:
+
+```js
+import farmOS from 'farmos';
+
+const host = 'https://farm.example.com';
+const username = 'FarmerSteve';
+const password = 'XXXXXXXXXXX';
+const farm = farmos(host, username, password);
+```
+
+### Authentication
+#### `.authenticate()`
+__EXAMPLE__
+```js
+farm.authenticate()
+  .then(token => localStorage.setItem('token', token));
+```
 
 ## MAINTAINERS
 
