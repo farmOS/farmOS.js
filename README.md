@@ -124,6 +124,7 @@ const log = {
 Methods for getting, sending and deleting logs are namespaced on the `farm.log` property.
 
 #### `.get()`
+Use the `.get()` method to retrieve a single log as a JavaScript object, or an array of objects, which can be filtered:
 ```js
 // Leave the parameter undefined to fetch all available logs
 farm.log.get()
