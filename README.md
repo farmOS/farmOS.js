@@ -242,12 +242,105 @@ farm.asset.send(asset, token)
 
 
 ### Areas
+An area is any well defined location that has been mapped in farmOS, such as a field, greenhouse, building, etc.
+
+Here's an example of what an area looks like as a JavaScript object:
+
+```js
+{
+  field_farm_files: [],
+  field_farm_images: [],
+  field_farm_geofield: [
+    {
+      geom: 'POLYGON ((-75.53640916943549 42.54421203378203, -75.53607389330863 42.54421796218091, -75.53607121109961 42.54415472589722, -75.53640648722647 42.54414682135726, -75.53640916943549 42.54421203378203))',
+      geo_type: 'polygon',
+      lat: '42.544182866769',
+      lon: '-75.536241049158',
+      left: '-75.536409169435',
+      top: '42.544217962181',
+      right: '-75.536071211100',
+      bottom: '42.544146821357',
+      srid: null,
+      latlon: '42.544182866769,-75.536241049158',
+      schemaorg_shape: '42.544146821357,-75.536409169435 42.544146821357,-75.536071211100 42.544217962181,-75.536071211100 42.544217962181,-75.536409169435 42.544146821357,-75.536409169435'
+    }
+  ],
+  field_farm_area_type: 'greenhouse',
+  tid: '22',
+  name: 'F1',
+  description: '',
+  weight: '0',
+  node_count: 0,
+  url: 'http://localhost/farm/area/f1',
+  vocabulary: {
+    uri: 'http://localhost/taxonomy_vocabulary/2',
+    id: '2',
+    resource: 'taxonomy_vocabulary'
+  },
+  parent: [
+    {
+      uri: 'http://localhost/taxonomy_term/11',
+      id: 11,
+      resource: 'taxonomy_term'
+    }
+  ],
+  parents_all: [
+    {
+      uri: 'http://localhost/taxonomy_term/22',
+      id: '22',
+      resource: 'taxonomy_term'
+    },
+    {
+      uri: 'http://localhost/taxonomy_term/11',
+      id: '11',
+      resource: 'taxonomy_term'
+    }
+  ],
+  feeds_item_guid: null,
+  feeds_item_url: null,
+  feed_nid: null
+}
+```
+
+Methods for getting, sending and deleting areas are namespaced on the `farm.area` property.
+
 #### `.get()`
+Use the `.get()` method to retrieve a single area as a JavaScript object, or an array of objects, which can be filtered:
 ```js
+// Leave the parameter undefined to fetch all available areas
+farm.area.get()
+  .then(res => console.log(`Area #${res[0].id} is called ${res[0].name}`))
+
+// Accepts a number for the id of the area you wish to fetch
+farm.area.get(123)
+  .then(res => console.log(`Area #123 is called ${res.name}`))
+
+// Pass an options object to filter the results
+farm.area.get({
+  page: 2, // default === null
+  type: 'field', // default === ''
+}).then(res => console.log(`Area #${res[0].id} is called ${res[0].name}`))
+
 ```
+The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 areas; `type` filters the results by area type.
+
+The types of areas are:
+- `bed`
+- `building`
+- `greenhouse`
+- `paddock`
+- `field`
+- `landmark`
+- `water`
+- `property`
+
 #### `.send()`
+Send can be used to create a new area, or if the `tid` property is included, to update an existing area:
 ```js
+farm.area.send(area, token)
+  .then(res => console.log(`Log was assigned an tid of ${res.tid}`));
 ```
+
 #### `.delete()`
 ```js
 ```
