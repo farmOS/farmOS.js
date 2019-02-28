@@ -286,9 +286,9 @@ Use the `.get()` method to retrieve a single area as a JavaScript object, or an 
 ```js
 // Leave the parameter undefined to fetch all available areas
 farm.area.get()
-  .then(res => console.log(`Area #${res[0].id} is called ${res[0].name}`))
+  .then(res => console.log(`Area #${res[0].tid} is called ${res[0].name}`))
 
-// Accepts a number for the id of the area you wish to fetch
+// Accepts a number for the tid of the area you wish to fetch
 farm.area.get(123)
   .then(res => console.log(`Area #123 is called ${res.name}`))
 
@@ -296,9 +296,11 @@ farm.area.get(123)
 farm.area.get({
   page: 2, // default === null
   type: 'field', // default === ''
-}).then(res => console.log(`Area #${res[0].id} is called ${res[0].name}`))
+}).then(res => console.log(`Area #${res[0].tid} is called ${res[0].name}`))
 
 ```
+__NOTE:__ Areas use a `tid` property, unlike logs and assets which have an `id`. This stands for taxonomy ID. In the future this may be changed to make it more consistent with the other entities.
+
 The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 areas; `type` filters the results by area type.
 
 The types of areas are:
