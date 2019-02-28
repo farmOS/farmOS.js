@@ -7,6 +7,23 @@
 
 An npm package for fetching data from a farmOS server.
 
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Logs](#logs)
+    - [`.get()`](#get)
+    - [`.send()`](#send)
+    - [`.delete()`](#delete)
+  - [Assets](#assets)
+    - [`.get()`](#get-1)
+    - [`.send()`](#send-1)
+    - [`.delete()`](#delete-1)
+  - [Areas](#areas)
+    - [`.get()`](#get-2)
+    - [`.send()`](#send-2)
+    - [`.delete()`](#delete-2)
+  - [Farm & User Information](#farm--user-information)
+    - [`.info()`](#info)
+
 ## Installation
 ...
 
