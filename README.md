@@ -162,12 +162,80 @@ farm.log.send(log, token)
 
 
 ### Assets
+Assets are any piece of property or durable good that belongs to the farm, such as a piece of equipment, a specific crop, or an animal.
+
+Here is an example of what one would look like as a JavaScript object:
+
+```js
+{
+  field_farm_date: null,
+  field_farm_description: [],
+  field_farm_files: [],
+  field_farm_images: [],
+  field_farm_parent: [],
+  field_farm_animal_castrated: false,
+  field_farm_animal_nicknames: [],
+  field_farm_animal_sex: 'F',
+  field_farm_animal_tag: [],
+  field_farm_animal_type: {
+    uri: 'http://localhost/taxonomy_term/12',
+    id: '12',
+    resource: 'taxonomy_term'
+  },
+  id: '1',
+  name: 'Brunhilde',
+  type: 'animal',
+  uid: {
+    uri: 'http://localhost/user/1',
+    id: '1',
+    resource: 'user'
+  },
+  created: '1546031503',
+  changed: '1546031947',
+  archived: '0',
+  url: 'http://localhost/farm/animal/brunhilde',
+  feeds_item_guid: null,
+  feeds_item_url: null,
+  feed_nid: null
+}
+```
+
+Methods for getting, sending and deleting assets are namespaced on the `farm.asset` property.
+
 #### `.get()`
+Use the `.get()` method to retrieve a single asset as a JavaScript object, or an array of asset objects, which can be filtered:
 ```js
+// Leave the parameter undefined to fetch all available assets
+farm.asset.get()
+  .then(res => console.log(`Asset #${res[0].id} is called ${res[0].name}`))
+
+// Accepts a number for the id of the assets you wish to fetch
+farm.asset.get(123)
+  .then(res => console.log(`Asset #123 is called ${res.name}`))
+
+// Pass an options object to filter the results
+farm.asset.get({
+  page: 2, // default === null
+  type: 'animal', // default === ''
+  archived: true, // default === false
+}).then(res => console.log(`Asset #${res[0].id} is called ${res[0].name}`))
+
 ```
+The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 assets; `archived` is a boolean which determines whether to retrieve assets which the user has chosen to archive; `type` filters the results by asset type.
+
+The four main asset types are:
+- `animal`
+- `compost`
+- `equipment`
+- `planting`
+
 #### `.send()`
+Send can be used to create a new asset, or if the `id` property is included, to update an existing asset:
 ```js
+farm.asset.send(asset, token)
+  .then(res => console.log(`Asset was assigned an id of ${res.id}`));
 ```
+
 #### `.delete()`
 ```js
 ```
