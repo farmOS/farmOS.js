@@ -128,7 +128,10 @@ farm.log.send(log, token)
 ```
 
 #### `.delete()`
+__THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 ```js
+// For now, just an example of what it should look like eventually
+farm.log.delete(123, token);
 ```
 
 
@@ -208,7 +211,10 @@ farm.asset.send(asset, token)
 ```
 
 #### `.delete()`
+__THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 ```js
+// For now, just an example of what it should look like eventually
+farm.asset.delete(123, token);
 ```
 
 
@@ -313,7 +319,10 @@ farm.area.send(area, token)
 ```
 
 #### `.delete()`
+__THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 ```js
+// For now, just an example of what it should look like eventually
+farm.area.delete(123, token);
 ```
 
 
