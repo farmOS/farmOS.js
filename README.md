@@ -327,8 +327,11 @@ farm.area.delete(123, token);
 
 
 ### Farm & User Information
+For requesting information about the farm, there is just one method, `.info()`, which is a getter.
 #### `.info()`
 ```js
+farm.info()
+  .then(res => console.log(`The farm's name is ${res.name}`))
 ```
 
 
