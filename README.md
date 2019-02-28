@@ -311,6 +311,9 @@ farm.area.send(area, token)
 Current maintainers:
  * Jamie Gaehring - https://jgaehring.com
 
-This project has been sponsored by:
- * [Farmier](http://farmier.com)
- * [Foundation for Food & Agriculture Research(FFAR)](https://foundationfar.org/)
+ This project has been sponsored by:
+
+  * [Farmier](https://farmier.com)
+  * [Our Sci](http://our-sci.net)
+  * [Bionutrient Food Association](https://bionutrient.org)
+  * [Foundation for Food and Agriculture Research](https://foundationfar.org/)
