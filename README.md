@@ -11,7 +11,6 @@ An npm package for fetching data from a farmOS server.
 ...
 
 ## Usage
-...
 
 To create an instance of farmOS.js:
 
@@ -26,11 +25,55 @@ const farm = farmos(host, username, password);
 
 ### Authentication
 #### `.authenticate()`
-__EXAMPLE__
 ```js
 farm.authenticate()
   .then(token => localStorage.setItem('token', token));
 ```
+
+### Logs
+#### `.get()`
+```js
+
+```
+
+#### `.send()`
+```js
+```
+
+#### `.delete()`
+```js
+```
+
+
+### Assets
+#### `.get()`
+```js
+```
+#### `.send()`
+```js
+```
+#### `.delete()`
+```js
+```
+
+
+### Areas
+#### `.get()`
+```js
+```
+#### `.send()`
+```js
+```
+#### `.delete()`
+```js
+```
+
+
+### Farm & User Information
+#### `.info()`
+```js
+```
+
 
 ## MAINTAINERS
 
