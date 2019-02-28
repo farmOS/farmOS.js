@@ -33,8 +33,28 @@ farm.authenticate()
 ### Logs
 #### `.get()`
 ```js
+// Leave the parameter undefined to fetch all available logs
+farm.log.get()
+  .then(res => console.log(`Log #${res[0].id} is called ${res[0].name}`))
+
+// Accepts a number for the id of the log you wish to fetch
+farm.log.get(123)
+  .then(res => console.log(`Log #123 is called ${res.name}`))
+
+// Pass an options object to filter the results
+farm.log.get({
+  page: 2, // default === null
+  type: 'farm_observation', // default === ''
+}).then(res => console.log(`Log #${res[0].id} is called ${res[0].name}`))
 
 ```
+The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 logs; `type` filters the results by log type.
+
+The four main log types are:
+- `farm_activity`
+- `farm_harvest`
+- `farm_input`
+- `farm_observation`
 
 #### `.send()`
 ```js
