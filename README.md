@@ -150,7 +150,10 @@ The four main log types are:
 - `farm_observation`
 
 #### `.send()`
+Send can be used to create a new log, or if the `id` property is included, to update an existing log:
 ```js
+farm.log.send(log, token)
+  .then(res => console.log(`Log was assigned an id of ${res.id}`));
 ```
 
 #### `.delete()`
