@@ -100,12 +100,14 @@ The options object can have two properties: `page` is the page number in the
 sequence of paginated results, starting from 0 and in batches of 100 logs;
 `type` filters the results by log type.
 
-The four main log types are:
+The four default log types are:
 
 - `farm_activity`
 - `farm_harvest`
 - `farm_input`
 - `farm_observation`
+
+Other log types may be provided by add-on modules in farmOS.
 
 #### `.send()`
 
@@ -180,12 +182,13 @@ sequence of paginated results, starting from 0 and in batches of 100 assets;
 `archived` is a boolean which determines whether to retrieve assets which the
 user has chosen to archive; `type` filters the results by asset type.
 
-The four main asset types are:
+Some common asset types include:
 
 - `animal`
-- `compost`
 - `equipment`
 - `planting`
+
+Other asset types may be provided by add-on modules in farmOS.
 
 #### `.send()`
 
@@ -262,16 +265,15 @@ __NOTE:__ Areas use a `tid` property, unlike logs and assets which have an `id`.
 
 The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 areas; `type` filters the results by area type.
 
-The types of areas are:
+Some common area types include:
 
-- `bed`
-- `building`
-- `greenhouse`
-- `paddock`
 - `field`
-- `landmark`
-- `water`
+- `building`
 - `property`
+- `water`
+- `other`
+
+Other area types may be provided by add-on modules in farmOS.
 
 #### `.send()`
 
