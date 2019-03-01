@@ -25,6 +25,7 @@ An npm package for fetching data from a farmOS server.
     - [`.info()`](#info)
 
 ## Installation
+
 ...
 
 ## Usage
@@ -41,7 +42,9 @@ const farm = farmos(host, username, password);
 ```
 
 ### Authentication
+
 #### `.authenticate()`
+
 ```js
 farm.authenticate()
   .then(token => localStorage.setItem('token', token));
@@ -49,9 +52,11 @@ farm.authenticate()
 
 ### Logs
 
-A log is any type of event that occurs on the farm, from a planting to a harvest to just a general observation.
+A log is any type of event that occurs on the farm, from a planting to a harvest
+to just a general observation.
 
 Here is an example of what one would look like as a JS object:
+
 ```js
 const log = {
   field_farm_files: [],
@@ -92,10 +97,14 @@ const log = {
 }
 ```
 
-Methods for getting, sending and deleting logs are namespaced on the `farm.log` property.
+Methods for getting, sending and deleting logs are namespaced on the `farm.log`
+property.
 
 #### `.get()`
-Use the `.get()` method to retrieve a single log as a JavaScript object, or an array of objects, which can be filtered:
+
+Use the `.get()` method to retrieve a single log as a JavaScript object, or an
+array of objects, which can be filtered:
+
 ```js
 // Leave the parameter undefined to fetch all available logs
 farm.log.get()
@@ -112,31 +121,41 @@ farm.log.get({
 }).then(res => console.log(`Log #${res[0].id} is called ${res[0].name}`))
 
 ```
-The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 logs; `type` filters the results by log type.
+
+The options object can have two properties: `page` is the page number in the
+sequence of paginated results, starting from 0 and in batches of 100 logs;
+`type` filters the results by log type.
 
 The four main log types are:
+
 - `farm_activity`
 - `farm_harvest`
 - `farm_input`
 - `farm_observation`
 
 #### `.send()`
-Send can be used to create a new log, or if the `id` property is included, to update an existing log:
+
+Send can be used to create a new log, or if the `id` property is included, to
+update an existing log:
+
 ```js
 farm.log.send(log, token)
   .then(res => console.log(`Log was assigned an id of ${res.id}`));
 ```
 
 #### `.delete()`
+
 __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
+
 ```js
 // For now, just an example of what it should look like eventually
 farm.log.delete(123, token);
 ```
 
-
 ### Assets
-Assets are any piece of property or durable good that belongs to the farm, such as a piece of equipment, a specific crop, or an animal.
+
+Assets are any piece of property or durable good that belongs to the farm, such
+as a piece of equipment, a specific crop, or an animal.
 
 Here is an example of what one would look like as a JavaScript object:
 
@@ -174,10 +193,14 @@ Here is an example of what one would look like as a JavaScript object:
 }
 ```
 
-Methods for getting, sending and deleting assets are namespaced on the `farm.asset` property.
+Methods for getting, sending and deleting assets are namespaced on the
+`farm.asset` property.
 
 #### `.get()`
-Use the `.get()` method to retrieve a single asset as a JavaScript object, or an array of asset objects, which can be filtered:
+
+Use the `.get()` method to retrieve a single asset as a JavaScript object, or an
+array of asset objects, which can be filtered:
+
 ```js
 // Leave the parameter undefined to fetch all available assets
 farm.asset.get()
@@ -193,32 +216,40 @@ farm.asset.get({
   type: 'animal', // default === ''
   archived: true, // default === false
 }).then(res => console.log(`Asset #${res[0].id} is called ${res[0].name}`))
-
 ```
-The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 assets; `archived` is a boolean which determines whether to retrieve assets which the user has chosen to archive; `type` filters the results by asset type.
+
+The options object can have two properties: `page` is the page number in the
+sequence of paginated results, starting from 0 and in batches of 100 assets;
+`archived` is a boolean which determines whether to retrieve assets which the
+user has chosen to archive; `type` filters the results by asset type.
 
 The four main asset types are:
+
 - `animal`
 - `compost`
 - `equipment`
 - `planting`
 
 #### `.send()`
+
 Send can be used to create a new asset, or if the `id` property is included, to update an existing asset:
+
 ```js
 farm.asset.send(asset, token)
   .then(res => console.log(`Asset was assigned an id of ${res.id}`));
 ```
 
 #### `.delete()`
+
 __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
+
 ```js
 // For now, just an example of what it should look like eventually
 farm.asset.delete(123, token);
 ```
 
-
 ### Areas
+
 An area is any well defined location that has been mapped in farmOS, such as a field, greenhouse, building, etc.
 
 Here's an example of what an area looks like as a JavaScript object:
@@ -282,7 +313,9 @@ Here's an example of what an area looks like as a JavaScript object:
 Methods for getting, sending and deleting areas are namespaced on the `farm.area` property.
 
 #### `.get()`
+
 Use the `.get()` method to retrieve a single area as a JavaScript object, or an array of objects, which can be filtered:
+
 ```js
 // Leave the parameter undefined to fetch all available areas
 farm.area.get()
@@ -297,13 +330,14 @@ farm.area.get({
   page: 2, // default === null
   type: 'field', // default === ''
 }).then(res => console.log(`Area #${res[0].tid} is called ${res[0].name}`))
-
 ```
+
 __NOTE:__ Areas use a `tid` property, unlike logs and assets which have an `id`. This stands for taxonomy ID. In the future this may be changed to make it more consistent with the other entities.
 
 The options object can have two properties: `page` is the page number in the sequence of paginated results, starting from 0 and in batches of 100 areas; `type` filters the results by area type.
 
 The types of areas are:
+
 - `bed`
 - `building`
 - `greenhouse`
@@ -314,37 +348,44 @@ The types of areas are:
 - `property`
 
 #### `.send()`
+
 Send can be used to create a new area, or if the `tid` property is included, to update an existing area:
+
 ```js
 farm.area.send(area, token)
   .then(res => console.log(`Log was assigned an tid of ${res.tid}`));
 ```
 
 #### `.delete()`
+
 __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
+
 ```js
 // For now, just an example of what it should look like eventually
 farm.area.delete(123, token);
 ```
 
-
 ### Farm & User Information
+
 For requesting information about the farm, there is just one method, `.info()`, which is a getter.
+
 #### `.info()`
+
 ```js
 farm.info()
   .then(res => console.log(`The farm's name is ${res.name}`))
 ```
 
-
 ## MAINTAINERS
 
 Current maintainers:
+
  * Jamie Gaehring - https://jgaehring.com
 
- This project has been sponsored by:
+This project has been sponsored by:
 
-  * [Farmier](https://farmier.com)
-  * [Our Sci](http://our-sci.net)
-  * [Bionutrient Food Association](https://bionutrient.org)
-  * [Foundation for Food and Agriculture Research](https://foundationfar.org/)
+ * [Farmier](https://farmier.com)
+ * [Our Sci](http://our-sci.net)
+ * [Bionutrient Food Association](https://bionutrient.org)
+ * [Foundation for Food and Agriculture Research](https://foundationfar.org/)
+
