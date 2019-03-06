@@ -64,7 +64,7 @@ const log = {
   type: 'farm_observation',
   timestamp: '1519423702',
   done: '1',
-  field_farm_notes: {
+  notes: {
     value: '<p>some notes</p>\n',
     format: 'farm_format'
   },
@@ -140,11 +140,11 @@ Here is an example of what one would look like as a JavaScript object:
   id: '1',
   name: 'Brunhilde',
   type: 'animal',
-  field_farm_animal_type: {
+  animal_type: {
     id: '12',
     resource: 'taxonomy_term'
   },
-  field_farm_description: {
+  description: {
     value: '<p>some notes</p>\n',
     format: 'farm_format'
   },
@@ -220,7 +220,7 @@ Here's an example of what an area looks like as a JavaScript object:
   name: 'F1',
   description: '',
   ield_farm_area_type: 'greenhouse',
-  field_farm_geofield: [
+  geofield: [
     {
       geom: 'POLYGON ((-75.53640916943549 42.54421203378203, -75.53607389330863 42.54421796218091, -75.53607121109961 42.54415472589722, -75.53640648722647 42.54414682135726, -75.53640916943549 42.54421203378203))',
     }
