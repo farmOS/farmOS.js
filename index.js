@@ -15,8 +15,8 @@ export default function (host, user, password) {
       },
       credentials: 'include',
     };
-    // Fetch options for non-auth POST requests
-    if (method === 'POST' && !auth) {
+    // Fetch options for non-auth POST and PUT requests
+    if ((method === 'POST' || method === 'PUT') && !auth) {
       opts.headers['X-CSRF-Token'] = token;
       opts.body = JSON.stringify(payload);
     }
@@ -158,19 +158,42 @@ export default function (host, user, password) {
         }
 
         // If an option object is passed, set defaults and parse the string params
-        const { page = null, type = '' } = opts;
-        const typeParams = (type !== '') ? `type=${type}` : '';
-        const pageParams = (page !== null) ? `page=${page}` : '';
+        const {
+          page = null,
+          type = [],
+          assigned = '',
+          completed = '',
+        } = opts;
 
-        // If no page # is passed, get all of them
-        if (page === null) {
-          return requestAll(`/log.json?${typeParams}`);
-        }
+        // Build a querystring based on which params have been passed in the opts object
+        let queryString = '/log.json?';
+        // First, build all requested types onto the string
+        type.forEach((oneType, index) => {
+          queryString = (queryString.slice(-1) !== '?') ? `${queryString}&` : queryString;
+          queryString = `${queryString}type[${index}]=${oneType}`;
+        });
+        // Then append other search params
+        queryString = (queryString.slice(-1) !== '?' && assigned !== '') ? `${queryString}&` : queryString;
+        queryString = (assigned !== '') ? `${queryString}log_owner=${assigned}` : queryString;
+        queryString = (queryString.slice(-1) !== '?' && page !== null) ? `${queryString}&` : queryString;
+        queryString = (page !== null) ? `${queryString}page=${page}` : queryString;
+        queryString = (queryString.slice(-1) !== '?' && completed !== '') ? `${queryString}&` : queryString;
+        queryString = (completed !== '') ? `${queryString}done=${completed}` : queryString;
 
         // If no ID is passed but page is passed
-        return request(`/log.json?${typeParams}&${pageParams}`);
+        return request(queryString);
       },
       send(payload, token) {
+        if (payload.id) {
+          return request(`/log/${payload.id}`, { method: 'PUT', payload, token })
+            // Add properties back to response so it mirrors a POST response
+            .then(res => ({
+              ...res,
+              id: payload.id,
+              uri: payload.uri,
+              resource: 'log',
+            }));
+        }
         return request('/log', { method: 'POST', payload, token });
       },
     },
