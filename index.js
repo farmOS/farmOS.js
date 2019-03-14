@@ -49,11 +49,9 @@ export default function (host, user, password) {
       .then((response) => {
         const lastPage = +(new URL(response.last)).searchParams.get('page');
         if (page === lastPage) {
-          console.log(`Requesting last page, ${page}`);
           resolve(list.concat(response.list));
           return;
         }
-        console.log(`Requesting page ${page}, ${lastPage - page} more to go.`);
         const newList = list.concat(response.list);
         requestAll(url, page + 1, newList).then(resolve).catch(reject);
       }).catch(reject));
