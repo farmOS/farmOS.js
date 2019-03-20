@@ -197,5 +197,24 @@ export default function (host, user, password) {
         return request('/log', { method: 'POST', payload, token });
       },
     },
+    term: {
+      get(opts = {}) {
+        if (typeof opts === 'string') {
+          return request(`/taxonomy_term.json?bundle=${opts}`)
+        }
+
+        const {
+          page = null,
+          vocabulary = '',
+          name = '',
+        } = opts;
+
+        const vocabParams = (vocabulary !== '') ? `bundle=${vocabulary}` : '';
+        const nameParams = (name !== '') ? `&name=${name}` : '';
+        const pageParams = (page !== null) ? `&page=${page}` : '';
+
+        return request(`/taxonomy_term.json?${vocabParams}${nameParams}${pageParams}`)
+      },
+    }
   };
 }
