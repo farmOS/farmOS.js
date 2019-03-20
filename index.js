@@ -161,8 +161,8 @@ export default function (host, user, password) {
         const {
           page = null,
           type = [],
-          assigned = '',
-          completed = '',
+          log_owner = '',
+          done = '',
         } = opts;
 
         // Build a querystring based on which params have been passed in the opts object
@@ -173,12 +173,12 @@ export default function (host, user, password) {
           queryString = `${queryString}type[${index}]=${oneType}`;
         });
         // Then append other search params
-        queryString = (queryString.slice(-1) !== '?' && assigned !== '') ? `${queryString}&` : queryString;
-        queryString = (assigned !== '') ? `${queryString}log_owner=${assigned}` : queryString;
+        queryString = (queryString.slice(-1) !== '?' && log_owner !== '') ? `${queryString}&` : queryString;
+        queryString = (log_owner !== '') ? `${queryString}log_owner=${log_owner}` : queryString;
         queryString = (queryString.slice(-1) !== '?' && page !== null) ? `${queryString}&` : queryString;
         queryString = (page !== null) ? `${queryString}page=${page}` : queryString;
-        queryString = (queryString.slice(-1) !== '?' && completed !== '') ? `${queryString}&` : queryString;
-        queryString = (completed !== '') ? `${queryString}done=${completed}` : queryString;
+        queryString = (queryString.slice(-1) !== '?' && done !== '') ? `${queryString}&` : queryString;
+        queryString = (done !== '') ? `${queryString}done=${done}` : queryString;
 
         // If no ID is passed but page is passed
         return request(queryString);
