@@ -4,6 +4,7 @@
 [![Last commit](https://img.shields.io/github/last-commit/farmOS/farmOS.js.svg?style=flat)](https://github.com/farmOS/farmOS-client/commits)
 [![Twitter](https://img.shields.io/twitter/follow/farmOSorg.svg?label=%40farmOSorg&style=flat)](https://twitter.com/farmOSorg)
 [![Chat](https://img.shields.io/matrix/farmOS:matrix.org.svg)](https://riot.im/app/#/room/#farmOS:matrix.org)
+[![npm](https://img.shields.io/npm/v/farmos.svg)](https://www.npmjs.com/package/farmos)
 
 An npm package for fetching data from a farmOS server.
 
@@ -25,8 +26,11 @@ An npm package for fetching data from a farmOS server.
     - [`.info()`](#info)
 
 ## Installation
+To install using npm (the Node Package Manager):
 
-...
+```bash
+$ npm install farmos
+```
 
 ## Usage
 
