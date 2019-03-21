@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/farmOS/farmOS.js/issues"
   },
-  "homepage": "https://github.com/farmOS/farmOS.js#readme"
+  "homepage": "https://github.com/farmOS/farmOS.js#readme",
+  "dependencies": {
+    "axios": "^0.18.0"
+  }
 }
