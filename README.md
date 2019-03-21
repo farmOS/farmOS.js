@@ -22,6 +22,10 @@ An npm package for fetching data from a farmOS server.
     - [`.get()`](#get-2)
     - [`.send()`](#send-2)
     - [`.delete()`](#delete-2)
+  - [Taxonomy Terms](#taxonomy-terms)
+    - [`.get()`](#get-3)
+    - [`.send()`](#send-3)
+    - [`.delete()`](#delete-3)
   - [Farm & User Information](#farm--user-information)
     - [`.info()`](#info)
 
@@ -296,6 +300,69 @@ __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 // For now, just an example of what it should look like eventually
 farm.area.delete(123, token);
 ```
+
+### Taxonomy Terms
+farmOS allows farmers to build vocabularies of terms for various categorization
+purposes. These are referred to as "taxonomies" in farmOS (and Drupal), although
+"vocabulary" is sometimes used interchangeably.
+
+Some things that are represented as taxonomy terms include quantity units,
+crops/varieties, animal species/breeds, input materials, and log categories.
+See "Endpoints" above for specific API endpoints URLs.
+
+A very basic taxonomy term JSON structure looks like this:
+
+```json
+{
+  "tid": "3",
+  "name": "Cabbage",
+  "description": "",
+  "vocabulary": {
+    "id": "7",
+    "resource": "taxonomy_vocabulary",
+  },
+  "parent": [
+    {
+      "id": "10",
+      "resource": "taxonomy_term",
+    },
+  ],
+  "weight": "5",
+}
+```
+
+The `tid` is the unique ID of the term (database primary key). When creating a
+new term, the only required fields are `name` and `vocabulary`. The vocabulary
+is an ID that corresponds to the specific vocabulary the term will be a part of
+(eg: quantity units, crops/varieties, log categories, etc). The fields `parent`
+and `weight` control term hierarchy and ordering (a heavier `weight` will sort
+it lower in the list).
+
+#### `.get()`
+Use the `.get()` method to retrieve a single vocabulary as a JavaScript object by passing in that vocabulary's machine name, or an array of objects, which can be filtered:
+
+```js
+farm.term.get()
+  .then(res => console.log(`Term #${res.list[0].tid} is called ${res.list[0].name}`))
+
+farm.term.get('farm_crops')
+  .then(res => console.log(`${res.list[0].name} is a crop.`))
+
+farm.term.get({
+  vocabulary: 'farm_crops',
+  name: 'Icicle Radish',
+  page: 0,
+}).then(res => console.log(`It is ${(res.list.length > 0)} that 'Icicle Radish' is the name of a crop.`))
+```
+
+
+#### `.send()`
+
+__THIS METHOD HAS NOT BEEN DEVELOPED YET__
+
+#### `.delete()`
+
+__THIS METHOD HAS NOT BEEN DEVELOPED YET__
 
 ### Farm & User Information
 
