@@ -173,8 +173,8 @@ export default function (host, user, password) {
           queryString = `${queryString}type[${index}]=${oneType}`;
         });
         // Then append other search params
-        queryString = (queryString.slice(-1) !== '?' && log_owner !== '') ? `${queryString}&` : queryString;
-        queryString = (log_owner !== '') ? `${queryString}log_owner=${log_owner}` : queryString;
+        queryString = (queryString.slice(-1) !== '?' && log_owner !== '') ? `${queryString}&` : queryString; // eslint-disable-line camelcase
+        queryString = (log_owner !== '') ? `${queryString}log_owner=${log_owner}` : queryString; // eslint-disable-line camelcase
         queryString = (queryString.slice(-1) !== '?' && page !== null) ? `${queryString}&` : queryString;
         queryString = (page !== null) ? `${queryString}page=${page}` : queryString;
         queryString = (queryString.slice(-1) !== '?' && done !== '') ? `${queryString}&` : queryString;
@@ -200,7 +200,7 @@ export default function (host, user, password) {
     term: {
       get(opts = {}) {
         if (typeof opts === 'string') {
-          return request(`/taxonomy_term.json?bundle=${opts}`)
+          return request(`/taxonomy_term.json?bundle=${opts}`);
         }
 
         const {
@@ -213,8 +213,8 @@ export default function (host, user, password) {
         const nameParams = (name !== '') ? `&name=${name}` : '';
         const pageParams = (page !== null) ? `&page=${page}` : '';
 
-        return request(`/taxonomy_term.json?${vocabParams}${nameParams}${pageParams}`)
+        return request(`/taxonomy_term.json?${vocabParams}${nameParams}${pageParams}`);
       },
-    }
+    },
   };
 }
