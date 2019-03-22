@@ -8,7 +8,7 @@ export default function (host, user, password) {
     auth = false,
   } = {}) {
     const url = host + endpoint;
-    // Set basic fetch options, for a non-auth GET requests
+    // Set basic axios options, for a non-auth GET requests
     const opts = {
       method,
       headers: {
@@ -17,16 +17,16 @@ export default function (host, user, password) {
       },
       withCredentials: true,
     };
-    // Fetch options for non-auth POST and PUT requests
+    // Axios options for non-auth POST and PUT requests
     if ((method === 'POST' || method === 'PUT') && !auth) {
       opts.headers['X-CSRF-Token'] = token;
       opts.data = JSON.stringify(payload);
     }
-    // Fetch options for authentication GET requests
+    // Axios options for authentication GET requests
     if (auth) {
       opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
-    // Fetch options for authentication POST requests
+    // Axios options for authentication POST requests
     if (method === 'POST' && auth) {
       opts.data = `name=${payload.name}&pass=${payload.pass}&form_id=${payload.form_id}`; // eslint-disable-line camelcase
     }
