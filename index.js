@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export default function (host, user, password) {
   function request(endpoint, {
     method = 'GET',
@@ -13,33 +15,24 @@ export default function (host, user, password) {
         'Content-Type': 'application/json',
         Accept: 'json',
       },
-      credentials: 'include',
+      withCredentials: true,
     };
     // Fetch options for non-auth POST and PUT requests
     if ((method === 'POST' || method === 'PUT') && !auth) {
       opts.headers['X-CSRF-Token'] = token;
-      opts.body = JSON.stringify(payload);
+      opts.data = JSON.stringify(payload);
     }
     // Fetch options for authentication GET requests
     if (auth) {
       opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
     // Fetch options for authentication POST requests
-    // TODO: Generalize this to work with any form request
     if (method === 'POST' && auth) {
-      opts.body = `name=${payload.name}&pass=${payload.pass}&form_id=${payload.form_id}`; // eslint-disable-line camelcase
+      opts.data = `name=${payload.name}&pass=${payload.pass}&form_id=${payload.form_id}`; // eslint-disable-line camelcase
     }
     return new Promise((resolve, reject) => {
-      fetch(url, opts).then((response) => {
-        if (!response.ok) {
-          throw response;
-        }
-        // If auth req, get token as a text response
-        if (auth) {
-          return response.text();
-        }
-        return response.json();
-      }).then(resolve).catch(reject);
+      axios(url, opts)
+        .then(res => resolve(res.data)).catch(reject);
     });
   }
 
