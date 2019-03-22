@@ -71,6 +71,9 @@ export default function (host, user, password) {
           .catch((error) => { throw error; }))
         .catch((error) => { throw error; });
     },
+    logout() {
+      return request('/user/logout');
+    },
     area: {
       delete(id, token) {
         return request('/taxonomy_vocabulary.json').then(res => (
