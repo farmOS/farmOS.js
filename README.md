@@ -227,7 +227,7 @@ Here's an example of what an area looks like as a JavaScript object:
   tid: '22',
   name: 'F1',
   description: '',
-  ield_farm_area_type: 'greenhouse',
+  area_type: 'greenhouse',
   geofield: [
     {
       geom: 'POLYGON ((-75.53640916943549 42.54421203378203, -75.53607389330863 42.54421796218091, -75.53607121109961 42.54415472589722, -75.53640648722647 42.54414682135726, -75.53640916943549 42.54421203378203))',
