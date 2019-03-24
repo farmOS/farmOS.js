@@ -1,6 +1,6 @@
-import axios from 'axios';
+const axios = require('axios');
 
-export default function (host, user, password) {
+function farmOS(host, user, password) {
   function request(endpoint, {
     method = 'GET',
     payload = '',
@@ -214,3 +214,5 @@ export default function (host, user, password) {
     },
   };
 }
+
+module.exports = farmOS;
