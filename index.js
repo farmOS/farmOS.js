@@ -29,11 +29,24 @@ function farmOS(host, user, password) {
     // Axios options for authentication POST requests
     if (method === 'POST' && auth) {
       opts.data = `name=${payload.name}&pass=${payload.pass}&form_id=${payload.form_id}`; // eslint-disable-line camelcase
+      // Accept 30* status codes as valid response w/o redirecting,
+      // so we can get the cookie from headers
+      opts.maxRedirects = 0;
+      opts.validateStatus = status => (status >= 200 && status < 400);
     }
-    return new Promise((resolve, reject) => {
-      axios(url, opts)
-        .then(res => resolve(res.data)).catch(reject);
-    });
+    // In Node, the cookie will be set explicitly, and needs to be added to the header
+    if (farm.cookie !== '') { // eslint-disable-line no-use-before-define
+      opts.headers.Cookie = farm.cookie; // eslint-disable-line no-use-before-define
+    }
+    return axios(url, opts)
+      .then((res) => {
+        // In Node, the cookie needs to be saved manually;
+        // browsers will ignore this and store the cookie automagically.
+        if (res.headers['set-cookie']) {
+          farm.cookie = res.headers['set-cookie'][0]; // eslint-disable-line prefer-destructuring, no-use-before-define
+        }
+        return res.data;
+      }).catch((err) => { throw new Error(err); });
   }
 
   // Recursive request for looping through multiple pages
@@ -58,7 +71,7 @@ function farmOS(host, user, password) {
     .find(voc => voc.machine_name === 'farm_areas')
     .vid;
 
-  return {
+  const farm = {
     authenticate() {
       const payload = {
         form_id: 'user_login',
@@ -72,8 +85,10 @@ function farmOS(host, user, password) {
         .catch((error) => { throw error; });
     },
     logout() {
+      this.cookie = '';
       return request('/user/logout');
     },
+    cookie: '',
     area: {
       delete(id, token) {
         return request('/taxonomy_vocabulary.json').then(res => (
@@ -213,6 +228,7 @@ function farmOS(host, user, password) {
       },
     },
   };
+  return farm;
 }
 
 module.exports = farmOS;
