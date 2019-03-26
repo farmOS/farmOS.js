@@ -256,6 +256,11 @@ function farmOS(host, user, password) {
           appendParam('page', page),
         )(query);
       },
+    vocabulary(machineName) {
+      if (machineName === undefined) {
+        return request('/taxonomy_vocabulary.json');
+      }
+      return request(`/taxonomy_vocabulary.json?machine_name=${machineName}`);
     },
   };
   return farm;
