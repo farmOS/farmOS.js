@@ -26,6 +26,7 @@ An npm package for fetching data from a farmOS server.
     - [`.get()`](#get-3)
     - [`.send()`](#send-3)
     - [`.delete()`](#delete-3)
+  - [Vocabulary](#vocabulary)
   - [Farm & User Information](#farm--user-information)
     - [`.info()`](#info)
 
@@ -368,6 +369,37 @@ farm.area.send(term, token)
 #### `.delete()`
 
 __THIS METHOD HAS NOT BEEN DEVELOPED YET__
+
+
+### Vocabulary
+
+Every taxonomy term is a member of a particular "vocabulary", so for instance, `"Carrots"` might be a taxonomy term, which is a part of the `farm_crops` vocabulary, while `"Greenhouse #5"` might be term in the `farm_areas` vocabulary. The vocabulary id, `vid`, will be a required field when creating a new term or updating an existing one, so in most cases it will be necessary to lookup the `vid` for the particular vocabulary to which it belongs before sending.
+
+Here are the machine names of the more common vocabularies which are used in farmOS:
+- `farm_animal_types`
+- `farm_areas`
+- `farm_crops`
+- `farm_crop_families`
+- `farm_log_categories`
+- `farm_materials`
+- `farm_quantity_units`
+- `farm_season`
+- `farm_soil_names`
+
+Note that the `vid` for each vocabulary may vary between different farmOS servers, so even if you're storing the `vid` in your application for one farmOS instance, you'll need to repeat the lookup process for any other instance to guarantee you have the proper `vid`.
+
+The only method available is a getter for basic lookup:
+
+```js
+// Get all vocabularies back in a list, by passing no argument
+farm.vocabulary();
+
+// Get a specific vocabulary by passing its machine name
+farm.vocabulary('farm_crops');
+```
+
+It is not possible to create or modify a vocabulary via the API.
+
 
 ### Farm & User Information
 
