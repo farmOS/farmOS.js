@@ -1,4 +1,5 @@
 const axios = require('axios');
+const compose = require('ramda/src/compose');
 
 function farmOS(host, user, password) {
   function request(endpoint, {
@@ -195,17 +196,21 @@ function farmOS(host, user, password) {
         } = opts;
 
         // Build the query string...
-        const queryTypes = appendArrayOfParams('type', type)('/log.json?');
-        const queryTypesDone = appendParam('done', done)(queryTypes);
-        const queryTypesDoneOwner = appendParam('log_owner', log_owner)(queryTypesDone);
+        const query = compose(
+          appendParam('log_owner', log_owner),
+          appendParam('done', done),
+          appendArrayOfParams('type', type),
+        )('/log.json?');
 
         // Append the page # if supplied and use paginated request...
         if (page !== undefined) {
-          const queryTypesDoneOwnerPage = appendParam('page', page)(queryTypesDoneOwner);
-          return request(queryTypesDoneOwnerPage);
+          return compose(
+            request,
+            appendParam('page', page),
+          )(query);
         }
         // Otherwise request all pages
-        return requestAll(queryTypesDoneOwner);
+        return requestAll(query);
       },
       send(payload, token) {
         if (payload.id) {
@@ -228,23 +233,28 @@ function farmOS(host, user, password) {
           return requestAll(`/taxonomy_term.json?bundle=${opts}`);
         }
 
-        // If an options object is passed, convert its properties into URL params
         const {
           page,
           vocabulary,
           name,
         } = opts;
-        const queryName = appendParam('name', name)('/taxonomy_term.json?');
-        const queryNameVocab = appendParam('vocabulary', vocabulary)(queryName);
-        const queryNameVocabPage = appendParam('page', page)(queryNameVocab);
+
+        // Build the url and query params...
+        const query = compose(
+          appendParam('vocabulary', vocabulary),
+          appendParam('name', name),
+        )('/taxonomy_term.json?');
 
         // If no page param is given, request all pages for the given params
         if (page === undefined) {
-          return requestAll(queryNameVocab);
+          return requestAll(query);
         }
 
         // Otherwise submit the request with page parameters
-        return request(queryNameVocabPage);
+        return compose(
+          request,
+          appendParam('page', page),
+        )(query);
       },
     },
   };
