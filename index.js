@@ -256,6 +256,13 @@ function farmOS(host, user, password) {
           appendParam('page', page),
         )(query);
       },
+      send(payload, token) {
+        if (payload.tid) {
+          return request(`/taxonomy_term/${payload.tid}`, { method: 'PUT', payload, token });
+        }
+        return request('/taxonomy_term', { method: 'POST', payload, token });
+      },
+    },
     vocabulary(machineName) {
       if (machineName === undefined) {
         return request('/taxonomy_vocabulary.json');
