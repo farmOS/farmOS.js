@@ -223,21 +223,28 @@ function farmOS(host, user, password) {
     },
     term: {
       get(opts = {}) {
+        // If a taxonomy machine name is passed in, just return the bundle
         if (typeof opts === 'string') {
-          return request(`/taxonomy_term.json?bundle=${opts}`);
+          return requestAll(`/taxonomy_term.json?bundle=${opts}`);
         }
 
+        // If an options object is passed, convert its properties into URL params
         const {
-          page = null,
-          vocabulary = '',
-          name = '',
+          page,
+          vocabulary,
+          name,
         } = opts;
+        const queryName = appendParam('name', name)('/taxonomy_term.json?');
+        const queryNameVocab = appendParam('vocabulary', vocabulary)(queryName);
+        const queryNameVocabPage = appendParam('page', page)(queryNameVocab);
 
-        const vocabParams = (vocabulary !== '') ? `bundle=${vocabulary}` : '';
-        const nameParams = (name !== '') ? `&name=${name}` : '';
-        const pageParams = (page !== null) ? `&page=${page}` : '';
+        // If no page param is given, request all pages for the given params
+        if (page === undefined) {
+          return requestAll(queryNameVocab);
+        }
 
-        return request(`/taxonomy_term.json?${vocabParams}${nameParams}${pageParams}`);
+        // Otherwise submit the request with page parameters
+        return request(queryNameVocabPage);
       },
     },
   };
