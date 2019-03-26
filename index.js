@@ -47,7 +47,7 @@ function farmOS(host, user, password) {
           farm.cookie = res.headers['set-cookie'][0]; // eslint-disable-line prefer-destructuring, no-use-before-define
         }
         return res.data;
-      }).catch((err) => { throw new Error(err); });
+      }).catch((err) => { throw err; });
   }
 
   // Recursive request for looping through multiple pages
