@@ -358,7 +358,12 @@ farm.term.get({
 
 #### `.send()`
 
-__THIS METHOD HAS NOT BEEN DEVELOPED YET__
+Send can be used to create a new taxonomy term, or if the `tid` property is included in the term object, to update an existing area:
+
+```js
+farm.area.send(term, token)
+  .then(res => console.log(`Log was assigned an tid of ${res.tid}`));
+```
 
 #### `.delete()`
 
