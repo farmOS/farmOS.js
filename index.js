@@ -71,6 +71,25 @@ function farmOS(host, user, password) {
     .find(voc => voc.machine_name === 'farm_areas')
     .vid;
 
+  // Utility for appending query params onto an endpoint
+  const appendParam = (name, value) => endpoint => (
+    (endpoint.endsWith('?') && value !== undefined) // eslint-disable-line no-nested-ternary
+      ? `${endpoint}${name}=${value}`
+      : (value !== undefined)
+      ? `${endpoint}&${name}=${value}` // eslint-disable-line indent
+      : endpoint // eslint-disable-line indent
+  );
+
+  // Utility for appending an array of query params onto an endpoint
+  const appendArrayOfParams = (name, arr) => (endpoint) => {
+    if (arr !== undefined) {
+      return arr.reduce((acc, cur, i) => (
+        appendParam(`${name}[${i}]`, cur)(acc)
+      ), endpoint);
+    }
+    return endpoint;
+  };
+
   const farm = {
     authenticate() {
       const payload = {
@@ -168,31 +187,25 @@ function farmOS(host, user, password) {
           return request(`/log/${opts}.json`);
         }
 
-        // If an option object is passed, set defaults and parse the string params
         const {
-          page = null,
-          type = [],
-          log_owner = '',
-          done = '',
+          page,
+          type,
+          log_owner, // eslint-disable-line camelcase
+          done,
         } = opts;
 
-        // Build a querystring based on which params have been passed in the opts object
-        let queryString = '/log.json?';
-        // First, build all requested types onto the string
-        type.forEach((oneType, index) => {
-          queryString = (queryString.slice(-1) !== '?') ? `${queryString}&` : queryString;
-          queryString = `${queryString}type[${index}]=${oneType}`;
-        });
-        // Then append other search params
-        queryString = (queryString.slice(-1) !== '?' && log_owner !== '') ? `${queryString}&` : queryString; // eslint-disable-line camelcase
-        queryString = (log_owner !== '') ? `${queryString}log_owner=${log_owner}` : queryString; // eslint-disable-line camelcase
-        queryString = (queryString.slice(-1) !== '?' && page !== null) ? `${queryString}&` : queryString;
-        queryString = (page !== null) ? `${queryString}page=${page}` : queryString;
-        queryString = (queryString.slice(-1) !== '?' && done !== '') ? `${queryString}&` : queryString;
-        queryString = (done !== '') ? `${queryString}done=${done}` : queryString;
+        // Build the query string...
+        const queryTypes = appendArrayOfParams('type', type)('/log.json?');
+        const queryTypesDone = appendParam('done', done)(queryTypes);
+        const queryTypesDoneOwner = appendParam('log_owner', log_owner)(queryTypesDone);
 
-        // If no ID is passed but page is passed
-        return request(queryString);
+        // Append the page # if supplied and use paginated request...
+        if (page !== undefined) {
+          const queryTypesDoneOwnerPage = appendParam('page', page)(queryTypesDoneOwner);
+          return request(queryTypesDoneOwnerPage);
+        }
+        // Otherwise request all pages
+        return requestAll(queryTypesDoneOwner);
       },
       send(payload, token) {
         if (payload.id) {
