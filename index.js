@@ -56,7 +56,7 @@ function farmOS(host, user, password) {
       .then((response) => {
         const lastPage = +(new URL(response.last)).searchParams.get('page');
         if (page === lastPage) {
-          resolve(list.concat(response.list));
+          resolve({ list: list.concat(response.list) });
           return;
         }
         const newList = list.concat(response.list);
