@@ -91,6 +91,22 @@ function farmOS(host, user, password) {
     return endpoint;
   };
 
+  // Run requests for arrays in batches, so not to exceed URL length of 2000 chars
+  const batchRequest = (name, arr, endpoint, results = []) => {
+    if (arr.length <= 100) {
+      const query = appendArrayOfParams(name, arr)(endpoint);
+      return request(query)
+        .then(_res => ({ list: results.concat(_res.list) }))
+        .catch(err => err);
+    }
+    const thisBatch = arr.slice(0, 100);
+    const nextBatch = arr.slice(99);
+    const query = appendArrayOfParams(name, thisBatch)(endpoint);
+    return request(query)
+      .then(_res => batchRequest(name, nextBatch, endpoint, _res.list))
+      .catch(err => err);
+  };
+
   const farm = {
     authenticate() {
       const payload = {
@@ -189,8 +205,7 @@ function farmOS(host, user, password) {
         }
 
         if (Array.isArray(opts) && opts.length > 0) {
-          const query = appendArrayOfParams('id', opts)('/log.json?');
-          return requestAll(query);
+          return batchRequest('id', opts, '/log.json?');
         }
 
         const {
