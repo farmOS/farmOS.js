@@ -188,6 +188,11 @@ function farmOS(host, user, password) {
           return request(`/log/${opts}.json`);
         }
 
+        if (Array.isArray(opts) && opts.length > 0) {
+          const query = appendArrayOfParams('id', opts)('/log.json?');
+          return requestAll(query);
+        }
+
         const {
           page,
           type,
