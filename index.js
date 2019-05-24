@@ -52,16 +52,16 @@ function farmOS(host, user, password) {
 
   // Recursive request for looping through multiple pages
   function requestAll(url, page = 0, list = []) {
-    return new Promise((resolve, reject) => request(`${url}&page=${page}`)
+    return request(`${url}&page=${page}`)
       .then((response) => {
         const lastPage = +(new URL(response.last)).searchParams.get('page');
         if (page === lastPage) {
-          resolve({ list: list.concat(response.list) });
-          return;
+          return { list: list.concat(response.list) };
         }
         const newList = list.concat(response.list);
-        requestAll(url, page + 1, newList).then(resolve).catch(reject);
-      }).catch(reject));
+        return requestAll(url, page + 1, newList);
+      })
+      .catch(err => err);
   }
 
   // Utility for parsing if there's an ID provided, then formatting the params
