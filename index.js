@@ -204,6 +204,7 @@ function farmOS(host, user, password) {
           return request(`/log/${opts}.json`);
         }
 
+        // If an array of id's are passed in
         if (Array.isArray(opts) && opts.length > 0) {
           return batchRequest('id', opts, '/log.json?');
         }
