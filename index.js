@@ -99,7 +99,7 @@ function farmOS(host, user, password) {
         .then(_res => ({ list: results.concat(_res.list) }))
         .catch(err => err);
     }
-    const thisBatch = arr.slice(0, 100);
+    const thisBatch = arr.slice(0, 99);
     const nextBatch = arr.slice(99);
     const query = appendArrayOfParams(name, thisBatch)(endpoint);
     return request(query)
