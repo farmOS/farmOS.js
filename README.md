@@ -91,17 +91,21 @@ array of objects, which can be filtered:
 ```js
 // Leave the parameter undefined to fetch all available logs
 farm.log.get()
-  .then(res => console.log(`Log #${res[0].id} is called ${res[0].name}`))
+  .then(res => console.log(`Log #${res[0].id} is called ${res.list[0].name}`))
 
 // Accepts a number for the id of the log you wish to fetch
 farm.log.get(123)
   .then(res => console.log(`Log #123 is called ${res.name}`))
 
+// Accepts an array of numbers for a collection of logs
+farm.log.get([123, 456, 789])
+  .then(res => console.log(`Log #${res[0].id} is called ${res.list[0].name}`))
+
 // Pass an options object to filter the results
 farm.log.get({
   page: 2, // default === null
   type: 'farm_observation', // default === ''
-}).then(res => console.log(`Log #${res[0].id} is called ${res[0].name}`))
+}).then(res => console.log(`Log #${res[0].id} is called ${res.list[0].name}`))
 
 ```
 
@@ -172,7 +176,7 @@ array of asset objects, which can be filtered:
 ```js
 // Leave the parameter undefined to fetch all available assets
 farm.asset.get()
-  .then(res => console.log(`Asset #${res[0].id} is called ${res[0].name}`))
+  .then(res => console.log(`Asset #${res[0].id} is called ${res.list[0].name}`))
 
 // Accepts a number for the id of the assets you wish to fetch
 farm.asset.get(123)
@@ -183,7 +187,7 @@ farm.asset.get({
   page: 2, // default === null
   type: 'animal', // default === ''
   archived: true, // default === false
-}).then(res => console.log(`Asset #${res[0].id} is called ${res[0].name}`))
+}).then(res => console.log(`Asset #${res[0].id} is called ${res.list[0].name}`))
 ```
 
 The options object can have two properties: `page` is the page number in the
@@ -257,7 +261,7 @@ Use the `.get()` method to retrieve a single area as a JavaScript object, or an 
 ```js
 // Leave the parameter undefined to fetch all available areas
 farm.area.get()
-  .then(res => console.log(`Area #${res[0].tid} is called ${res[0].name}`))
+  .then(res => console.log(`Area #${res[0].tid} is called ${res.list[0].name}`))
 
 // Accepts a number for the tid of the area you wish to fetch
 farm.area.get(123)
@@ -267,7 +271,7 @@ farm.area.get(123)
 farm.area.get({
   page: 2, // default === null
   type: 'field', // default === ''
-}).then(res => console.log(`Area #${res[0].tid} is called ${res[0].name}`))
+}).then(res => console.log(`Area #${res[0].tid} is called ${res.list[0].name}`))
 ```
 
 __NOTE:__ Areas use a `tid` property, unlike logs and assets which have an `id`. This stands for taxonomy ID. In the future this may be changed to make it more consistent with the other entities.
