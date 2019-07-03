@@ -7,11 +7,14 @@ function farmOS(host, user, password) {
     payload = '',
     token = '',
     auth = false,
+    // Add a default timeout of 5 seconds
+    timeout = 5000,
   } = {}) {
     const url = host + endpoint;
     // Set basic axios options, for a non-auth GET requests
     const opts = {
       method,
+      timeout,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'json',
