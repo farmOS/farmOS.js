@@ -64,7 +64,7 @@ function farmOS(host, user, password) {
         const newList = list.concat(response.list);
         return requestAll(url, page + 1, newList);
       })
-      .catch(err => err);
+      .catch((err) => { throw err; });
   }
 
   // Utility for parsing if there's an ID provided, then formatting the params
@@ -100,14 +100,14 @@ function farmOS(host, user, password) {
       const query = appendArrayOfParams(name, arr)(endpoint);
       return request(query)
         .then(_res => ({ list: results.concat(_res.list) }))
-        .catch(err => err);
+        .catch((err) => { throw err; });
     }
     const thisBatch = arr.slice(0, 99);
     const nextBatch = arr.slice(99);
     const query = appendArrayOfParams(name, thisBatch)(endpoint);
     return request(query)
       .then(_res => batchRequest(name, nextBatch, endpoint, _res.list))
-      .catch(err => err);
+      .catch((err) => { throw err; });
   };
 
   const farm = {
