@@ -242,7 +242,7 @@ function farmOS(host, user, password) {
             .then(res => ({
               ...res,
               id: payload.id,
-              uri: payload.uri,
+              uri: `${host}/log/${payload.id}`,
               resource: 'log',
             }));
         }
