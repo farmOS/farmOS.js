@@ -1,6 +1,20 @@
 const axios = require('axios');
 const compose = require('ramda/src/compose');
 
+// Determine if a string can be parsed to an integer (not a float).
+const isInt = string => /^[-+]?(\d+|Infinity)$/.test(string);
+// Reviver function which converts string values to ints, if possible.
+const reviver = (key, val) => (typeof val === 'string' && isInt(val) ? +val : val);
+// Parse JSON response by converting strings to ints; if the response is not
+// JSON (eg, an error msg), return the response text as is.
+const responseParser = (res) => {
+  try {
+    return JSON.parse(res, reviver);
+  } catch (_) {
+    return res;
+  }
+};
+
 function farmOS(host, user, password) {
   function request(endpoint, {
     method = 'GET',
@@ -18,6 +32,9 @@ function farmOS(host, user, password) {
       },
       withCredentials: true,
     };
+    if (!auth) {
+      opts.transformResponse = [responseParser];
+    }
     // Axios options for non-auth POST and PUT requests
     if ((method === 'POST' || method === 'PUT') && !auth) {
       opts.headers['X-CSRF-Token'] = token;
