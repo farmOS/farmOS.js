@@ -1,51 +1,150 @@
 const axios = require('axios');
 const compose = require('ramda/src/compose');
 
-function farmOS(host, user, password) {
-  function request(endpoint, {
-    method = 'GET',
-    payload = '',
-    token = '',
-    auth = false,
-  } = {}) {
-    const url = host + endpoint;
-    // Set basic axios options, for a non-auth GET requests
+function farmOS(host, clientId = 'farm', tokenUpdater = null) {
+  const oauthCredentials = {
+    clientId,
+    accessTokenUri: '/oauth2/token',
+  }
+
+  // Instantiate axios client.
+  const clientOptions = {
+    baseURL: host,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: `json`,
+    },
+  };
+  const client = axios.create(clientOptions);
+
+  // Keep track if the OAuth token is being refreshed.
+  let isRefreshing = false;
+
+  // Array of callbacks to call once token is refreshed.
+  let subscribers = [];
+
+  // Add to array of callbacks.
+  function subscribeTokenRefresh(cb) {
+    subscribers.push(cb);
+  }
+
+  // Call all subscribers. 
+  function onRefreshed(token) {
+    subscribers.map(cb => cb(token));
+  }
+
+  // Helper function to refresh OAuth2 token.
+  function refreshToken(refreshToken) {
+    isRefreshing = true;
     const opts = {
-      method,
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'json',
       },
-      withCredentials: true,
+      data: {
+        grant_type: 'refresh_token',
+        client_id: oauthCredentials.clientId,
+        refresh_token: refreshToken,
+      }
+    };
+    return axios(host + oauthCredentials.accessTokenUri, opts)
+      .then((res) => {
+        const token = farm.useToken(res.data);
+        isRefreshing = false;
+        onRefreshed(token.access_token);
+        subscribers = [];
+        return token;
+      })
+      .catch((error) => { 
+        subscribers = [];
+        isRefreshing = false;
+        throw error;
+      });
+  }
+
+  // Helper function to get an OAuth access token.
+  // This will attempt to refresh the token if needed.
+  // Returns a Promise that resvoles as the access token.
+  function getAccessToken(token) {
+    if (token == null || token.access_token == null || token.expires == null) {
+      throw new Error('client must be authorized before making requests.');
+    }
+
+    // Wait for new access token if currently refreshing.
+    if (isRefreshing) {
+      const requestSubscribers = new Promise(resolve => {
+        subscribeTokenRefresh(token => {
+          resolve(token);
+        });
+      });
+      return requestSubscribers;
+    }
+
+    // Refresh if token expired.
+    // - 1000 ms to factor for tokens that might expire while in flight.
+    if (!isRefreshing && token.expires - 1000 < Date.now()) {
+      return refreshToken(token.refresh_token).then(token => token.access_token);
+    }
+
+    // Else return the current access token.
+    return Promise.resolve(token.access_token);
+  };
+
+  // Add axios request interceptor to the client.
+  // This adds the Authorization Bearer token header.
+  client.interceptors.request.use((config) => {
+    // Only add access token to header.
+    return getAccessToken(farm.token).then(accessToken => {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+      return Promise.resolve(config);
+    }).catch(error => { throw error; })
+  }, (error) => {
+    return Promise.reject(error);
+  });
+
+  // Add axios response interceptor to the client.
+  // This tries to resolve 403 errors due to expired tokens.
+  client.interceptors.response.use(undefined, err => {
+    const { config } = err;
+    const originalRequest = config;
+
+    if ( err.response && err.response.status === 403) {
+      // Refresh the token and retry.
+      if (!isRefreshing) {
+        isRefreshing = true;
+        return refreshToken(farm.token.refresh_token).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
+          return axios(originalRequest);
+        });
+      }
+      // Else subscribe for new access token after refresh.
+      const requestSubscribers = new Promise(resolve => {
+        subscribeTokenRefresh(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          resolve(axios(originalRequest));
+        });
+      });
+      return requestSubscribers;
+    }
+    return Promise.reject(err);
+  });
+
+  function request(endpoint, {
+    method = 'GET',
+    payload = '',
+  } = {}) {
+    // Set request method. 
+    const opts = {
+      method,
     };
     // Axios options for non-auth POST and PUT requests
-    if ((method === 'POST' || method === 'PUT') && !auth) {
-      opts.headers['X-CSRF-Token'] = token;
+    if (method === 'POST' || method === 'PUT') {
       opts.data = JSON.stringify(payload);
     }
-    // Axios options for authentication GET requests
-    if (auth) {
-      opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    }
-    // Axios options for authentication POST requests
-    if (method === 'POST' && auth) {
-      opts.data = `name=${payload.name}&pass=${payload.pass}&form_id=${payload.form_id}`; // eslint-disable-line camelcase
-      // Accept 30* status codes as valid response w/o redirecting,
-      // so we can get the cookie from headers
-      opts.maxRedirects = 0;
-      opts.validateStatus = status => (status >= 200 && status < 400);
-    }
-    // In Node, the cookie will be set explicitly, and needs to be added to the header
-    if (farm.cookie !== '') { // eslint-disable-line no-use-before-define
-      opts.headers.Cookie = farm.cookie; // eslint-disable-line no-use-before-define
-    }
-    return axios(url, opts)
+    // Return the request.
+    return client(endpoint, opts)
       .then((res) => {
-        // In Node, the cookie needs to be saved manually;
-        // browsers will ignore this and store the cookie automagically.
-        if (res.headers['set-cookie']) {
-          farm.cookie = res.headers['set-cookie'][0]; // eslint-disable-line prefer-destructuring, no-use-before-define
-        }
         return res.data;
       }).catch((err) => { throw err; });
   }
@@ -108,27 +207,62 @@ function farmOS(host, user, password) {
   };
 
   const farm = {
-    authenticate() {
-      const payload = {
-        form_id: 'user_login',
-        name: user,
-        pass: password,
-      };
-      return request('/user/login', { method: 'POST', payload, auth: true })
-        .then(() => request('/restws/session/token', { auth: true })
-          .then(token => token)
-          .catch((error) => { throw error; }))
-        .catch((error) => { throw error; });
+    // Specify an existing OAuth token to use.
+    useToken(token) {
+      // Build new token.
+      farm.token = token;
+
+      // Calculate new expiration time.
+      if (!token.expires) {
+        farm.token.expires = Date.now() + token.expires_in * 1000;
+      }
+
+      // Call tokenUpdater if provided.
+      if (tokenUpdater != null) {
+        tokenUpdater(farm.token);
+      }
+      return farm.token;
+    },
+    // Authorize with username and password.
+    authorize(user, password, scope = 'user_access') {
+      if (user != null && password != null) {
+        const tokenConfig = {
+          username: user,
+          password: password,
+          scope,
+        };
+        // Build opts for oauth2 password grant.
+        const opts = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'json',
+          },
+          data: {
+            grant_type: 'password',
+            client_id: oauthCredentials.clientId,
+            scope: scope,
+            username: user,
+            password: password,
+          }
+        };
+        return axios(host + oauthCredentials.accessTokenUri, opts)
+          .then((res) => {
+            return farm.useToken(res.data);
+          })
+          .catch((error) => { throw error; });
+      }
     },
     logout() {
-      this.cookie = '';
-      return request('/user/logout');
+      // TODO: This library doesn't support OAuth2 Revoke.
+      farm.token = null;
+      return Promise.resolve();
     },
-    cookie: '',
+    token: null,
     area: {
-      delete(id, token) {
+      delete(id) {
         return request('/taxonomy_vocabulary.json').then(res => (
-          request(`/taxonomy_term.json?vocabulary=${areaVid(res)}${params(id)}`, { method: 'DELETE', token })
+          request(`/taxonomy_term.json?vocabulary=${areaVid(res)}${params(id)}`, { method: 'DELETE' })
         ));
       },
       get(opts = {}) {
@@ -152,15 +286,15 @@ function farmOS(host, user, password) {
           return request(`/taxonomy_term.json?vocabulary=${areaVid(res)}&${typeParams}&${pageParams}`);
         });
       },
-      send(payload, id, token) {
+      send(payload, id) {
         return request('/taxonomy_vocabulary.json').then(res => (
-          request(`/taxonomy_term.json?vocabulary=${areaVid(res)}${params(id)}`, { method: 'POST', payload, token })
+          request(`/taxonomy_term.json?vocabulary=${areaVid(res)}${params(id)}`, { method: 'POST', payload })
         ));
       },
     },
     asset: {
-      delete(id, token) {
-        return request(`/farm_asset/${id}.json`, { method: 'DELETE', token });
+      delete(id) {
+        return request(`/farm_asset/${id}.json`, { method: 'DELETE' });
       },
       get(opts = {}) {
         // If an ID # is passed instead of an options object
@@ -186,8 +320,8 @@ function farmOS(host, user, password) {
         // If no ID is passed but page is passed
         return request(`/farm_asset.json?${typeParams}${archiveParams}${pageParams}`);
       },
-      send(payload, id, token) {
-        return request(`/farm_asset${params(id)}`, { method: 'POST', payload, token });
+      send(payload, id) {
+        return request(`/farm_asset${params(id)}`, { method: 'POST', payload });
       },
     },
     info() {
@@ -195,8 +329,8 @@ function farmOS(host, user, password) {
       return request('/farm.json');
     },
     log: {
-      delete(id, token) {
-        return request(`/log/${id}.json`, { method: 'DELETE', token });
+      delete(id) {
+        return request(`/log/${id}.json`, { method: 'DELETE' });
       },
       get(opts = {}) {
         // If an ID # is passed instead of an options object
@@ -235,9 +369,9 @@ function farmOS(host, user, password) {
         // Otherwise request all pages
         return requestAll(query);
       },
-      send(payload, token) {
+      send(payload) {
         if (payload.id) {
-          return request(`/log/${payload.id}`, { method: 'PUT', payload, token })
+          return request(`/log/${payload.id}`, { method: 'PUT', payload })
             // Add properties back to response so it mirrors a POST response
             .then(res => ({
               ...res,
@@ -246,7 +380,7 @@ function farmOS(host, user, password) {
               resource: 'log',
             }));
         }
-        return request('/log', { method: 'POST', payload, token });
+        return request('/log', { method: 'POST', payload });
       },
     },
     term: {
@@ -279,11 +413,11 @@ function farmOS(host, user, password) {
           appendParam('page', page),
         )(query);
       },
-      send(payload, token) {
+      send(payload) {
         if (payload.tid) {
-          return request(`/taxonomy_term/${payload.tid}`, { method: 'PUT', payload, token });
+          return request(`/taxonomy_term/${payload.tid}`, { method: 'PUT', payload });
         }
-        return request('/taxonomy_term', { method: 'POST', payload, token });
+        return request('/taxonomy_term', { method: 'POST', payload });
       },
     },
     vocabulary(machineName) {
