@@ -5,6 +5,7 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
   const oauthCredentials = {
     clientId,
     accessTokenUri: '/oauth2/token',
+    revokeTokenUri: '/oauth2/revoke',
   }
 
   // Instantiate axios client.
@@ -61,6 +62,23 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
         isRefreshing = false;
         throw error;
       });
+  }
+
+  // Helper function to revoke OAuth2 token.
+  function revokeToken(tokenType, token) {
+    const opts = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'json',
+      },
+      data: {
+        token_type_hint: tokenType,
+        token,
+      }
+    };
+    return axios(host + oauthCredentials.revokeTokenUri, opts)
+      .catch((error) => { throw error; });
   }
 
   // Helper function to get an OAuth access token.
@@ -253,10 +271,16 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
           .catch((error) => { throw error; });
       }
     },
-    logout() {
-      // TODO: This library doesn't support OAuth2 Revoke.
-      farm.token = null;
-      return Promise.resolve();
+    revokeTokens() {
+      const revokeAccessToken = revokeToken('access_token', farm.token.access_token);
+      const revokeRefreshToken = revokeToken('refresh_token', farm.token.refresh_token);
+      return Promise.all([revokeAccessToken, revokeRefreshToken]).then(() => {
+        return true;
+      }).catch(() => {
+        return false;
+      }).finally(() => {
+        farm.token = null;
+      });
     },
     token: null,
     area: {
