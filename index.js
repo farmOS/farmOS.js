@@ -1,12 +1,18 @@
 const axios = require('axios');
 const compose = require('ramda/src/compose');
 
-function farmOS(host, clientId = 'farm', tokenUpdater = null) {
+function farmOS(host, opts) {
+  const {
+    clientId = 'farm',
+    getToken = () => farm.token,
+    setToken = token => farm.token = token,
+  } = opts;
+
   const oauthCredentials = {
     clientId,
     accessTokenUri: '/oauth2/token',
     revokeTokenUri: '/oauth2/revoke',
-  }
+  };
 
   // Instantiate axios client.
   const clientOptions = {
@@ -34,6 +40,19 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
     subscribers.map(cb => cb(token));
   }
 
+  // Helper function to parse tokens from server.
+  function parseToken(token) {
+    // Calculate new expiration time.
+    if (!token.expires) {
+      token.expires = Date.now() + token.expires_in * 1000;
+    }
+
+    // Update the token state.
+    setToken(token);
+
+    return token;
+  }
+
   // Helper function to refresh OAuth2 token.
   function refreshToken(refreshToken) {
     isRefreshing = true;
@@ -51,7 +70,7 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
     };
     return axios(host + oauthCredentials.accessTokenUri, opts)
       .then((res) => {
-        const token = farm.useToken(res.data);
+        const token = parseToken(res.data);
         isRefreshing = false;
         onRefreshed(token.access_token);
         subscribers = [];
@@ -113,7 +132,7 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
   // This adds the Authorization Bearer token header.
   client.interceptors.request.use((config) => {
     // Only add access token to header.
-    return getAccessToken(farm.token).then(accessToken => {
+    return getAccessToken(getToken()).then(accessToken => {
       config.headers.Authorization = `Bearer ${accessToken}`;
       return Promise.resolve(config);
     }).catch(error => { throw error; })
@@ -131,7 +150,7 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
       // Refresh the token and retry.
       if (!isRefreshing) {
         isRefreshing = true;
-        return refreshToken(farm.token.refresh_token).then(token => {
+        return refreshToken(getToken().refresh_token).then(token => {
           originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
           return axios(originalRequest);
         });
@@ -225,22 +244,6 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
   };
 
   const farm = {
-    // Specify an existing OAuth token to use.
-    useToken(token) {
-      // Build new token.
-      farm.token = token;
-
-      // Calculate new expiration time.
-      if (!token.expires) {
-        farm.token.expires = Date.now() + token.expires_in * 1000;
-      }
-
-      // Call tokenUpdater if provided.
-      if (tokenUpdater != null) {
-        tokenUpdater(farm.token);
-      }
-      return farm.token;
-    },
     // Authorize with username and password.
     authorize(user, password, scope = 'user_access') {
       if (user != null && password != null) {
@@ -266,20 +269,21 @@ function farmOS(host, clientId = 'farm', tokenUpdater = null) {
         };
         return axios(host + oauthCredentials.accessTokenUri, opts)
           .then((res) => {
-            return farm.useToken(res.data);
+            return parseToken(res.data);
           })
           .catch((error) => { throw error; });
       }
     },
     revokeTokens() {
-      const revokeAccessToken = revokeToken('access_token', farm.token.access_token);
-      const revokeRefreshToken = revokeToken('refresh_token', farm.token.refresh_token);
+      const token = getToken();
+      const revokeAccessToken = revokeToken('access_token', token.access_token);
+      const revokeRefreshToken = revokeToken('refresh_token', token.refresh_token);
       return Promise.all([revokeAccessToken, revokeRefreshToken]).then(() => {
         return true;
       }).catch(() => {
         return false;
       }).finally(() => {
-        farm.token = null;
+        setToken(null);
       });
     },
     token: null,
