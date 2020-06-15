@@ -8,27 +8,32 @@
 
 An npm package for fetching data from a farmOS server.
 
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Logs](#logs)
-    - [`.get()`](#get)
-    - [`.send()`](#send)
-    - [`.delete()`](#delete)
-  - [Assets](#assets)
-    - [`.get()`](#get-1)
-    - [`.send()`](#send-1)
-    - [`.delete()`](#delete-1)
-  - [Areas](#areas)
-    - [`.get()`](#get-2)
-    - [`.send()`](#send-2)
-    - [`.delete()`](#delete-2)
-  - [Taxonomy Terms](#taxonomy-terms)
-    - [`.get()`](#get-3)
-    - [`.send()`](#send-3)
-    - [`.delete()`](#delete-3)
-  - [Vocabulary](#vocabulary)
-  - [Farm & User Information](#farm--user-information)
-    - [`.info()`](#info)
+- [farmOS.js](#farmosjs)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Authorization](#authorization)
+      - [`.authorize()`](#authorize)
+      - [Token State](#token-state)
+    - [Logs](#logs)
+      - [`.get()`](#get)
+      - [`.send()`](#send)
+      - [`.delete()`](#delete)
+    - [Assets](#assets)
+      - [`.get()`](#get-1)
+      - [`.send()`](#send-1)
+      - [`.delete()`](#delete-1)
+    - [Areas](#areas)
+      - [`.get()`](#get-2)
+      - [`.send()`](#send-2)
+      - [`.delete()`](#delete-2)
+    - [Taxonomy Terms](#taxonomy-terms)
+      - [`.get()`](#get-3)
+      - [`.send()`](#send-3)
+      - [`.delete()`](#delete-3)
+    - [Vocabulary](#vocabulary)
+    - [Farm & User Information](#farm--user-information)
+      - [`.info()`](#info)
+  - [MAINTAINERS](#maintainers)
 
 ## Installation
 To install using npm (the Node Package Manager):
@@ -45,19 +50,71 @@ To create an instance of farmOS.js:
 import farmOS from 'farmos';
 
 const host = 'https://farm.example.com';
-const username = 'FarmerSteve';
-const password = 'XXXXXXXXXXX';
-const farm = farmos(host, username, password);
+const clientId = 'my_clientId'; // Defaults to 'farm', but apps should use their own OAuth Client.
+const farm = farmos(host, {clientId});
 ```
 
-### Authentication
+### Authorization
 
-#### `.authenticate()`
+Before farmOS.js can make requests to a farmOS server, the user must first
+*authorize* the client with an OAuth2 token. This token will be used to 
+*authenticate* requests to the farmOS server.
+
+The simplest authorization flow uses a username and password. farmOS.js
+implements this with [`farm.authorize()`](#.authorize). More advanced use 
+cases may use a different authorization flow to retrieve an OAuth2 Token.
+These use cases may use the `getToken` and `setToken` methods as described in 
+[Token State](#token-state) to authorize a farmOS.js client.
+
+For more information on using the farmOS OAuth2 Authorization server see the
+[API documentation](https://farmos.org/development/api/#1-oauth2-authorization-tokens).
+
+#### `.authorize()`
 
 ```js
-farm.authenticate()
+const username = 'FarmerSteve';
+const password = 'XXXXXXXXXXX';
+const scope = 'farm_info'; // Defaults to 'user_access'
+farm.authorize(user, password, scope)
   .then(token => localStorage.setItem('token', token));
 ```
+
+#### Token State
+
+Uses cases that don't require the user to login at the beginning of each 
+session must manage their own token state outside of the farmOS.js client (also
+referred to as "offline access".) To make this possible, farmOS.js allows 
+clients to be instantiated with optional `getToken` and `saveToken` methods.
+
+`getToken` allows the farmOS.js client to be instantiated with an existing 
+OAuth2 token. This method will be called before the client makes a request to 
+ensure it is using the latest OAuth2 token.
+
+The `saveToken` method is called after an `access_token` expires and is 
+refreshed using the `refresh_token`. Because an `access_token` could expire at 
+at anytime during the lifetime of the farmOS.js client, it's important this
+method saves new OAuth2 tokens to the same state used by the `getToken` method.
+
+farmOS Field Kit saves state to the browser's local storage:
+
+```js
+const getToken = () => JSON.parse(localStorage.getItem("token"));
+const setToken = token => localStorage.setItem("token", JSON.stringify(token));
+let client = farmOS(host, { clientId: 'farm_client', getToken, setToken });
+```
+
+:warning: WARNING ABOUT PARALLEL REQUESTS :warning:
+
+This library takes certain measures to ensure that a batch of requests, if 
+executed in parallel with the same `farm_client` instance, will refresh the 
+OAuth token only once, and process subsequent requests using the new token. 
+This cannot be guaranteed, however, for parallel requests made with separate 
+instances of `farm_client`. Such requests may be subject to race conditions,
+which could cause many of them to fail because they didn't use the newest 
+token. It is the responsibility of your application to manage requests so 
+they either execute parallel requests using the same farm instance, or avoid
+such parallel requests altogether.
+
 
 ### Logs
 
@@ -128,7 +185,7 @@ Send can be used to create a new log, or if the `id` property is included, to
 update an existing log:
 
 ```js
-farm.log.send(log, token)
+farm.log.send(log)
   .then(res => console.log(`Log was assigned an id of ${res.id}`));
 ```
 
@@ -138,7 +195,7 @@ __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 
 ```js
 // For now, just an example of what it should look like eventually
-farm.log.delete(123, token);
+farm.log.delete(123);
 ```
 
 ### Assets
@@ -208,7 +265,7 @@ Other asset types may be provided by add-on modules in farmOS.
 Send can be used to create a new asset, or if the `id` property is included, to update an existing asset:
 
 ```js
-farm.asset.send(asset, token)
+farm.asset.send(asset)
   .then(res => console.log(`Asset was assigned an id of ${res.id}`));
 ```
 
@@ -218,7 +275,7 @@ __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 
 ```js
 // For now, just an example of what it should look like eventually
-farm.asset.delete(123, token);
+farm.asset.delete(123);
 ```
 
 ### Areas
@@ -293,7 +350,7 @@ Other area types may be provided by add-on modules in farmOS.
 Send can be used to create a new area, or if the `tid` property is included, to update an existing area:
 
 ```js
-farm.area.send(area, token)
+farm.area.send(area)
   .then(res => console.log(`Log was assigned an tid of ${res.tid}`));
 ```
 
@@ -303,7 +360,7 @@ __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 
 ```js
 // For now, just an example of what it should look like eventually
-farm.area.delete(123, token);
+farm.area.delete(123);
 ```
 
 ### Taxonomy Terms
@@ -366,7 +423,7 @@ farm.term.get({
 Send can be used to create a new taxonomy term, or if the `tid` property is included in the term object, to update an existing area:
 
 ```js
-farm.area.send(term, token)
+farm.area.send(term)
   .then(res => console.log(`Log was assigned an tid of ${res.tid}`));
 ```
 
