@@ -293,6 +293,9 @@ function farmOS(host, opts) {
           request(`/taxonomy_term.json?vocabulary=${areaVid(res)}${params(id)}`, { method: 'DELETE' })
         ));
       },
+      geojson() {
+        return request('/farm/areas/geojson/');
+      },
       get(opts = {}) {
         return request('/taxonomy_vocabulary.json').then((res) => {
           // If an ID # is passed instead of an options object

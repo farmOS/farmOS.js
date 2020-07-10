@@ -26,6 +26,7 @@ An npm package for fetching data from a farmOS server.
       - [`.get()`](#get-2)
       - [`.send()`](#send-2)
       - [`.delete()`](#delete-2)
+      - [`.geojson()`](#geojson)
     - [Taxonomy Terms](#taxonomy-terms)
       - [`.get()`](#get-3)
       - [`.send()`](#send-3)
@@ -362,6 +363,16 @@ __THIS METHOD HAS NOT BEEN FULLY DEVELOPED YET AND MAY NOT WORK__
 // For now, just an example of what it should look like eventually
 farm.area.delete(123);
 ```
+
+#### `.geojson()`
+Get a [GeoJSON](https://geojson.org/) document of all the farm's area geometries:
+
+```js
+farm.area.geojson()
+  .then(geojson => console.log(JSON.stringify(geojson)));
+```
+
+No parameters are accepted as of now, but in the future we hope to permit filtering by area type.
 
 ### Taxonomy Terms
 farmOS allows farmers to build vocabularies of terms for various categorization
