@@ -1,12 +1,12 @@
 const axios = require('axios');
 const compose = require('ramda/src/compose');
 
-function farmOS(host, opts) {
+function farmOS(host, oAuthOpts) {
   const {
     clientId = 'farm',
-    getToken = () => farm.token,
-    setToken = token => farm.token = token,
-  } = opts;
+    getToken = () => farm.token, // eslint-disable-line no-use-before-define
+    setToken = (token) => { farm.token = token; }, // eslint-disable-line no-use-before-define
+  } = oAuthOpts;
 
   const oauthCredentials = {
     clientId,
@@ -19,7 +19,7 @@ function farmOS(host, opts) {
     baseURL: host,
     headers: {
       'Content-Type': 'application/json',
-      Accept: `json`,
+      Accept: 'json',
     },
   };
   const client = axios.create(clientOptions);
@@ -35,28 +35,28 @@ function farmOS(host, opts) {
     subscribers.push(cb);
   }
 
-  // Call all subscribers. 
+  // Call all subscribers.
   function onRefreshed(token) {
-    subscribers.map(cb => cb(token));
+    subscribers.forEach((cb) => { cb(token); });
   }
 
   // Helper function to parse tokens from server.
   function parseToken(token) {
     // Calculate new expiration time.
-    if (!token.expires) {
-      token.expires = Date.now() + token.expires_in * 1000;
-    }
+    const newToken = !token.expires
+      ? { ...token, expires: (Date.now() + token.expires_in * 1000) }
+      : token;
 
     // Update the token state.
-    setToken(token);
+    setToken(newToken);
 
-    return token;
+    return newToken;
   }
 
   // Helper function to refresh OAuth2 token.
-  function refreshToken(refreshToken) {
+  function refreshToken(token) {
     isRefreshing = true;
-    const opts = {
+    const refreshOpts = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,18 +65,18 @@ function farmOS(host, opts) {
       data: {
         grant_type: 'refresh_token',
         client_id: oauthCredentials.clientId,
-        refresh_token: refreshToken,
-      }
+        refresh_token: token,
+      },
     };
-    return axios(host + oauthCredentials.accessTokenUri, opts)
+    return axios(host + oauthCredentials.accessTokenUri, refreshOpts)
       .then((res) => {
-        const token = parseToken(res.data);
+        const newToken = parseToken(res.data);
         isRefreshing = false;
         onRefreshed(token.access_token);
         subscribers = [];
-        return token;
+        return newToken;
       })
-      .catch((error) => { 
+      .catch((error) => {
         subscribers = [];
         isRefreshing = false;
         throw error;
@@ -85,7 +85,7 @@ function farmOS(host, opts) {
 
   // Helper function to revoke OAuth2 token.
   function revokeToken(tokenType, token) {
-    const opts = {
+    const revokeOpts = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,9 +94,9 @@ function farmOS(host, opts) {
       data: {
         token_type_hint: tokenType,
         token,
-      }
+      },
     };
-    return axios(host + oauthCredentials.revokeTokenUri, opts)
+    return axios(host + oauthCredentials.revokeTokenUri, revokeOpts)
       .catch((error) => { throw error; });
   }
 
@@ -110,54 +110,53 @@ function farmOS(host, opts) {
 
     // Wait for new access token if currently refreshing.
     if (isRefreshing) {
-      const requestSubscribers = new Promise(resolve => {
-        subscribeTokenRefresh(token => {
-          resolve(token);
-        });
-      });
-      return requestSubscribers;
+      return new Promise(subscribeTokenRefresh);
     }
 
     // Refresh if token expired.
     // - 1000 ms to factor for tokens that might expire while in flight.
     if (!isRefreshing && token.expires - 1000 < Date.now()) {
-      return refreshToken(token.refresh_token).then(token => token.access_token);
+      return refreshToken(token.refresh_token).then(t => t.access_token);
     }
 
     // Else return the current access token.
     return Promise.resolve(token.access_token);
-  };
+  }
 
   // Add axios request interceptor to the client.
   // This adds the Authorization Bearer token header.
-  client.interceptors.request.use((config) => {
-    // Only add access token to header.
-    return getAccessToken(getToken()).then(accessToken => {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-      return Promise.resolve(config);
-    }).catch(error => { throw error; })
-  }, (error) => {
-    return Promise.reject(error);
-  });
+  client.interceptors.request.use(
+    config => getAccessToken(getToken())
+      .then(accessToken => Promise.resolve({
+        ...config,
+        headers: {
+          ...config.headers,
+          // Only add access token to header.
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }))
+      .catch((error) => { throw error; }),
+    Promise.reject,
+  );
 
   // Add axios response interceptor to the client.
   // This tries to resolve 403 errors due to expired tokens.
-  client.interceptors.response.use(undefined, err => {
+  client.interceptors.response.use(undefined, (err) => {
     const { config } = err;
     const originalRequest = config;
 
-    if ( err.response && err.response.status === 403) {
+    if (err.response && err.response.status === 403) {
       // Refresh the token and retry.
       if (!isRefreshing) {
         isRefreshing = true;
-        return refreshToken(getToken().refresh_token).then(token => {
+        return refreshToken(getToken().refresh_token).then((token) => {
           originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
           return axios(originalRequest);
         });
       }
       // Else subscribe for new access token after refresh.
-      const requestSubscribers = new Promise(resolve => {
-        subscribeTokenRefresh(token => {
+      const requestSubscribers = new Promise((resolve) => {
+        subscribeTokenRefresh((token) => {
           originalRequest.headers.Authorization = `Bearer ${token}`;
           resolve(axios(originalRequest));
         });
@@ -171,7 +170,7 @@ function farmOS(host, opts) {
     method = 'GET',
     payload = '',
   } = {}) {
-    // Set request method. 
+    // Set request method.
     const opts = {
       method,
     };
@@ -181,9 +180,8 @@ function farmOS(host, opts) {
     }
     // Return the request.
     return client(endpoint, opts)
-      .then((res) => {
-        return res.data;
-      }).catch((err) => { throw err; });
+      .then(res => res.data)
+      .catch((err) => { throw err; });
   }
 
   // Recursive request for looping through multiple pages
@@ -246,45 +244,35 @@ function farmOS(host, opts) {
   const farm = {
     // Authorize with username and password.
     authorize(user, password, scope = 'user_access') {
-      if (user != null && password != null) {
-        const tokenConfig = {
-          username: user,
-          password: password,
+      // Build opts for oauth2 password grant.
+      const opts = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'json',
+        },
+        data: {
+          grant_type: 'password',
+          client_id: oauthCredentials.clientId,
           scope,
-        };
-        // Build opts for oauth2 password grant.
-        const opts = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'json',
-          },
-          data: {
-            grant_type: 'password',
-            client_id: oauthCredentials.clientId,
-            scope: scope,
-            username: user,
-            password: password,
-          }
-        };
-        return axios(host + oauthCredentials.accessTokenUri, opts)
-          .then((res) => {
-            return parseToken(res.data);
-          })
-          .catch((error) => { throw error; });
-      }
+          username: user,
+          password,
+        },
+      };
+      return axios(host + oauthCredentials.accessTokenUri, opts)
+        .then(res => parseToken(res.data))
+        .catch((error) => { throw error; });
     },
     revokeTokens() {
       const token = getToken();
       const revokeAccessToken = revokeToken('access_token', token.access_token);
       const revokeRefreshToken = revokeToken('refresh_token', token.refresh_token);
-      return Promise.all([revokeAccessToken, revokeRefreshToken]).then(() => {
-        return true;
-      }).catch(() => {
-        return false;
-      }).finally(() => {
-        setToken(null);
-      });
+      return Promise.all([revokeAccessToken, revokeRefreshToken])
+        .then(() => true)
+        .catch(() => false)
+        .finally(() => {
+          setToken(null);
+        });
     },
     token: null,
     area: {
