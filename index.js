@@ -2,10 +2,11 @@ const axios = require('axios');
 const compose = require('ramda/src/compose');
 
 function farmOS(host, oAuthOpts) {
+  let currentToken = null;
   const {
     clientId = 'farm',
-    getToken = () => farm.token, // eslint-disable-line no-use-before-define
-    setToken = (token) => { farm.token = token; }, // eslint-disable-line no-use-before-define
+    getToken = () => currentToken,
+    setToken = (t) => { currentToken = t; },
   } = oAuthOpts;
 
   const oauthCredentials = {
@@ -274,7 +275,7 @@ function farmOS(host, oAuthOpts) {
           setToken(null);
         });
     },
-    token: null,
+    getToken,
     area: {
       delete(id) {
         return request('/taxonomy_vocabulary.json').then(res => (
