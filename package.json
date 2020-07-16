@@ -14,7 +14,7 @@
     "agriculture"
   ],
   "author": "farmOS team",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/farmOS/farmOS.js/issues"
   },
