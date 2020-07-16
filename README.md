@@ -85,13 +85,15 @@ farm.authorize(user, password, scope)
 Uses cases that don't require the user to login at the beginning of each 
 session must manage their own token state outside of the farmOS.js client (also
 referred to as "offline access".) To make this possible, farmOS.js allows 
-clients to be instantiated with optional `getToken` and `saveToken` methods.
+clients to be instantiated with optional `getToken` and `setToken` methods.
 
 `getToken` allows the farmOS.js client to be instantiated with an existing 
 OAuth2 token. This method will be called before the client makes a request to 
-ensure it is using the latest OAuth2 token.
+ensure it is using the latest OAuth2 token. This method is also exposed as
+`farm.getToken()`, which can be useful if no optional `getToken` method was
+provided when the client was instantiated.
 
-The `saveToken` method is called after an `access_token` expires and is 
+The `setToken` method is called after an `access_token` expires and is 
 refreshed using the `refresh_token`. Because an `access_token` could expire at 
 at anytime during the lifetime of the farmOS.js client, it's important this
 method saves new OAuth2 tokens to the same state used by the `getToken` method.
