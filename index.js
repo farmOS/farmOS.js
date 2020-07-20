@@ -128,7 +128,7 @@ function farmOS(host, oAuthOpts) {
   // This adds the Authorization Bearer token header.
   client.interceptors.request.use(
     config => getAccessToken(getToken())
-      .then(accessToken => Promise.resolve({
+      .then(accessToken => ({
         ...config,
         headers: {
           ...config.headers,
