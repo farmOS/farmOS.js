@@ -73,7 +73,7 @@ function farmOS(host, oAuthOpts) {
       .then((res) => {
         const newToken = parseToken(res.data);
         isRefreshing = false;
-        onRefreshed(token.access_token);
+        onRefreshed(newToken.access_token);
         subscribers = [];
         return newToken;
       })
