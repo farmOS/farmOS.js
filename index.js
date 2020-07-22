@@ -105,10 +105,6 @@ function farmOS(host, oAuthOpts) {
   // This will attempt to refresh the token if needed.
   // Returns a Promise that resvoles as the access token.
   function getAccessToken(token) {
-    if (token == null || token.access_token == null || token.expires == null) {
-      throw new Error('client must be authorized before making requests.');
-    }
-
     // Wait for new access token if currently refreshing.
     if (isRefreshing) {
       return new Promise(subscribeTokenRefresh);
