@@ -157,7 +157,7 @@ function farmOS(host, oAuthOpts) {
         return refreshToken(getToken().refresh_token).then((token) => {
           originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
           return axios(originalRequest);
-        });
+        }).catch((error) => { throw error; });
       }
       // Else subscribe for new access token after refresh.
       const requestSubscribers = new Promise((resolve) => {
@@ -168,7 +168,7 @@ function farmOS(host, oAuthOpts) {
       });
       return requestSubscribers;
     }
-    return Promise.reject(err);
+    throw err;
   });
 
   function request(endpoint, {
