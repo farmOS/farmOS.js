@@ -25,6 +25,10 @@ function farmOS(host, oAuthOpts) {
   };
   const client = axios.create(clientOptions);
 
+  /*
+   * SUBSCRIBE TO TOKEN REFRESH
+   * Based on https://gist.github.com/mkjiau/650013a99c341c9f23ca00ccb213db1c
+   */
   // Keep track if the OAuth token is being refreshed.
   let isRefreshing = false;
 
