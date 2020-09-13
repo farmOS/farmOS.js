@@ -2,7 +2,7 @@ const axios = require('axios');
 const compose = require('ramda/src/compose');
 
 function farmOS(host, oAuthOpts) {
-  let currentToken = null;
+  let currentToken = {};
   const {
     clientId = 'farm',
     getToken = () => currentToken,
