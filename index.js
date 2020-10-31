@@ -36,13 +36,18 @@ function farmOS(host, oAuthOpts) {
   let subscribers = [];
 
   // Add to array of callbacks.
-  function subscribeTokenRefresh(cb) {
-    subscribers.push(cb);
+  function subscribeTokenRefresh(resolve, reject) {
+    subscribers.push({ resolve, reject });
   }
 
   // Call all subscribers.
   function onRefreshed(token) {
-    subscribers.forEach((cb) => { cb(token); });
+    subscribers.forEach(({ resolve }) => { resolve(token); });
+  }
+
+  // Make sure promises fulfill with a rejection if the refresh fails.
+  function onFailedRefresh(error) {
+    subscribers.forEach(({ reject }) => { reject(error); });
   }
 
   // Helper function to parse tokens from server.
@@ -82,6 +87,7 @@ function farmOS(host, oAuthOpts) {
         return newToken;
       })
       .catch((error) => {
+        onFailedRefresh(error);
         subscribers = [];
         isRefreshing = false;
         throw error;
@@ -160,11 +166,14 @@ function farmOS(host, oAuthOpts) {
         }).catch((error) => { throw error; });
       }
       // Else subscribe for new access token after refresh.
-      const requestSubscribers = new Promise((resolve) => {
-        subscribeTokenRefresh((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          resolve(axios(originalRequest));
-        });
+      const requestSubscribers = new Promise((resolve, reject) => {
+        subscribeTokenRefresh(
+          (token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(axios(originalRequest));
+          },
+          reject,
+        );
       });
       return requestSubscribers;
     }
