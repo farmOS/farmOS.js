@@ -122,7 +122,7 @@ function farmOS(host, oAuthOpts) {
 
     // Refresh if token expired.
     // - 1000 ms to factor for tokens that might expire while in flight.
-    if (!isRefreshing && token && token.expires - 1000 < Date.now()) {
+    if (!isRefreshing && token.expires - 1000 < Date.now()) {
       return new Promise((resolve, reject) => {
         refreshToken(token.refresh_token)
           .then(t => resolve(t.access_token))
@@ -137,7 +137,7 @@ function farmOS(host, oAuthOpts) {
   // Add axios request interceptor to the client.
   // This adds the Authorization Bearer token header.
   client.interceptors.request.use(
-    config => getAccessToken(getToken())
+    config => getAccessToken(getToken() || {})
       .then(accessToken => ({
         ...config,
         headers: {
@@ -160,8 +160,9 @@ function farmOS(host, oAuthOpts) {
       // Refresh the token and retry.
       if (!isRefreshing) {
         isRefreshing = true;
-        return refreshToken(getToken().refresh_token).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
+        const token = getToken();
+        return refreshToken(token ? token.refresh_token : {}).then((t) => {
+          originalRequest.headers.Authorization = `Bearer ${t.access_token}`;
           return axios(originalRequest);
         }).catch((error) => { throw error; });
       }
@@ -278,7 +279,7 @@ function farmOS(host, oAuthOpts) {
         .catch((error) => { throw error; });
     },
     revokeTokens() {
-      const token = getToken();
+      const token = getToken() || {};
       const revokeAccessToken = revokeToken('access_token', token.access_token);
       const revokeRefreshToken = revokeToken('refresh_token', token.refresh_token);
       return Promise.all([revokeAccessToken, revokeRefreshToken])
