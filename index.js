@@ -122,7 +122,7 @@ function farmOS(host, oAuthOpts) {
 
     // Refresh if token expired.
     // - 1000 ms to factor for tokens that might expire while in flight.
-    if (!isRefreshing && token.expires - 1000 < Date.now()) {
+    if (!isRefreshing && token && token.expires - 1000 < Date.now()) {
       return new Promise((resolve, reject) => {
         refreshToken(token.refresh_token)
           .then(t => resolve(t.access_token))
