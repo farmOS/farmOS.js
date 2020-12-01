@@ -11,8 +11,8 @@ function farmOS(host, oAuthOpts) {
 
   const oauthCredentials = {
     clientId,
-    accessTokenUri: '/oauth2/token',
-    revokeTokenUri: '/oauth2/revoke',
+    accessTokenUri: '/oauth/token',
+    revokeTokenUri: '/oauth/revoke',
   };
 
   // Instantiate axios client.
@@ -258,21 +258,15 @@ function farmOS(host, oAuthOpts) {
 
   const farm = {
     // Authorize with username and password.
-    authorize(user, password, scope = 'user_access') {
+    authorize(user, password) {
       // Build opts for oauth2 password grant.
       const opts = {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           Accept: 'json',
         },
-        data: {
-          grant_type: 'password',
-          client_id: oauthCredentials.clientId,
-          scope,
-          username: user,
-          password,
-        },
+        data: `grant_type=password&username=${user}&password=${password}&client_id=${oauthCredentials.clientId}`,
       };
       return axios(host + oauthCredentials.accessTokenUri, opts)
         .then(res => parseToken(res.data))
