@@ -1,4 +1,4 @@
-const farmOS = require('../index');
+const farmOS = require('../src/index');
 
 const host = 'http://localhost';
 const username = 'admin';
