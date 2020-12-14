@@ -6,7 +6,7 @@ const farmRequest = require('./request');
 const parseFilter = require('./parseFilter');
 const oauth = require('./oauth');
 
-function farmOS(host, oAuthOpts) {
+function connect(host, oAuthOpts) {
   // Instantiate axios client.
   const clientOptions = {
     baseURL: host,
@@ -122,4 +122,4 @@ function farmOS(host, oAuthOpts) {
   return farm;
 }
 
-module.exports = farmOS;
+module.exports = connect;

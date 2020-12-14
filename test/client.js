@@ -1,4 +1,4 @@
-const farmOS = require('../src/index');
+const connect = require('../src/connect');
 
 const host = 'http://localhost';
 const username = 'admin';
@@ -8,7 +8,7 @@ let token;
 const getToken = () => token;
 const setToken = (t) => { token = t; };
 
-const farm = farmOS(host, {
+const farm = connect(host, {
   clientId: 'farm_client',
   getToken,
   setToken,
