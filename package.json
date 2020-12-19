@@ -4,7 +4,7 @@
   "description": "A library for retrieving data from a farmOS server",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha --watch"
+    "test": "mocha --recursive --watch"
   },
   "repository": {
     "type": "git",

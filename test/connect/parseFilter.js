@@ -1,5 +1,5 @@
 const chai = require('chai');
-const parseFilter = require('../src/connect/parseFilter');
+const parseFilter = require('../../src/connect/parseFilter');
 
 const { expect } = chai;
 chai.use(require('chai-string'));

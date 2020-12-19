@@ -1,5 +1,5 @@
-const connect = require('../src/connect');
-const { typeToBundle } = require('../src/utils');
+const connect = require('../../src/connect');
+const { typeToBundle } = require('../../src/utils');
 
 const host = 'http://localhost';
 const username = 'admin';
