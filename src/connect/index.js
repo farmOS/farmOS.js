@@ -1,16 +1,29 @@
 const axios = require('axios');
 const farmRequest = require('./request');
 const oauth = require('./oauth');
+const { typeToBundle } = require('../utils');
 
-// Temporary stub until farmData is ready to use.
+// Temporary stubs until farmData is ready to use.
 const getTypesStub = entity => ({
   log: ['activity', 'observation', 'input', 'harvest'],
   asset: ['animal', 'plant', 'equipment', 'sensor'],
 })[entity];
 
+const validateStub = (entityName, entity) => {
+  const errors = [];
+  const valid = entity.type
+    && getTypesStub(entityName).includes(typeToBundle(entityName, entity.type));
+  if (!valid) {
+    const message = `Validation error: ${entity.type} is not a valid ${entityName} type.`;
+    errors.push({ message });
+  }
+  return { valid, errors };
+};
+
 function connect(host, opts) {
   const {
     getTypes = getTypesStub,
+    validate = validateStub,
     clientId,
     getToken: getTokenOpt,
     setToken,
@@ -34,12 +47,13 @@ function connect(host, opts) {
     setToken,
   };
   const { authorize, getToken, revokeTokens } = oauth(client, oAuthOpts);
-  const { request, makeGet } = farmRequest(client);
+  const { request, makeGet, makeSend } = farmRequest(client);
 
   const farm = {
     authorize,
     revokeTokens,
     getToken,
+    request,
     area: {
       delete() {
         // TODO
@@ -72,19 +86,7 @@ function connect(host, opts) {
         return request(`/log/${id}.json`, { method: 'DELETE' });
       },
       get: makeGet('log', getTypes),
-      send(payload) {
-        if (payload.id) {
-          return request(`/log/${payload.id}`, { method: 'PUT', payload })
-            // Add properties back to response so it mirrors a POST response
-            .then(res => ({
-              ...res,
-              id: payload.id,
-              uri: `${host}/log/${payload.id}`,
-              resource: 'log',
-            }));
-        }
-        return request('/log', { method: 'POST', payload });
-      },
+      send: makeSend('log', validate),
     },
     term: {
       get() {
