@@ -1,29 +1,11 @@
 const axios = require('axios');
 const farmRequest = require('./request');
 const oauth = require('./oauth');
-const { typeToBundle } = require('../utils');
-
-// Temporary stubs until farmData is ready to use.
-const getTypesStub = entity => ({
-  log: ['activity', 'observation', 'input', 'harvest'],
-  asset: ['animal', 'plant', 'equipment', 'sensor'],
-})[entity];
-
-const validateStub = (entityName, entity) => {
-  const errors = [];
-  const valid = entity.type
-    && getTypesStub(entityName).includes(typeToBundle(entityName, entity.type));
-  if (!valid) {
-    const message = `Validation error: ${entity.type} is not a valid ${entityName} type.`;
-    errors.push({ message });
-  }
-  return { valid, errors };
-};
 
 function connect(host, opts) {
   const {
-    getTypes = getTypesStub,
-    validate = validateStub,
+    getTypes,
+    validate,
     clientId,
     getToken: getTokenOpt,
     setToken,
