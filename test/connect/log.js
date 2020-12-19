@@ -2,7 +2,9 @@ const { expect } = require('chai');
 const { v4: uuidv4 } = require('uuid');
 const { farm, session } = require('./client');
 
-describe('log', () => {
+// eslint-disable-next-line func-names
+describe('log', function () {
+  this.timeout(10000);
   it('creates a log with client-generated id, revises it and fetches it.', () => {
     const id = uuidv4();
     return session()
