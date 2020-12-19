@@ -13,6 +13,7 @@ const setToken = (t) => { token = t; };
 const getTypesStub = entity => ({
   log: ['activity', 'observation', 'input', 'harvest'],
   asset: ['animal', 'plant', 'equipment', 'sensor'],
+  taxonomy_term: ['log_category', 'material', 'season'],
 })[entity];
 const validateStub = (entityName, entity) => {
   const errors = [];

@@ -36,12 +36,15 @@ function connect(host, opts) {
     revokeTokens,
     getToken,
     request,
+    info() {
+      // TODO
+    },
     area: {
       delete() {
         // TODO
       },
       geojson() {
-        return request('/farm/areas/geojson/');
+        // TODO
       },
       get() {
         // TODO
@@ -51,41 +54,25 @@ function connect(host, opts) {
       },
     },
     asset: {
-      delete(id) {
-        return request(`/farm_asset/${id}.json`, { method: 'DELETE' });
+      delete() {
+        // TODO
       },
       get: makeGet('asset', getTypes),
-      send(payload, id) {
-        return request(`/farm_asset/${id}.json`, { method: 'POST', payload });
-      },
-    },
-    info() {
-      // Returns a json with {name: , url: , user: {uid: , name: , mail: }}
-      return request('/farm.json');
+      send: makeSend('asset', validate),
     },
     log: {
-      delete(id) {
-        return request(`/log/${id}.json`, { method: 'DELETE' });
+      delete() {
+        // TODO
       },
       get: makeGet('log', getTypes),
       send: makeSend('log', validate),
     },
     term: {
-      get() {
-        // TODO
-      },
-      send(payload) {
-        if (payload.tid) {
-          return request(`/taxonomy_term/${payload.tid}`, { method: 'PUT', payload });
-        }
-        return request('/taxonomy_term', { method: 'POST', payload });
-      },
+      get: makeGet('taxonomy_term', getTypes),
+      send: makeSend('taxonomy_term', validate),
     },
-    vocabulary(machineName) {
-      if (machineName === undefined) {
-        return request('/taxonomy_vocabulary.json');
-      }
-      return request(`/taxonomy_vocabulary.json?machine_name=${machineName}`);
+    vocabulary() {
+      // TODO
     },
   };
   return farm;
