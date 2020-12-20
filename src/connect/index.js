@@ -70,6 +70,12 @@ function connect(host, opts) {
       get: makeGet('taxonomy_term', getTypes),
       send: makeSend('taxonomy_term', validate),
     },
+    user(uuid) {
+      if (typeof uuid === 'string') {
+        return request(`api/user/user/${uuid}`);
+      }
+      return request('api/user/user');
+    },
     vocabulary() {
       // TODO
     },
