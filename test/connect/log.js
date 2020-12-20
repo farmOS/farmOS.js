@@ -5,7 +5,7 @@ const { farm, session } = require('./client');
 // eslint-disable-next-line func-names
 describe('log', function () {
   this.timeout(10000);
-  it('creates a log with client-generated id, revises it and fetches it.', () => {
+  it('creates a log with client-generated id, revises, fetches and deletes it.', () => {
     const id = uuidv4();
     return session()
       .then(() => {
@@ -45,6 +45,12 @@ describe('log', function () {
           .flatMap(r => r.data)
           .find(l => l.id === id);
         expect(log).to.have.nested.property('attributes.name', 'Node Test Revised');
+        return farm.log.delete({ type: 'activity', id });
+      })
+      .then(() => farm.log.get({ filter: { type: 'activity', id } }))
+      .then((responses) => {
+        const results = responses.flatMap(r => r.data);
+        expect(results).to.have.lengthOf(0);
       });
   });
 });

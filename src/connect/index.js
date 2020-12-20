@@ -29,7 +29,9 @@ function connect(host, opts) {
     setToken,
   };
   const { authorize, getToken, revokeTokens } = oauth(client, oAuthOpts);
-  const { request, makeGet, makeSend } = farmRequest(client);
+  const {
+    request, makeGet, makeSend, makeDelete,
+  } = farmRequest(client);
 
   const farm = {
     authorize,
@@ -54,20 +56,17 @@ function connect(host, opts) {
       },
     },
     asset: {
-      delete() {
-        // TODO
-      },
+      delete: makeDelete('asset'),
       get: makeGet('asset', getTypes),
       send: makeSend('asset', validate),
     },
     log: {
-      delete() {
-        // TODO
-      },
+      delete: makeDelete('log'),
       get: makeGet('log', getTypes),
       send: makeSend('log', validate),
     },
     term: {
+      delete: makeDelete('taxonomy_term'),
       get: makeGet('taxonomy_term', getTypes),
       send: makeSend('taxonomy_term', validate),
     },

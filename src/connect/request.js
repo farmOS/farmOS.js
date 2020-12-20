@@ -65,5 +65,12 @@ module.exports = function farmRequest(client) {
     return Promise.reject(errors);
   };
 
-  return { request, makeGet, makeSend };
+  const makeDelete = entity => ({ type, id }) => request(
+    `api/${entity}/${type}/${id}`,
+    { method: 'DELETE' },
+  );
+
+  return {
+    request, makeGet, makeSend, makeDelete,
+  };
 };
