@@ -39,7 +39,7 @@ function connect(host, opts) {
     getToken,
     request,
     info() {
-      // TODO
+      return request('api');
     },
     area: {
       delete() {
