@@ -1,6 +1,7 @@
 const axios = require('axios');
 const farmRequest = require('./request');
 const oauth = require('./oauth');
+const { typeToBundle } = require('../utils');
 
 function connect(host, opts) {
   const {
@@ -64,6 +65,25 @@ function connect(host, opts) {
       delete: makeDelete('log'),
       get: makeGet('log', getTypes),
       send: makeSend('log', validate),
+    },
+    schema: {
+      get(entity, bundle) {
+        if (!entity) {
+          throw new Error('A valid entity must be provided to fetch a schema.');
+        }
+        if (bundle) {
+          return request(`api/${entity}/${bundle}/resource/schema`);
+        }
+        return request('api/')
+          .then(res => Promise.all(Object.keys(res.links)
+            .filter(key => key.startsWith(`${entity}--`))
+            .map((type) => {
+              const b = typeToBundle(entity, type);
+              return request(`api/${entity}/${b}/resource/schema`)
+                .then(schema => [b, schema]);
+            }))
+            .then(Object.fromEntries));
+      },
     },
     term: {
       delete: makeDelete('taxonomy_term'),
