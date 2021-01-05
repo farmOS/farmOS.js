@@ -19,7 +19,7 @@ jobs:
       - name: Install farmOS
         run: docker-compose exec -u www-data -T www drush site-install -y --db-url=pgsql://farm:farm@db/farm --account-pass=admin
       - name: Install the farm_client module
-        run: docker-compose exec -u www-data -T www drush en -y farm_client
+        run: docker-compose exec -u www-data -T www drush en -y farm_client && sleep 30
       - name: Run npm install
         run: npm install
       - name: Run tests
