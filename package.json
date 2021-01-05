@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/farmOS/farmOS.js#readme",
   "dependencies": {
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "ramda": "^0.26.1"
   },
   "devDependencies": {
