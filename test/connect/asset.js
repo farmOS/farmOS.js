@@ -11,7 +11,7 @@ describe('asset', function () {
       .then(() => {
         const asset = {
           id,
-          type: 'asset--animal',
+          type: 'asset--equipment',
           attributes: {
             name: 'Node Test Animal',
           },
@@ -22,7 +22,7 @@ describe('asset', function () {
         expect(response).to.have.nested.property('data.id', id);
         const asset = {
           id,
-          type: 'asset--animal',
+          type: 'asset--equipment',
           attributes: {
             name: 'Node Test Animal Revised',
             status: 'archived',
@@ -33,7 +33,7 @@ describe('asset', function () {
       .then(() => {
         const filter = {
           $or: [
-            { type: 'animal', status: 'archived' },
+            { type: 'equipment', status: 'archived' },
             { type: 'plant', status: 'active' },
           ],
         };
@@ -45,9 +45,9 @@ describe('asset', function () {
           .flatMap(r => r.data)
           .find(l => l.id === id);
         expect(asset).to.have.nested.property('attributes.name', 'Node Test Animal Revised');
-        return farm.asset.delete({ type: 'animal', id });
+        return farm.asset.delete({ type: 'equipment', id });
       })
-      .then(() => farm.asset.get({ filter: { type: 'animal', id } }))
+      .then(() => farm.asset.get({ filter: { type: 'equipment', id } }))
       .then((responses) => {
         const results = responses.flatMap(r => r.data);
         expect(results).to.have.lengthOf(0);
