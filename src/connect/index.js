@@ -42,22 +42,11 @@ function connect(host, opts) {
     info() {
       return request('api');
     },
-    area: {
-      delete() {
-        // TODO
-      },
+    asset: {
+      delete: makeDelete('asset'),
       geojson() {
         // TODO
       },
-      get() {
-        // TODO
-      },
-      send() {
-        // TODO
-      },
-    },
-    asset: {
-      delete: makeDelete('asset'),
       get: makeGet('asset', getTypes),
       send: makeSend('asset', validate),
     },
@@ -95,9 +84,6 @@ function connect(host, opts) {
         return request(`api/user/user/${uuid}`);
       }
       return request('api/user/user');
-    },
-    vocabulary() {
-      // TODO
     },
   };
   return farm;
