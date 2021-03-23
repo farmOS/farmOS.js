@@ -68,6 +68,11 @@ module.exports = function model(opts = {}) {
   };
 
   return {
+    meta: {
+      get(ent) {
+        return clone(ent[meta]);
+      },
+    },
     log: {
       create: createEntity('log'),
     },

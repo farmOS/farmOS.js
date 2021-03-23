@@ -34,5 +34,20 @@ describe('log', () => {
       expect(changeType).to.throw();
       expect(activity).to.have.property('type', 'activity');
     });
+    it('tracks when a field changes', function (done) {
+      this.timeout(3000);
+      const activity = farm.log.create({ type: 'activity', name: 'a log' });
+      const initTime = new Date(farm.meta.get(activity).fields.name.changed);
+      const delay = 2000;
+      const tolerance = 100;
+      setTimeout(() => {
+        activity.name = 'an updated log';
+        expect(activity.name).to.be.equal('an updated log');
+        const changeTime = new Date(farm.meta.get(activity).fields.name.changed);
+        const difference = changeTime - initTime;
+        expect(difference).to.be.within(delay - tolerance, delay + tolerance);
+        done();
+      }, delay);
+    });
   });
 });
