@@ -2,7 +2,6 @@ const { expect } = require('chai');
 const { v4: uuidv4 } = require('uuid');
 const { farm, session } = require('./client');
 
-// eslint-disable-next-line func-names
 describe('term', function () {
   this.timeout(10000);
   it('creates a term with client-generated id, revises, fetches and deletes it.', () => {

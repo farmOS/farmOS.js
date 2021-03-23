@@ -24,6 +24,7 @@ module.exports = {
       rules: {
         strict: 'off',
         'no-unused-expressions': 'off',
+        'func-names': 'off',
       },
     },
   ],
