@@ -3,6 +3,14 @@ const { clone } = require('ramda');
 const { getPropertiesStub, getDefaultStub } = require('../utils');
 
 const meta = Symbol('meta');
+const entityNames = [
+  'log',
+  'asset',
+  'term',
+  'user',
+  'plan',
+  'quantity',
+];
 
 function setOnce(obj, key, value) {
   const writable = value === undefined;
@@ -15,38 +23,50 @@ function setOnce(obj, key, value) {
 }
 
 module.exports = function model(opts = {}) {
-  const { schemata = {} } = opts;
-  let _schemata = clone(schemata);
+  const schemata = entityNames.reduce((obj, entName) => ({
+    ...obj,
+    [entName]: {},
+  }), {});
 
   function getSchemata(entName, type) {
     if (!entName) {
-      return clone(_schemata);
+      return clone(schemata);
     }
     if (!type) {
-      return clone(_schemata[entName]);
+      return clone(schemata[entName]);
     }
-    return _schemata[entName] && clone(_schemata[entName][type]);
+    return clone(schemata[entName][type]);
   }
 
   function setSchemata(...args) {
     if (args.length === 1) {
-      _schemata = clone(args[0]);
+      entityNames.forEach((entName) => {
+        if (args[0][entName]) {
+          setSchemata(entName, args[0][entName]);
+        }
+      });
     }
     if (args.length === 2) {
       const [entName, newSchemata] = args;
-      _schemata[entName] = clone(newSchemata);
+      if (entityNames.includes(entName)) {
+        Object.entries(newSchemata).forEach(([type, schema]) => {
+          setSchemata(entName, type, schema);
+        });
+      }
     }
     if (args.length > 2) {
       const [entName, type, schema] = args;
-      _schemata[entName][type] = clone(schema);
+      schemata[entName][type] = clone(schema);
     }
   }
+
+  setSchemata(opts.schemata);
 
   const createEntity = entName => (props, metadata = {}) => {
     const getProperties = getPropertiesStub(entName); // TODO: Replace stub
     const getDefault = getDefaultStub(entName); // TODO: Replace stub
     const { id = uuidv4(), type } = props;
-    const schema = _schemata[entName] && _schemata[entName][type];
+    const schema = schemata[entName][type];
     if (!schema) { throw new Error(`Cannot find a schema for the ${entName} type: ${type}.`); }
     const entity = {};
     setOnce(entity, 'id', id);
@@ -150,35 +170,13 @@ module.exports = function model(opts = {}) {
         return clone(ent[meta]);
       },
     },
-    log: {
-      create: createEntity('log'),
-      serialize: serializeEntity('log'),
-      deserialize: deserializeEntity('log'),
-    },
-    asset: {
-      create: createEntity('asset'),
-      serialize: serializeEntity('asset'),
-      deserialize: deserializeEntity('asset'),
-    },
-    term: {
-      create: createEntity('term'),
-      serialize: serializeEntity('term'),
-      deserialize: deserializeEntity('term'),
-    },
-    user: {
-      create: createEntity('user'),
-      serialize: serializeEntity('user'),
-      deserialize: deserializeEntity('user'),
-    },
-    plan: {
-      create: createEntity('plan'),
-      serialize: serializeEntity('plan'),
-      deserialize: deserializeEntity('plan'),
-    },
-    quantity: {
-      create: createEntity('quantity'),
-      serialize: serializeEntity('quantity'),
-      deserialize: deserializeEntity('quantity'),
-    },
+    ...entityNames.reduce((obj, entName) => ({
+      ...obj,
+      [entName]: {
+        create: createEntity(entName),
+        serialize: serializeEntity(entName),
+        deserialize: deserializeEntity(entName),
+      },
+    }), {}),
   };
 };
