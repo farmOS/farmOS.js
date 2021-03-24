@@ -50,4 +50,34 @@ describe('log', () => {
       }, delay);
     });
   });
+  describe('#serialize', () => {
+    it('serializes a log', () => {
+      const name = 'hello';
+      const activity = farm.log.create({ type: 'activity', name });
+      const serializedActivity = farm.log.serialize(activity);
+      expect(serializedActivity).to.have.property('id');
+      expect(serializedActivity).to.have.property('type');
+      expect(serializedActivity).to.have.property('meta');
+      expect(serializedActivity).to.have.property('attributes');
+      expect(serializedActivity).to.have.property('relationships');
+      expect(serializedActivity.attributes).to.have.property('name', name);
+    });
+  });
+  describe('#deserialize', () => {
+    it('deserializes a log', (done) => {
+      const name = 'hello';
+      const original = farm.log.create({ type: 'activity', name });
+      // Use a timeout to make sure the metadata is preserved.
+      setTimeout(() => {
+        const serialized = farm.log.serialize(original);
+        const copy = farm.log.deserialize(serialized);
+        expect(copy).to.have.property('name', name);
+        const originalMetadata = farm.meta.get(original);
+        const copyMetadata = farm.meta.get(copy);
+        expect(originalMetadata.fields.name.changed)
+          .to.equal(copyMetadata.fields.name.changed);
+        done();
+      }, 10);
+    });
+  });
 });
