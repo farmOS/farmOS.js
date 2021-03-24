@@ -16,7 +16,31 @@ function setOnce(obj, key, value) {
 
 module.exports = function model(opts = {}) {
   const { schemata = {} } = opts;
-  const _schemata = clone(schemata);
+  let _schemata = clone(schemata);
+
+  function getSchemata(entName, type) {
+    if (!entName) {
+      return clone(_schemata);
+    }
+    if (!type) {
+      return clone(_schemata[entName]);
+    }
+    return _schemata[entName] && clone(_schemata[entName][type]);
+  }
+
+  function setSchemata(...args) {
+    if (args.length === 1) {
+      _schemata = clone(args[0]);
+    }
+    if (args.length === 2) {
+      const [entName, newSchemata] = args;
+      _schemata[entName] = clone(newSchemata);
+    }
+    if (args.length > 2) {
+      const [entName, type, schema] = args;
+      _schemata[entName][type] = clone(schema);
+    }
+  }
 
   const createEntity = entName => (props, metadata) => {
     const getProperties = getPropertiesStub(entName); // TODO: Replace stub
@@ -68,6 +92,10 @@ module.exports = function model(opts = {}) {
   };
 
   return {
+    schema: {
+      get: getSchemata,
+      set: setSchemata,
+    },
     meta: {
       get(ent) {
         return clone(ent[meta]);
