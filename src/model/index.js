@@ -251,6 +251,20 @@ module.exports = function model(opts = {}) {
         const iso = date.toISOString();
         entity[meta].remote.lastSync = iso;
       },
+      resolve(entity, field, cb) {
+        const { conflicts } = entity[meta].fields[field];
+        const index = cb(clone(conflicts));
+        const winner = conflicts[index];
+        if (typeof index === 'number') {
+          if (winner !== undefined) {
+            entity[meta].fields[field].data = winner.data;
+            entity[meta].fields[field].changed = winner.changed;
+          }
+          if (index <= conflicts.length - 1) {
+            entity[meta].fields[field].conflicts = [];
+          }
+        }
+      },
     },
     ...entityNames.reduce((obj, entName) => ({
       ...obj,
