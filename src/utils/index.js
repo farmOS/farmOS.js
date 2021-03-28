@@ -9,8 +9,19 @@ const getPropertiesStub = entName => (_, fieldType) =>
 const getDefaultStub = entName => (_, fieldType, field) =>
   baseFieldDefaults[entName][fieldType][field];
 
+function setOnce(obj, key, value) {
+  const writable = value === undefined;
+  Object.defineProperty(obj, key, {
+    value,
+    writable,
+    configurable: true,
+    enumerable: true,
+  });
+}
+
 module.exports = {
   typeToBundle,
   getPropertiesStub,
   getDefaultStub,
+  setOnce,
 };
