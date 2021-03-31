@@ -85,6 +85,11 @@ function connect(host, opts) {
       }
       return request('api/user/user');
     },
+    quantity: {
+      delete: makeDelete('quantity'),
+      get: makeGet('quantity', getTypes),
+      send: makeSend('quantity', validate),
+    },
   };
   return farm;
 }
