@@ -15,6 +15,7 @@ const getTypesStub = entity => ({
   asset: ['animal', 'plant', 'equipment', 'sensor'],
   taxonomy_term: ['log_category', 'material', 'season'],
   quantity: ['standard'],
+  user: ['user'],
 })[entity];
 const validateStub = (entityName, entity) => {
   const errors = [];
