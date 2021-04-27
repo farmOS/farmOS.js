@@ -8,7 +8,7 @@
 
 An npm package for fetching data from a farmOS server.
 
-:warning: __WARNING: This library is still considered unstable and only intended for use in farmOS-client (Field Kit)__ :warning:
+:warning: __WARNING: This is an alpha release not intended for general use. All following adocumentation is out-of-date and will not be updated until the beta release at the soonest.__ :warning:
 
 - [farmOS.js](#farmosjs)
   - [Installation](#installation)
