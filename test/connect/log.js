@@ -13,6 +13,7 @@ describe('log', function () {
           type: 'log--activity',
           attributes: {
             name: 'Node Test',
+            timestamp: '2021-04-26T09:18:33Z',
           },
         };
         return farm.log.send(log);
@@ -36,7 +37,7 @@ describe('log', function () {
             { type: 'observation', status: 'pending' },
           ],
         };
-        return farm.log.get({ filter });
+        return farm.log.fetch({ filter });
       })
       .then((responses) => {
         expect(responses).to.have.lengthOf(2);
@@ -46,7 +47,7 @@ describe('log', function () {
         expect(log).to.have.nested.property('attributes.name', 'Node Test Revised');
         return farm.log.delete({ type: 'activity', id });
       })
-      .then(() => farm.log.get({ filter: { type: 'activity', id } }))
+      .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
       .then((responses) => {
         const results = responses.flatMap(r => r.data);
         expect(results).to.have.lengthOf(0);

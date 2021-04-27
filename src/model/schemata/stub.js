@@ -37,6 +37,7 @@ const schemata = {
   plan: {},
   quantity: {
     standard: {},
+    price: {},
   },
 };
 

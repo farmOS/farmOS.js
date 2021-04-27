@@ -1,7 +1,17 @@
 const { v4: uuidv4 } = require('uuid');
-const { getPropertiesStub, getDefaultStub, setOnce } = require('../utils');
+const { getPropertiesStub, getDefaultStub } = require('./schemata');
 
-const createEntity = (entName, meta, schemata) => (props, metadata = {}) => {
+function setOnce(obj, key, value) {
+  const writable = value === undefined;
+  Object.defineProperty(obj, key, {
+    value,
+    writable,
+    configurable: true,
+    enumerable: true,
+  });
+}
+
+const createEntity = (entName, metaSymbol, schemata) => (props, metadata = {}) => {
   const getProperties = getPropertiesStub(entName); // TODO: Replace stub
   const getDefault = getDefaultStub(entName); // TODO: Replace stub
   const { id = uuidv4(), type } = props;
@@ -11,15 +21,15 @@ const createEntity = (entName, meta, schemata) => (props, metadata = {}) => {
   setOnce(entity, 'id', id);
   setOnce(entity, 'type', type);
   const {
-    remote: { lastSync = null, url = null } = {},
+    remote: { lastSync = null, url = null, meta: remoteMeta } = {},
     fields: metafields = {},
   } = metadata;
   const now = new Date().toISOString();
-  Object.defineProperty(entity, meta, {
+  Object.defineProperty(entity, metaSymbol, {
     writable: true,
     enumerable: false,
     value: {
-      remote: { lastSync, url },
+      remote: { lastSync, url, meta: remoteMeta },
       fields: {},
     },
   });
@@ -40,18 +50,18 @@ const createEntity = (entName, meta, schemata) => (props, metadata = {}) => {
       changed = now,
       conflicts = [],
     } = metafields[field] || {};
-    entity[meta].fields[field] = {
+    entity[metaSymbol].fields[field] = {
       data, changed, conflicts, fieldType,
     };
     Object.defineProperty(entity, field, {
       enumerable: true,
       configurable: true,
       get: function entityPropGetter() {
-        return this[meta].fields[field].data;
+        return this[metaSymbol].fields[field].data;
       },
       set: function entityPropSetter(val) {
-        this[meta].fields[field].changed = new Date().toISOString();
-        this[meta].fields[field].data = val;
+        this[metaSymbol].fields[field].changed = new Date().toISOString();
+        this[metaSymbol].fields[field].data = val;
       },
     });
   });

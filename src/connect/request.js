@@ -2,7 +2,7 @@ const {
   compose, defaultTo, prop, bind, chain, has, ifElse,
 } = require('ramda');
 const parseFilter = require('./parseFilter');
-const { typeToBundle } = require('../utils');
+const typeToBundle = require('./typeToBundle');
 
 module.exports = function farmRequest(client) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
@@ -20,7 +20,7 @@ module.exports = function farmRequest(client) {
     return request(`api/${entity}/${bundle}?${params}`);
   };
 
-  const makeGet = (entity, getTypes) => compose(
+  const fetchEntity = (entity, getTypes) => compose(
     bind(Promise.all, Promise),
     chain(transformBundledParams(entity, getTypes)),
     Object.entries,
@@ -50,27 +50,18 @@ module.exports = function farmRequest(client) {
     ).catch(handlePatch404(entity, data));
   };
 
-  const sendPostOrPatch = entity => ifElse(
+  const sendEntity = entity => ifElse(
     has('id'),
     sendRequest(entity, 'PATCH'),
     sendRequest(entity, 'POST'),
   );
 
-  const makeSend = (entity, validate) => (data) => {
-    const { valid = true, errors = [] } = typeof validate === 'function'
-      && validate(entity, data);
-    if (valid) {
-      return sendPostOrPatch(entity)(data);
-    }
-    return Promise.reject(errors);
-  };
-
-  const makeDelete = entity => ({ type, id }) => request(
+  const deleteEntity = entity => ({ type, id }) => request(
     `api/${entity}/${type}/${id}`,
     { method: 'DELETE' },
   );
 
   return {
-    request, makeGet, makeSend, makeDelete,
+    request, fetchEntity, sendEntity, deleteEntity,
   };
 };

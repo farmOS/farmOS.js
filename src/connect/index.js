@@ -1,12 +1,13 @@
 const axios = require('axios');
 const farmRequest = require('./request');
 const oauth = require('./oauth');
-const { typeToBundle } = require('../utils');
+const typeToBundle = require('./typeToBundle');
+const { entities, entityMethods, emptySchemata } = require('../entities');
+
 
 function connect(host, opts) {
   const {
     getTypes,
-    validate,
     clientId,
     getToken: getTokenOpt,
     setToken,
@@ -31,7 +32,7 @@ function connect(host, opts) {
   };
   const { authorize, getToken, revokeTokens } = oauth(client, oAuthOpts);
   const {
-    request, makeGet, makeSend, makeDelete,
+    request, deleteEntity, fetchEntity, sendEntity,
   } = farmRequest(client);
 
   const farm = {
@@ -42,53 +43,39 @@ function connect(host, opts) {
     info() {
       return request('api');
     },
-    asset: {
-      delete: makeDelete('asset'),
-      geojson() {
-        // TODO
-      },
-      get: makeGet('asset', getTypes),
-      send: makeSend('asset', validate),
-    },
-    log: {
-      delete: makeDelete('log'),
-      get: makeGet('log', getTypes),
-      send: makeSend('log', validate),
-    },
     schema: {
-      get(entity, bundle) {
+      fetch(entity, bundle) {
         if (!entity) {
-          throw new Error('A valid entity must be provided to fetch a schema.');
+          const schemata = emptySchemata(entities);
+          return request('api/')
+            .then(res => Promise.all(Object.keys(res.links)
+              .filter(type => entities.some(({ name }) => type.startsWith(`${name}--`)))
+              .map((type) => {
+                const [entName, b] = type.split('--');
+                return request(`api/${entName}/${b}/resource/schema`)
+                  .then((schema) => { schemata[entName][b] = schema; });
+              })))
+            .then(() => schemata);
         }
-        if (bundle) {
-          return request(`api/${entity}/${bundle}/resource/schema`);
+        if (!bundle) {
+          return request('api/')
+            .then(res => Promise.all(Object.keys(res.links)
+              .filter(type => type.startsWith(`${entity}--`))
+              .map((type) => {
+                const b = typeToBundle(entity, type);
+                return request(`api/${entity}/${b}/resource/schema`)
+                  .then(schema => [b, schema]);
+              }))
+              .then(Object.fromEntries));
         }
-        return request('api/')
-          .then(res => Promise.all(Object.keys(res.links)
-            .filter(key => key.startsWith(`${entity}--`))
-            .map((type) => {
-              const b = typeToBundle(entity, type);
-              return request(`api/${entity}/${b}/resource/schema`)
-                .then(schema => [b, schema]);
-            }))
-            .then(Object.fromEntries));
+        return request(`api/${entity}/${bundle}/resource/schema`);
       },
     },
-    term: {
-      delete: makeDelete('taxonomy_term'),
-      get: makeGet('taxonomy_term', getTypes),
-      send: makeSend('taxonomy_term', validate),
-    },
-    user: {
-      delete: makeDelete('user'),
-      get: makeGet('user', getTypes),
-      send: makeSend('user', validate),
-    },
-    quantity: {
-      delete: makeDelete('quantity'),
-      get: makeGet('quantity', getTypes),
-      send: makeSend('quantity', validate),
-    },
+    ...entityMethods(entities, ({ name }) => ({
+      delete: deleteEntity(name),
+      fetch: fetchEntity(name, getTypes),
+      send: sendEntity(name),
+    })),
   };
   return farm;
 }

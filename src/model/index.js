@@ -4,22 +4,13 @@ const createEntity = require('./create');
 const serializeEntity = require('./serialize');
 const deserializeEntity = require('./deserialize');
 const mergeEntity = require('./merge');
+const { entities, entityMethods, emptySchemata } = require('../entities');
 
 const meta = Symbol('meta');
-const entityNames = [
-  'log',
-  'asset',
-  'term',
-  'user',
-  'plan',
-  'quantity',
-];
+const entityNames = entities.map(e => e.name);
 
-module.exports = function model(opts = {}) {
-  const schemata = entityNames.reduce((obj, entName) => ({
-    ...obj,
-    [entName]: {},
-  }), {});
+function model(opts = {}) {
+  const schemata = emptySchemata(entities);
 
   function getSchemata(entName, type) {
     if (!entName) {
@@ -55,20 +46,6 @@ module.exports = function model(opts = {}) {
 
   setSchemata(opts.schemata);
 
-  // Factory function that creates entity methods that can be spread into
-  // the return object.
-  function entityMethods(names) {
-    return names.reduce((obj, entName) => ({
-      ...obj,
-      [entName]: {
-        create: createEntity(entName, meta, schemata),
-        serialize: serializeEntity(entName, meta),
-        deserialize: deserializeEntity(entName, meta, schemata),
-        merge: mergeEntity(entName, meta, schemata),
-      },
-    }), {});
-  }
-
   return {
     schema: {
       get: getSchemata,
@@ -100,6 +77,13 @@ module.exports = function model(opts = {}) {
         }
       },
     },
-    ...entityMethods(entityNames),
+    ...entityMethods(entities, ({ name }) => ({
+      create: createEntity(name, meta, schemata),
+      serialize: serializeEntity(name, meta),
+      deserialize: deserializeEntity(name, meta, schemata),
+      merge: mergeEntity(name, meta, schemata),
+    })),
   };
-};
+}
+
+module.exports = model;

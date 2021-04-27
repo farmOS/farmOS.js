@@ -36,7 +36,7 @@ describe('asset', function () {
             { type: 'plant', status: 'active' },
           ],
         };
-        return farm.asset.get({ filter });
+        return farm.asset.fetch({ filter });
       })
       .then((responses) => {
         expect(responses).to.have.lengthOf(2);
@@ -46,7 +46,7 @@ describe('asset', function () {
         expect(asset).to.have.nested.property('attributes.name', 'Node Test Animal Revised');
         return farm.asset.delete({ type: 'equipment', id });
       })
-      .then(() => farm.asset.get({ filter: { type: 'equipment', id } }))
+      .then(() => farm.asset.fetch({ filter: { type: 'equipment', id } }))
       .then((responses) => {
         const results = responses.flatMap(r => r.data);
         expect(results).to.have.lengthOf(0);

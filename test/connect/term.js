@@ -35,7 +35,7 @@ describe('term', function () {
             { type: 'season' },
           ],
         };
-        return farm.term.get({ filter });
+        return farm.term.fetch({ filter });
       })
       .then((responses) => {
         expect(responses).to.have.lengthOf(2);
@@ -45,7 +45,7 @@ describe('term', function () {
         expect(term).to.have.nested.property('attributes.name', 'Node Test Revised');
         return farm.term.delete({ type: 'material', id });
       })
-      .then(() => farm.term.get({ filter: { type: 'material', id } }))
+      .then(() => farm.term.fetch({ filter: { type: 'material', id } }))
       .then((responses) => {
         const results = responses.flatMap(r => r.data);
         expect(results).to.have.lengthOf(0);

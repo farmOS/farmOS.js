@@ -48,7 +48,7 @@ describe('quantity', function () {
             { type: 'standard' },
           ],
         };
-        return farm.quantity.get({ filter });
+        return farm.quantity.fetch({ filter });
       })
       .then((responses) => {
         expect(responses).to.have.lengthOf(1);
@@ -58,7 +58,7 @@ describe('quantity', function () {
         expect(quantity).to.have.nested.property('attributes.value.numerator', 36);
         return farm.quantity.delete({ type: 'standard', id });
       })
-      .then(() => farm.quantity.get({ filter: { type: 'standard', id } }))
+      .then(() => farm.quantity.fetch({ filter: { type: 'standard', id } }))
       .then((responses) => {
         const results = responses.flatMap(r => r.data);
         expect(results).to.have.lengthOf(0);

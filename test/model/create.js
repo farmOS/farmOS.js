@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { validate } = require('uuid');
 const model = require('../../src/model');
 const schemata = require('../../src/model/schemata/stub');
-const baseFieldDefaults = require('../../src/utils/baseFieldDefaults');
+const baseFieldDefaults = require('../../src/model/schemata/baseFieldDefaults');
 
 const farm = model({ schemata });
 
