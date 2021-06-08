@@ -76,6 +76,10 @@ function model(opts = {}) {
           }
         }
       },
+      isUnsynced(entity) {
+        return Object.values(entity[meta].fields)
+          .some(({ changed }) => changed > entity[meta].remote.lastSync);
+      },
     },
     ...entityMethods(entities, ({ name }) => ({
       create: createEntity(name, meta, schemata),
