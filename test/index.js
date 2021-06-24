@@ -9,7 +9,8 @@ const remote = {
   options: { host, clientId },
 };
 
-describe.only('farmOS', () => {
+describe('farmOS', function () {
+  this.timeout(10000);
   const farm = farmOS({ remote });
   const session = farm.remote.authorize(username, password);
   it('can authenticate with the server', () => session
