@@ -9,8 +9,12 @@ module.exports = function oAuth(client, opts) {
     setToken = (t) => { memToken = t; },
   } = opts;
 
-  const accessTokenUri = `${host}/oauth/token`;
-  const revokeTokenUri = `${host}/oauth/revoke`;
+  let accessTokenUri = `${host}/oauth/token`;
+  let revokeTokenUri = `${host}/oauth/revoke`;
+  const setHost = (newHost) => {
+    accessTokenUri = `${newHost}/oauth/token`;
+    revokeTokenUri = `${newHost}/oauth/revoke`;
+  };
   /*
    * SUBSCRIBE TO TOKEN REFRESH
    * Based on https://gist.github.com/mkjiau/650013a99c341c9f23ca00ccb213db1c
@@ -176,6 +180,7 @@ module.exports = function oAuth(client, opts) {
       data: `grant_type=password&username=${user}&password=${password}&client_id=${clientId}`,
     }).then(res => parseToken(res.data))
       .catch((error) => { throw error; }),
+    setHost,
     getToken,
     revokeTokens() {
       const token = getToken() || {};

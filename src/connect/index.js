@@ -30,7 +30,9 @@ function connect(host, opts) {
     getToken: getTokenOpt,
     setToken,
   };
-  const { authorize, getToken, revokeTokens } = oauth(client, oAuthOpts);
+  const {
+    authorize, setHost, getToken, revokeTokens,
+  } = oauth(client, oAuthOpts);
   const {
     request, deleteEntity, fetchEntity, sendEntity,
   } = farmRequest(client);
@@ -38,6 +40,7 @@ function connect(host, opts) {
   const farm = {
     authorize,
     revokeTokens,
+    setHost,
     getToken,
     request,
     info() {
