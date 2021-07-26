@@ -79,7 +79,7 @@ function model(opts = {}) {
       isUnsynced(entity) {
         // Works for serialized entities too.
         const { fields, remote } = (entity[meta] || entity.meta);
-        return Object.values(fields)
+        return remote.lastSync === null || Object.values(fields)
           .some(({ changed }) => changed > remote.lastSync);
       },
     },
