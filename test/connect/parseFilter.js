@@ -65,4 +65,21 @@ describe('parseFilter', () => {
       &filter%5Bcount-1-filter%5D%5Bcondition%5D%5Bvalue%5D=43
     `);
   });
+  it('parses a filter with dot notation', () => {
+    const filter = {
+      type: 'observation',
+      'owner.id': 1,
+    };
+    const params = parseFilter(filter);
+    expect(params).to.eql({
+      observation: 'filter[owner.id-filter][condition][path]=owner.id&filter[owner.id-filter][condition][operator]=%3D&filter[owner.id-filter][condition][value]=1',
+    });
+    const formatted = formatParams(params);
+    expect(formatted).to.equalIgnoreSpaces(`
+      OBSERVATION
+      filter[owner.id-filter][condition][path]=owner.id
+      &filter[owner.id-filter][condition][operator]=%3D
+      &filter[owner.id-filter][condition][value]=1
+    `);
+  });
 });
