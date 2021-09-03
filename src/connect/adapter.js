@@ -1,5 +1,5 @@
 const {
-  compose, dissoc, evolve, omit, mapObjIndexed, map, pick, replace, ifElse, chain, prop,
+  compose, dissoc, evolve, omit, mapObjIndexed, map, pick, replace,
 } = require('ramda');
 const connect = require('./index');
 const { entities, entityMethods } = require('../entities');
@@ -60,14 +60,7 @@ const transformRemoteEntity = entName => remote => ({
   relationships: omit(drupalMetaFields.relationships, remote.relationships),
 });
 
-const ifArrayMap = fn => ifElse(Array.isArray, chain(fn), fn);
-
-const handleResponse = entName => compose(
-  ifArrayMap(transformRemoteEntity(entName)),
-  prop('data'),
-);
-
-const transformLocalEntity = entName => compose(
+const transformLocalEntity = (entName, data) => compose(
   dissoc('meta'),
   evolve({
     type: t => `${entName}--${t}`,
@@ -75,12 +68,77 @@ const transformLocalEntity = entName => compose(
       timestamp: dropMilliseconds,
     },
   }),
-);
+)(data);
+
+function parseBundles(filter, validTypes) {
+  const bundles = [];
+  // The filter must either be an object (logical $and) or an array (logical $or).
+  if (Array.isArray(filter) || Array.isArray(filter.$or)) {
+    (Array.isArray(filter) ? filter : filter.$or).forEach((f) => {
+      parseBundles(f).forEach(({ name, filter: bundleFilter }) => {
+        const i = bundles.findIndex(b => b.name === name);
+        if (i > -1) {
+          // Concat on an empty array to flatten either bundle or both.
+          bundles[i].filter = [].concat(bundles[i].filter, bundleFilter);
+        } else {
+          bundles.push({ name, filter: bundleFilter });
+        }
+      });
+    });
+    return bundles;
+  }
+  if (typeof filter !== 'object') throw new Error(`Invalid filter: ${filter}`);
+  const { type, ...rest } = typeof filter.$and === 'object' ? filter.$and : filter;
+  if (typeof type === 'string') {
+    if (!validTypes.includes(type)) throw new Error(`Invalid type filter: ${type}`);
+    bundles.push({ name: type, filter: rest });
+  }
+  if (Array.isArray(type)) {
+    type.forEach((t) => {
+      if (!validTypes.includes(t)) throw new Error(`Invalid type filter: ${t}`);
+      bundles.push({ name: t, filter: rest });
+    });
+  }
+  if ([undefined, null].includes(type)) {
+    validTypes.forEach((t) => {
+      bundles.push({ name: t, filter: rest });
+    });
+  }
+  return bundles;
+}
+
+const aggregateBundles = (bundles, transform = a => a) => results =>
+  results.reduce((aggregate, result, i) => {
+    const { name, filter } = bundles[i];
+    const { data, fulfilled, rejected } = aggregate;
+    const { reason, value, status } = result;
+    if (status === 'fulfilled') {
+      const ents = value.data.map(transform);
+      return {
+        data: data.concat(ents),
+        fulfilled: fulfilled.concat({ bundle: name, response: value, filter }),
+        rejected,
+      };
+    }
+    return {
+      data,
+      fulfilled,
+      rejected: rejected.concat({ bundle: name, error: reason, filter }),
+    };
+  }, { data: [], fulfilled: [], rejected: [] });
+
+const fetchBundles = (getTypes, request, transform) => ({ filter }) => {
+  const validTypes = getTypes();
+  const bundles = parseBundles(filter, validTypes);
+  const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) =>
+    request(bundle, { filter: bundleFilter }));
+  return Promise.allSettled(bundleRequests)
+    .then(aggregateBundles(bundles, transform));
+};
 
 function adapter(model, opts) {
   const { host, ...rest } = opts;
-  const getTypes = entity => Object.keys(model.schema.get(entity));
-  const connection = connect(host, { getTypes, ...rest });
+  const connection = connect(host, rest);
 
   return {
     ...connection,
@@ -106,11 +164,14 @@ function adapter(model, opts) {
     },
     ...entityMethods(entities, ({ name, shortName }) => ({
       ...connection[shortName],
-      fetch: (...args) => connection[shortName].fetch(...args)
-        .then(ifArrayMap(handleResponse(name))),
-      send: compose(
-        connection[shortName].send,
-        transformLocalEntity(name),
+      fetch: fetchBundles(
+        () => Object.keys(model.schema.get(name)),
+        connection[shortName].fetch,
+        transformRemoteEntity(name),
+      ),
+      send: data => connection[shortName].send(
+        data.type,
+        transformLocalEntity(name, data),
       ),
     })),
   };

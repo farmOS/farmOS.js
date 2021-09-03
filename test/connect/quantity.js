@@ -26,7 +26,7 @@ describe('quantity', function () {
             },
           },
         };
-        return farm.quantity.send(quantity);
+        return farm.quantity.send('standard', quantity);
       })
       .then((response) => {
         expect(response).to.have.nested.property('data.id', id);
@@ -40,28 +40,20 @@ describe('quantity', function () {
             },
           },
         };
-        return farm.quantity.send(quantity);
+        return farm.quantity.send('standard', quantity);
       })
       .then(() => {
-        const filter = {
-          $or: [
-            { type: 'standard' },
-          ],
-        };
-        return farm.quantity.fetch({ filter });
+        const filter = { label: 'artichokes' };
+        return farm.quantity.fetch('standard', { filter });
       })
-      .then((responses) => {
-        expect(responses).to.have.lengthOf(1);
-        const quantity = responses
-          .flatMap(r => r.data)
-          .find(l => l.id === id);
+      .then((response) => {
+        const quantity = response.data.find(l => l.id === id);
         expect(quantity).to.have.nested.property('attributes.value.numerator', 36);
-        return farm.quantity.delete({ type: 'standard', id });
+        return farm.quantity.delete('standard', id);
       })
-      .then(() => farm.quantity.fetch({ filter: { type: 'standard', id } }))
-      .then((responses) => {
-        const results = responses.flatMap(r => r.data);
-        expect(results).to.have.lengthOf(0);
+      .then(() => farm.quantity.fetch('standard', { filter: { id } }))
+      .then((response) => {
+        expect(response.data).to.have.lengthOf(0);
       });
   });
 });

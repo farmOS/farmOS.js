@@ -1,63 +1,36 @@
-const {
-  compose, defaultTo, prop, bind, chain, has, ifElse,
-} = require('ramda');
+const { has, ifElse } = require('ramda');
 const parseFilter = require('./parseFilter');
-const typeToBundle = require('./typeToBundle');
 
 module.exports = function farmRequest(client) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
     client(endpoint, { method, data: JSON.stringify(data) })
-      .then(res => res.data)
-      .catch((err) => { throw err; });
+      .then(res => res.data);
 
-  const transformBundledParams = (entity, getTypes) => ([bundle, params]) => {
-    if (bundle === 'undefined') {
-      if (typeof getTypes === 'function') {
-        return getTypes(entity).map(t => request(`api/${entity}/${t}?${params}`));
-      }
-      return Promise.reject(new Error(`Requests must provide a valid ${entity} type.`));
-    }
-    return request(`api/${entity}/${bundle}?${params}`);
-  };
+  const fetchEntity = entity => (bundle, { filter = {} } = {}) =>
+    request(`api/${entity}/${bundle}?${parseFilter(filter)}`);
 
-  const fetchEntity = (entity, getTypes) => compose(
-    bind(Promise.all, Promise),
-    chain(transformBundledParams(entity, getTypes)),
-    Object.entries,
-    parseFilter,
-    prop('filter'),
-    defaultTo({}),
-  );
-
-  const errorIs404 = e => +e.response.status === 404;
-
-  const handlePatch404 = (entity, data) => ifElse(
-    errorIs404,
-    () => sendRequest(entity, 'POST')(data), // eslint-disable-line no-use-before-define
+  const postEntity = entity => (bundle, data) =>
+    request(`api/${entity}/${bundle}`, { method: 'POST', data });
+  // We assume if an entity has an id it is a PATCH request, but that may not be
+  // the case if it has a client-generated id. Such a PATCH request will result
+  // in a 404 (NOT FOUND), since the endpoint includes the id, so we handle this
+  // error with a POST request instead.
+  const handlePatch404 = (entity, bundle, data) => ifElse(
+    e => +e.response.status === 404,
+    () => postEntity(entity)(bundle, data),
     Promise.reject,
   );
-
-  const sendRequest = (entity, method) => (data) => {
-    if (method === 'POST') {
-      return request(
-        `api/${entity}/${typeToBundle(entity, data.type)}`,
-        { method, data },
-      );
-    }
-    return request(
-      `api/${entity}/${typeToBundle(entity, data.type)}/${data.id}`,
-      { method, data },
-    ).catch(handlePatch404(entity, data));
-  };
-
+  const patchEntity = entity => (bundle, data) =>
+    request(`api/${entity}/${bundle}/${data.id}`, { method: 'PATCH', data })
+      .catch(handlePatch404(entity, bundle, data));
   const sendEntity = entity => ifElse(
-    has('id'),
-    sendRequest(entity, 'PATCH'),
-    sendRequest(entity, 'POST'),
+    (_, data) => has('id', data),
+    patchEntity(entity),
+    postEntity(entity),
   );
 
-  const deleteEntity = entity => ({ type, id }) => request(
-    `api/${entity}/${type}/${id}`,
+  const deleteEntity = entity => (bundle, id) => request(
+    `api/${entity}/${bundle}/${id}`,
     { method: 'DELETE' },
   );
 

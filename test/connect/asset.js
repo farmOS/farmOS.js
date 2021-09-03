@@ -12,10 +12,10 @@ describe('asset', function () {
           id,
           type: 'asset--equipment',
           attributes: {
-            name: 'Node Test Animal',
+            name: 'Node Test Equipment',
           },
         };
-        return farm.asset.send(asset);
+        return farm.asset.send('equipment', asset);
       })
       .then((response) => {
         expect(response).to.have.nested.property('data.id', id);
@@ -23,33 +23,24 @@ describe('asset', function () {
           id,
           type: 'asset--equipment',
           attributes: {
-            name: 'Node Test Animal Revised',
+            name: 'Node Test Equipment Revised',
             status: 'archived',
           },
         };
-        return farm.asset.send(asset);
+        return farm.asset.send('equipment', asset);
       })
       .then(() => {
-        const filter = {
-          $or: [
-            { type: 'equipment', status: 'archived' },
-            { type: 'plant', status: 'active' },
-          ],
-        };
-        return farm.asset.fetch({ filter });
+        const filter = { status: 'archived' };
+        return farm.asset.fetch('equipment', { filter });
       })
-      .then((responses) => {
-        expect(responses).to.have.lengthOf(2);
-        const asset = responses
-          .flatMap(r => r.data)
-          .find(l => l.id === id);
-        expect(asset).to.have.nested.property('attributes.name', 'Node Test Animal Revised');
-        return farm.asset.delete({ type: 'equipment', id });
+      .then((response) => {
+        const asset = response.data.find(l => l.id === id);
+        expect(asset).to.have.nested.property('attributes.name', 'Node Test Equipment Revised');
+        return farm.asset.delete('equipment', id);
       })
-      .then(() => farm.asset.fetch({ filter: { type: 'equipment', id } }))
-      .then((responses) => {
-        const results = responses.flatMap(r => r.data);
-        expect(results).to.have.lengthOf(0);
+      .then(() => farm.asset.fetch('equipment', { filter: { id } }))
+      .then((response) => {
+        expect(response.data).to.have.lengthOf(0);
       });
   });
 });

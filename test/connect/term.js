@@ -15,7 +15,7 @@ describe('term', function () {
             name: 'Node Test',
           },
         };
-        return farm.term.send(term);
+        return farm.term.send('material', term);
       })
       .then((response) => {
         expect(response).to.have.nested.property('data.id', id);
@@ -26,29 +26,20 @@ describe('term', function () {
             name: 'Node Test Revised',
           },
         };
-        return farm.term.send(term);
+        return farm.term.send('material', term);
       })
       .then(() => {
-        const filter = {
-          $or: [
-            { type: 'material' },
-            { type: 'season' },
-          ],
-        };
-        return farm.term.fetch({ filter });
+        const filter = { name: 'Node Test Revised' };
+        return farm.term.fetch('material', { filter });
       })
-      .then((responses) => {
-        expect(responses).to.have.lengthOf(2);
-        const term = responses
-          .flatMap(r => r.data)
-          .find(l => l.id === id);
+      .then((response) => {
+        const term = response.data.find(l => l.id === id);
         expect(term).to.have.nested.property('attributes.name', 'Node Test Revised');
-        return farm.term.delete({ type: 'material', id });
+        return farm.term.delete('material', id);
       })
-      .then(() => farm.term.fetch({ filter: { type: 'material', id } }))
-      .then((responses) => {
-        const results = responses.flatMap(r => r.data);
-        expect(results).to.have.lengthOf(0);
+      .then(() => farm.term.fetch('material', { filter: { id } }))
+      .then((response) => {
+        expect(response.data).to.have.lengthOf(0);
       });
   });
 });

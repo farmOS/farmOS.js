@@ -16,7 +16,7 @@ describe('log', function () {
             timestamp: '2021-04-26T09:18:33Z',
           },
         };
-        return farm.log.send(log);
+        return farm.log.send('activity', log);
       })
       .then((response) => {
         expect(response).to.have.nested.property('data.id', id);
@@ -28,29 +28,20 @@ describe('log', function () {
             status: 'done',
           },
         };
-        return farm.log.send(log);
+        return farm.log.send('activity', log);
       })
       .then(() => {
-        const filter = {
-          $or: [
-            { type: 'activity', status: 'done' },
-            { type: 'observation', status: 'pending' },
-          ],
-        };
-        return farm.log.fetch({ filter });
+        const filter = { status: 'done', name: 'Node Test Revised' };
+        return farm.log.fetch('activity', { filter });
       })
-      .then((responses) => {
-        expect(responses).to.have.lengthOf(2);
-        const log = responses
-          .flatMap(r => r.data)
-          .find(l => l.id === id);
+      .then((response) => {
+        const log = response.data.find(l => l.id === id);
         expect(log).to.have.nested.property('attributes.name', 'Node Test Revised');
-        return farm.log.delete({ type: 'activity', id });
+        return farm.log.delete('activity', id);
       })
-      .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
-      .then((responses) => {
-        const results = responses.flatMap(r => r.data);
-        expect(results).to.have.lengthOf(0);
+      .then(() => farm.log.fetch('activity', { filter: { id } }))
+      .then((response) => {
+        expect(response.data).to.have.lengthOf(0);
       });
   });
 });

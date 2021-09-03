@@ -7,7 +7,6 @@ const { entities, entityMethods, emptySchemata } = require('../entities');
 
 function connect(host, opts) {
   const {
-    getTypes,
     clientId,
     getToken: getTokenOpt,
     setToken,
@@ -76,7 +75,7 @@ function connect(host, opts) {
     },
     ...entityMethods(entities, ({ name }) => ({
       delete: deleteEntity(name),
-      fetch: fetchEntity(name, getTypes),
+      fetch: fetchEntity(name),
       send: sendEntity(name),
     })),
   };

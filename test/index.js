@@ -28,7 +28,7 @@ describe('farmOS', function () {
     const serialized = farm.log.serialize(activity);
     return farm.log.send(serialized)
       .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
-      .then(([remoteActivity]) => {
+      .then(({ data: [remoteActivity] }) => {
         activity.name = 'did some more stuff';
         farm.log.merge(activity, remoteActivity);
         const meta = farm.meta.get(activity);
@@ -40,12 +40,11 @@ describe('farmOS', function () {
         } = meta;
         const nameChangedAfterStatus = new Date(nameChanged) > new Date(statusChanged);
         expect(nameChangedAfterStatus).to.be.true;
-        return farm.log.delete({ type: 'activity', id });
+        return farm.log.delete('activity', id);
       })
       .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
-      .then((responses) => {
-        const results = responses.flatMap(r => r.data);
-        expect(results).to.have.lengthOf(0);
+      .then((results) => {
+        expect(results.data).to.have.lengthOf(0);
       });
   });
 });
