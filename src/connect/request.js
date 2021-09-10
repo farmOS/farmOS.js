@@ -3,8 +3,7 @@ const parseFilter = require('./parseFilter');
 
 module.exports = function farmRequest(client) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
-    client(endpoint, { method, data: JSON.stringify(data) })
-      .then(res => res.data);
+    client(endpoint, { method, data: JSON.stringify(data) });
 
   const fetchEntity = entity => (bundle, { filter = {} } = {}) =>
     request(`api/${entity}/${bundle}?${parseFilter(filter)}`);

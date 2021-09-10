@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { prop } = require('ramda');
 const farmRequest = require('./request');
 const oauth = require('./oauth');
 const typeToBundle = require('./typeToBundle');
@@ -50,27 +51,28 @@ function connect(host, opts) {
         if (!entity) {
           const schemata = emptySchemata(entities);
           return request('api/')
-            .then(res => Promise.all(Object.keys(res.links)
+            .then(res => Promise.all(Object.keys(res.data.links)
               .filter(type => entities.some(({ name }) => type.startsWith(`${name}--`)))
               .map((type) => {
                 const [entName, b] = type.split('--');
                 return request(`api/${entName}/${b}/resource/schema`)
-                  .then((schema) => { schemata[entName][b] = schema; });
+                  .then(({ data: schema }) => { schemata[entName][b] = schema; });
               })))
             .then(() => schemata);
         }
         if (!bundle) {
           return request('api/')
-            .then(res => Promise.all(Object.keys(res.links)
+            .then(res => Promise.all(Object.keys(res.data.links)
               .filter(type => type.startsWith(`${entity}--`))
               .map((type) => {
                 const b = typeToBundle(entity, type);
                 return request(`api/${entity}/${b}/resource/schema`)
-                  .then(schema => [b, schema]);
+                  .then(({ data: schema }) => [b, schema]);
               }))
               .then(Object.fromEntries));
         }
-        return request(`api/${entity}/${bundle}/resource/schema`);
+        return request(`api/${entity}/${bundle}/resource/schema`)
+          .then(prop('data'));
       },
     },
     ...entityMethods(entities, ({ name }) => ({

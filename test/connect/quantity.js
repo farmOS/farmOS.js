@@ -29,7 +29,7 @@ describe('quantity', function () {
         return farm.quantity.send('standard', quantity);
       })
       .then((response) => {
-        expect(response).to.have.nested.property('data.id', id);
+        expect(response).to.have.nested.property('data.data.id', id);
         const quantity = {
           id,
           type: 'quantity--standard',
@@ -47,13 +47,13 @@ describe('quantity', function () {
         return farm.quantity.fetch('standard', { filter });
       })
       .then((response) => {
-        const quantity = response.data.find(l => l.id === id);
+        const quantity = response.data.data.find(l => l.id === id);
         expect(quantity).to.have.nested.property('attributes.value.numerator', 36);
         return farm.quantity.delete('standard', id);
       })
       .then(() => farm.quantity.fetch('standard', { filter: { id } }))
       .then((response) => {
-        expect(response.data).to.have.lengthOf(0);
+        expect(response.data.data).to.have.lengthOf(0);
       });
   });
 });

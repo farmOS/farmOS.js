@@ -1,5 +1,5 @@
 const {
-  compose, dissoc, evolve, omit, mapObjIndexed, map, pick, replace,
+  compose, dissoc, evolve, omit, mapObjIndexed, map, pick, replace, path,
 } = require('ramda');
 const connect = require('./index');
 const { entities, entityMethods } = require('../entities');
@@ -60,6 +60,11 @@ const transformRemoteEntity = entName => remote => ({
   relationships: omit(drupalMetaFields.relationships, remote.relationships),
 });
 
+const transformSendResponse = name => compose(
+  transformRemoteEntity(name),
+  path(['data', 'data']),
+);
+
 const transformLocalEntity = (entName, data) => compose(
   dissoc('meta'),
   evolve({
@@ -113,7 +118,7 @@ const aggregateBundles = (bundles, transform = a => a) => results =>
     const { data, fulfilled, rejected } = aggregate;
     const { reason, value, status } = result;
     if (status === 'fulfilled') {
-      const ents = value.data.map(transform);
+      const ents = value.data.data.map(transform);
       return {
         data: data.concat(ents),
         fulfilled: fulfilled.concat({ bundle: name, response: value, filter }),
@@ -172,7 +177,7 @@ function adapter(model, opts) {
       send: data => connection[shortName].send(
         data.type,
         transformLocalEntity(name, data),
-      ),
+      ).then(transformSendResponse(name)),
     })),
   };
 }

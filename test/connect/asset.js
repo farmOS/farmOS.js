@@ -18,7 +18,7 @@ describe('asset', function () {
         return farm.asset.send('equipment', asset);
       })
       .then((response) => {
-        expect(response).to.have.nested.property('data.id', id);
+        expect(response).to.have.nested.property('data.data.id', id);
         const asset = {
           id,
           type: 'asset--equipment',
@@ -34,13 +34,13 @@ describe('asset', function () {
         return farm.asset.fetch('equipment', { filter });
       })
       .then((response) => {
-        const asset = response.data.find(l => l.id === id);
+        const asset = response.data.data.find(l => l.id === id);
         expect(asset).to.have.nested.property('attributes.name', 'Node Test Equipment Revised');
         return farm.asset.delete('equipment', id);
       })
       .then(() => farm.asset.fetch('equipment', { filter: { id } }))
       .then((response) => {
-        expect(response.data).to.have.lengthOf(0);
+        expect(response.data.data).to.have.lengthOf(0);
       });
   });
 });

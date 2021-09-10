@@ -19,7 +19,7 @@ describe('log', function () {
         return farm.log.send('activity', log);
       })
       .then((response) => {
-        expect(response).to.have.nested.property('data.id', id);
+        expect(response).to.have.nested.property('data.data.id', id);
         const log = {
           id,
           type: 'log--activity',
@@ -35,13 +35,13 @@ describe('log', function () {
         return farm.log.fetch('activity', { filter });
       })
       .then((response) => {
-        const log = response.data.find(l => l.id === id);
+        const log = response.data.data.find(l => l.id === id);
         expect(log).to.have.nested.property('attributes.name', 'Node Test Revised');
         return farm.log.delete('activity', id);
       })
       .then(() => farm.log.fetch('activity', { filter: { id } }))
       .then((response) => {
-        expect(response.data).to.have.lengthOf(0);
+        expect(response.data.data).to.have.lengthOf(0);
       });
   });
 });
