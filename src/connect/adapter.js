@@ -112,23 +112,20 @@ function parseBundles(filter, validTypes) {
   return bundles;
 }
 
-const aggregateBundles = (bundles, transform = a => a) => results =>
-  results.reduce((aggregate, result, i) => {
-    const { name, filter } = bundles[i];
-    const { data, fulfilled, rejected } = aggregate;
-    const { reason, value, status } = result;
+const aggregateBundles = (transform = a => a) => results =>
+  results.reduce(({ data, fulfilled, rejected }, { reason, value, status }) => {
     if (status === 'fulfilled') {
       const ents = value.data.data.map(transform);
       return {
         data: data.concat(ents),
-        fulfilled: fulfilled.concat({ bundle: name, response: value, filter }),
+        fulfilled: fulfilled.concat(value),
         rejected,
       };
     }
     return {
       data,
       fulfilled,
-      rejected: rejected.concat({ bundle: name, error: reason, filter }),
+      rejected: rejected.concat(reason),
     };
   }, { data: [], fulfilled: [], rejected: [] });
 
@@ -138,7 +135,7 @@ const fetchBundles = (getTypes, request, transform) => ({ filter }) => {
   const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) =>
     request(bundle, { filter: bundleFilter }));
   return Promise.allSettled(bundleRequests)
-    .then(aggregateBundles(bundles, transform));
+    .then(aggregateBundles(transform));
 };
 
 function adapter(model, opts) {
