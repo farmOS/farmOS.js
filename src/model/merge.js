@@ -32,6 +32,7 @@ const mergeEntity = (entName, meta) => (local, remote) => {
     throw new Error(`Cannot merge ${entName} because local metadata is unreadable.`);
   }
   const { lastSync } = local[meta].remote;
+  const { meta: { changed: remoteChanged } = {} } = remote;
   // This loop comprises the main algorithm for merging concurrent copies of
   // the entity on separate systems. It depends on the local metadata stored
   // for each field, remote metadata sent with the entity, and the timestamp
@@ -45,7 +46,7 @@ const mergeEntity = (entName, meta) => (local, remote) => {
     const remoteMetadata = (remote.meta && remote.meta.fields
       && remote.meta.fields[fieldName]) || {};
     const lChange = new Date(field.changed);
-    const rChange = new Date(remoteMetadata.changed || remote.attributes.changed || Date.now());
+    const rChange = new Date(remoteMetadata.changed || remoteChanged || Date.now());
     const lChangeHasBeenSynced = lastSync !== null && new Date(lastSync) > lChange;
     // If the remote entity changed more recently than the local entity, and
     // the local entity was synced more recently than it changed,

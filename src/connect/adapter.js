@@ -60,14 +60,16 @@ const transformRemoteAttributes = compose(
   omit(drupalMetaFields.attributes),
 );
 
+const safeIso = t => t && new Date(t).toISOString();
+
 const transformRemoteEntity = entName => ({
   id, type, attributes = {}, relationships = {},
 }) => ({
   id,
   type: typeToBundle(entName, type),
   meta: {
-    created: attributes.created,
-    changed: attributes.changed,
+    created: safeIso(attributes.created),
+    changed: safeIso(attributes.changed),
     attributes: pick(drupalMetaFields.attributes, attributes),
     relationships: pick(drupalMetaFields.relationships, relationships),
   },
