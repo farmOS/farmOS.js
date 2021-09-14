@@ -11,6 +11,7 @@ function connect(host, opts) {
     clientId,
     getToken: getTokenOpt,
     setToken,
+    filterTransforms,
   } = opts;
 
   // Instantiate axios client.
@@ -35,7 +36,7 @@ function connect(host, opts) {
   } = oauth(client, oAuthOpts);
   const {
     request, deleteEntity, fetchEntity, sendEntity,
-  } = farmRequest(client);
+  } = farmRequest(client, filterTransforms);
 
   const farm = {
     authorize,

@@ -1,12 +1,13 @@
 const { has, ifElse } = require('ramda');
 const parseFilter = require('./parseFilter');
 
-module.exports = function farmRequest(client) {
+module.exports = function farmRequest(client, filterTransforms) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
     client(endpoint, { method, data: JSON.stringify(data) });
 
+  const parse = parseFilter(filterTransforms);
   const fetchEntity = entity => (bundle, { filter = {} } = {}) =>
-    request(`api/${entity}/${bundle}?${parseFilter(filter)}`);
+    request(`api/${entity}/${bundle}?${parse(filter)}`);
 
   const postEntity = entity => (bundle, data) =>
     request(`api/${entity}/${bundle}`, { method: 'POST', data });

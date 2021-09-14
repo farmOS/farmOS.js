@@ -5,6 +5,15 @@ const connect = require('./index');
 const { entities, entityMethods } = require('../entities');
 const typeToBundle = require('./typeToBundle');
 
+// These functions correspond to entity fields and provide transformations that
+// are passed ultimately to parseFilter, so it can compare values of the same
+// format. This is not a long term solution, and should eventually be replaced
+// by transforms based on the `format` keyword in JSON Schema, independent of
+// the actual field names.
+const filterTransforms = {
+  timestamp: t => Math.floor(new Date(t).valueOf() / 1000),
+};
+
 const drupalMetaFields = {
   attributes: [
     'drupal_internal__id',
@@ -140,7 +149,7 @@ const fetchBundles = (getTypes, request, transform) => ({ filter }) => {
 
 function adapter(model, opts) {
   const { host, ...rest } = opts;
-  const connection = connect(host, rest);
+  const connection = connect(host, { ...rest, filterTransforms });
 
   return {
     ...connection,
