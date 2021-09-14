@@ -58,15 +58,17 @@ const transformRemoteAttributes = compose(
   omit(drupalMetaFields.attributes),
 );
 
-const transformRemoteEntity = entName => remote => ({
-  id: remote.id,
-  type: typeToBundle(entName, remote.type),
+const transformRemoteEntity = entName => ({
+  id, type, attributes = {}, relationships = {},
+}) => ({
+  id,
+  type: typeToBundle(entName, type),
   meta: {
-    attributes: pick(drupalMetaFields.attributes, remote.attributes),
-    relationships: pick(drupalMetaFields.relationships, remote.relationships),
+    attributes: pick(drupalMetaFields.attributes, attributes),
+    relationships: pick(drupalMetaFields.relationships, relationships),
   },
-  attributes: transformRemoteAttributes(remote.attributes),
-  relationships: omit(drupalMetaFields.relationships, remote.relationships),
+  attributes: transformRemoteAttributes(attributes),
+  relationships: omit(drupalMetaFields.relationships, relationships),
 });
 
 const transformSendResponse = name => compose(
