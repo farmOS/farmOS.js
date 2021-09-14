@@ -22,19 +22,20 @@ const comparison = {
 module.exports = (filterTransforms = {}) =>
   function parseFilter(filter, group, depth = 0) {
     function parseComparison(path, expr, comGroup = null, i = 0) {
+      const amp = i > 0 ? '&' : '';
       const membership = comGroup ? `&filter[${path}-${i}-filter][condition][memberOf]=${comGroup}` : '';
       const [[op, rawValue], ...tail] = Object.entries(expr);
       const val = typeof filterTransforms[path] === 'function'
         ? filterTransforms[path](rawValue)
         : rawValue;
       if (val === null) {
-        const pathStr = `&filter[${path}-filter][condition][path]=${path}`;
+        const pathStr = `${amp}filter[${path}-filter][condition][path]=${path}`;
         const opStr = `&filter[${path}-filter][condition][operator]=IS%20NULL`;
         return pathStr + opStr + membership;
       }
       const urlEncodedOp = comparison[op];
       if (!urlEncodedOp) throw new Error(`Invalid comparison operator: ${op}`);
-      const pathStr = `&filter[${path}-${i}-filter][condition][path]=${path}`;
+      const pathStr = `${amp}filter[${path}-${i}-filter][condition][path]=${path}`;
       const opStr = `&filter[${path}-${i}-filter][condition][operator]=${urlEncodedOp}`;
       const valStr = `&filter[${path}-${i}-filter][condition][value]=${val}`;
       const str = pathStr + opStr + valStr + membership;
