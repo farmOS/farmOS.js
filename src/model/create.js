@@ -25,10 +25,13 @@ const createEntity = (entName, metaSymbol, schemata) => (props, metadata = {}) =
     fields: metafields = {},
   } = metadata;
   const now = new Date().toISOString();
+  const { created = now, changed = now } = remoteMeta;
   Object.defineProperty(entity, metaSymbol, {
     writable: true,
     enumerable: false,
     value: {
+      created,
+      changed,
       remote: { lastSync, url, meta: remoteMeta },
       fields: {},
     },
@@ -47,11 +50,11 @@ const createEntity = (entName, metaSymbol, schemata) => (props, metadata = {}) =
       data = getDefault(schema, fieldType, field);
     }
     const {
-      changed = now,
+      changed: fieldChanged = remoteMeta.changed || now,
       conflicts = [],
     } = metafields[field] || {};
     entity[metaSymbol].fields[field] = {
-      data, changed, conflicts, fieldType,
+      data, fieldChanged, conflicts, fieldType,
     };
     Object.defineProperty(entity, field, {
       enumerable: true,

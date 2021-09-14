@@ -16,6 +16,8 @@ const filterTransforms = {
 
 const drupalMetaFields = {
   attributes: [
+    'created',
+    'changed',
     'drupal_internal__id',
     'drupal_internal__revision_id',
     'langcode',
@@ -64,6 +66,8 @@ const transformRemoteEntity = entName => ({
   id,
   type: typeToBundle(entName, type),
   meta: {
+    created: attributes.created,
+    changed: attributes.changed,
     attributes: pick(drupalMetaFields.attributes, attributes),
     relationships: pick(drupalMetaFields.relationships, relationships),
   },
