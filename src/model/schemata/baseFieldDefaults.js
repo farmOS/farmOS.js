@@ -40,7 +40,7 @@ module.exports = {
       file: [],
     },
   },
-  term: {
+  taxonomy_term: {
     attributes: {
       name: '',
       description: {},

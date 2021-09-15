@@ -17,11 +17,8 @@ const schemata = {
     plant: {},
     animal: {},
     equipment: {},
-    compost: {},
     structure: {},
-    sensor: {},
     water: {},
-    group: {},
   },
   term: {
     animal_type: {},
