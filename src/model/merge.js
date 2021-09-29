@@ -1,7 +1,13 @@
 /* eslint-disable no-param-reassign */
-const {
-  compose, cond, eqBy, equals, has, identity, isNil, map, prop,
-} = require('ramda');
+import compose from 'ramda/src/compose.js';
+import cond from 'ramda/src/cond.js';
+import eqBy from 'ramda/src/eqBy.js';
+import equals from 'ramda/src/equals.js';
+import has from 'ramda/src/has.js';
+import identity from 'ramda/src/identity.js';
+import isNil from 'ramda/src/isNil.js';
+import map from 'ramda/src/map.js';
+import prop from 'ramda/src/prop.js';
 
 // Helpers for determining if a set of fields are equivalent. Attributes are
 // fairly straightforward, but relationships need to be compared strictly by
@@ -76,4 +82,4 @@ const mergeEntity = (entName, meta) => (local, remote) => {
   local[meta].remote.url = remote.links && remote.links.self && remote.links.self.href;
 };
 
-module.exports = mergeEntity;
+export default mergeEntity;

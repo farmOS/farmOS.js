@@ -1,12 +1,11 @@
-const axios = require('axios');
-const { prop } = require('ramda');
-const farmRequest = require('./request');
-const oauth = require('./oauth');
-const typeToBundle = require('./typeToBundle');
-const { entities, entityMethods, emptySchemata } = require('../entities');
+import axios from 'axios';
+import prop from 'ramda/src/prop.js';
+import farmRequest from './request.js';
+import oauth from './oauth.js';
+import typeToBundle from './typeToBundle.js';
+import { entities, entityMethods, emptySchemata } from '../entities.js';
 
-
-function connect(host, opts) {
+export default function connect(host, opts) {
   const {
     clientId,
     getToken: getTokenOpt,
@@ -84,5 +83,3 @@ function connect(host, opts) {
   };
   return farm;
 }
-
-module.exports = connect;

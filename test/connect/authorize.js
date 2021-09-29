@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const { session } = require('./client');
+import chai from 'chai'; const { expect } = chai;
+import { session } from './client.js';
 
 describe('authorize', () => {
   it('returns a token when a valid user is authorized.', () => session()

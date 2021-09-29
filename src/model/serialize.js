@@ -1,4 +1,4 @@
-const { clone } = require('ramda');
+import clone from 'ramda/src/clone.js';
 
 const serializeEntity = (entName, meta) => (entity) => {
   const { id, type } = entity;
@@ -26,4 +26,4 @@ const serializeEntity = (entName, meta) => (entity) => {
   return serializedEnt;
 };
 
-module.exports = serializeEntity;
+export default serializeEntity;

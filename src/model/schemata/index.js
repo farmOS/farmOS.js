@@ -1,12 +1,7 @@
-const baseFieldDefaults = require('./baseFieldDefaults');
+import baseFieldDefaults from './baseFieldDefaults.js';
 
-const getPropertiesStub = entName => (_, fieldType) =>
+export const getPropertiesStub = entName => (_, fieldType) =>
   Object.keys(baseFieldDefaults[entName][fieldType]);
 
-const getDefaultStub = entName => (_, fieldType, field) =>
+export const getDefaultStub = entName => (_, fieldType, field) =>
   baseFieldDefaults[entName][fieldType][field];
-
-module.exports = {
-  getPropertiesStub,
-  getDefaultStub,
-};

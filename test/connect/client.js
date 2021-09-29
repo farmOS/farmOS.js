@@ -1,4 +1,4 @@
-const connect = require('../../src/connect');
+import connect from '../../src/connect/index.js';
 
 const host = 'http://localhost';
 const username = 'admin';
@@ -8,12 +8,10 @@ let token;
 const getToken = () => token;
 const setToken = (t) => { token = t; };
 
-const farm = connect(host, {
+export const farm = connect(host, {
   clientId: 'farm_client',
   getToken,
   setToken,
 });
 
-const session = () => farm.authorize(username, password);
-
-module.exports = { farm, session };
+export const session = () => farm.authorize(username, password);

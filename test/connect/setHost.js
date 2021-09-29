@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const connect = require('../../src/connect');
+import chai from 'chai'; const { expect } = chai;
+import connect from '../../src/connect/index.js';
 
 const host = 'http://localhost';
 const username = 'admin';

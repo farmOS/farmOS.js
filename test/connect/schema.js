@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const { session, farm } = require('./client');
+import chai from 'chai'; const { expect } = chai;
+import { farm, session } from './client.js';
 
 describe('schema', () => {
   it('gets a schema for a specified bundle of a specified entity.', () => session()

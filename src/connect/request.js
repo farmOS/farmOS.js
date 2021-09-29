@@ -1,7 +1,8 @@
-const { has, ifElse } = require('ramda');
-const parseFilter = require('./parseFilter');
+import has from 'ramda/src/has.js';
+import ifElse from 'ramda/src/ifElse.js';
+import parseFilter from './parseFilter.js';
 
-module.exports = function farmRequest(client, filterTransforms) {
+export default function farmRequest(client, filterTransforms) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
     client(endpoint, { method, data: JSON.stringify(data) });
 

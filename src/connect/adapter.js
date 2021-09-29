@@ -1,9 +1,15 @@
-const {
-  compose, dissoc, evolve, omit, mapObjIndexed, map, pick, replace, path,
-} = require('ramda');
-const connect = require('./index');
-const { entities, entityMethods } = require('../entities');
-const typeToBundle = require('./typeToBundle');
+import compose from 'ramda/src/compose.js';
+import dissoc from 'ramda/src/dissoc.js';
+import evolve from 'ramda/src/evolve.js';
+import omit from 'ramda/src/omit.js';
+import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
+import map from 'ramda/src/map.js';
+import pick from 'ramda/src/pick.js';
+import replace from 'ramda/src/replace.js';
+import path from 'ramda/src/path.js';
+import connect from './index.js';
+import { entities, entityMethods } from '../entities.js';
+import typeToBundle from './typeToBundle.js';
 
 // These functions correspond to entity fields and provide transformations that
 // are passed ultimately to parseFilter, so it can compare values of the same
@@ -155,7 +161,7 @@ const fetchBundles = (getTypes, request, transform) => ({ filter }) => {
     .then(aggregateBundles(transform));
 };
 
-function adapter(model, opts) {
+export default function adapter(model, opts) {
   const { host, ...rest } = opts;
   const connection = connect(host, { ...rest, filterTransforms });
 
@@ -195,5 +201,3 @@ function adapter(model, opts) {
     })),
   };
 }
-
-module.exports = adapter;

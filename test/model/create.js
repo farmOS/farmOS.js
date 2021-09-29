@@ -1,8 +1,8 @@
-const { expect } = require('chai');
-const { validate } = require('uuid');
-const model = require('../../src/model');
-const schemata = require('../../src/model/schemata/stub');
-const baseFieldDefaults = require('../../src/model/schemata/baseFieldDefaults');
+import chai from 'chai'; const { expect } = chai;
+import { validate } from 'uuid';
+import model from '../../src/model/index.js';
+import schemata from '../../src/model/schemata/stub.js';
+import baseFieldDefaults from '../../src/model/schemata/baseFieldDefaults.js';
 
 const farm = model({ schemata });
 

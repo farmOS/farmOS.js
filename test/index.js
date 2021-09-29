@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const farmOS = require('../src');
+import chai from 'chai'; const { expect } = chai;
+import farmOS from '../src/index.js';
 
 const host = 'http://localhost';
 const clientId = 'farm_client';

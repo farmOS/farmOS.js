@@ -1,5 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
-const { getPropertiesStub, getDefaultStub } = require('./schemata');
+import { v4 as uuidv4 } from 'uuid';
+import { getPropertiesStub, getDefaultStub } from './schemata/index.js';
 
 function setOnce(obj, key, value) {
   const writable = value === undefined;
@@ -72,4 +72,4 @@ const createEntity = (entName, metaSymbol, schemata) => (props, metadata = {}) =
   return entity;
 };
 
-module.exports = createEntity;
+export default createEntity;

@@ -38,4 +38,4 @@ const schemata = {
   },
 };
 
-module.exports = schemata;
+export default schemata;

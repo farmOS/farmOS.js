@@ -1,6 +1,6 @@
-const { expect } = require('chai');
-const { v4: uuidv4 } = require('uuid');
-const { farm, session } = require('./client');
+import chai from 'chai'; const { expect } = chai;
+import { v4 as uuidv4 } from 'uuid';
+import { farm, session } from './client.js';
 
 describe('term', function () {
   this.timeout(10000);

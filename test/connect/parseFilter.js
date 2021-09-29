@@ -1,8 +1,8 @@
-const chai = require('chai');
-const parseFilter = require('../../src/connect/parseFilter')({});
-
-const { expect } = chai;
-chai.use(require('chai-string'));
+import chai from 'chai'; const { expect } = chai;
+import string from 'chai-string';
+chai.use(string);
+import makeParseFilter from '../../src/connect/parseFilter.js';
+const parseFilter = makeParseFilter({});
 
 describe('parseFilter', () => {
   it('parses a simple query w/ id only', () => {

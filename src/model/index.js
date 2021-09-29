@@ -1,15 +1,15 @@
 /* eslint-disable no-param-reassign */
-const { clone } = require('ramda');
-const createEntity = require('./create');
-const serializeEntity = require('./serialize');
-const deserializeEntity = require('./deserialize');
-const mergeEntity = require('./merge');
-const { entities, entityMethods, emptySchemata } = require('../entities');
+import clone from 'ramda/src/clone.js';
+import createEntity from './create.js';
+import serializeEntity from './serialize.js';
+import deserializeEntity from './deserialize.js';
+import mergeEntity from './merge.js';
+import { entities, entityMethods, emptySchemata } from '../entities.js';
 
 const meta = Symbol('meta');
 const entityNames = entities.map(e => e.name);
 
-function model(opts = {}) {
+export default function model(opts = {}) {
   const schemata = emptySchemata(entities);
 
   function getSchemata(entName, type) {
@@ -91,5 +91,3 @@ function model(opts = {}) {
     })),
   };
 }
-
-module.exports = model;

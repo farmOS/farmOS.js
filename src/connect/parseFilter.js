@@ -19,7 +19,7 @@ const comparison = {
   $lte: '<=',
 };
 
-module.exports = (filterTransforms = {}) =>
+export default (filterTransforms = {}) =>
   function parseFilter(filter, group, depth = 0) {
     function parseComparison(path, expr, comGroup = null, i = 0) {
       const amp = i > 0 ? '&' : '';

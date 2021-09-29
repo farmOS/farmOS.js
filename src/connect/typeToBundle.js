@@ -1,5 +1,4 @@
-const { replace } = require('ramda');
+import replace from 'ramda/src/replace.js';
 
-const typeToBundle = (entity, type) => replace(`${entity}--`, '', type);
-
-module.exports = typeToBundle;
+export default (entity, type) =>
+  replace(`${entity}--`, '', type);

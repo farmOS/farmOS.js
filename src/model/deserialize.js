@@ -1,5 +1,5 @@
-const { clone } = require('ramda');
-const createEntity = require('./create');
+import clone from 'ramda/src/clone.js';
+import createEntity from './create.js';
 
 const deserializeEntity = (entName, meta, schemata) => (serializedEnt) => {
   const {
@@ -15,4 +15,4 @@ const deserializeEntity = (entName, meta, schemata) => (serializedEnt) => {
   return createEntity(entName, meta, schemata)(props, metadata);
 };
 
-module.exports = deserializeEntity;
+export default deserializeEntity;

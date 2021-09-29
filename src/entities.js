@@ -1,7 +1,7 @@
-const { reduce } = require('ramda');
+import reduce from 'ramda/src/reduce.js';
 
 // Configuration objects for the entities supported by this library.
-const entities = [
+export const entities = [
   {
     name: 'asset',
     shortName: 'asset',
@@ -29,16 +29,14 @@ const entities = [
 ];
 
 // Takes a list of entity configs and returns an empty schemata object.
-const emptySchemata = reduce((s, { name }) => ({ ...s, [name]: {} }), {});
+export const emptySchemata = reduce((s, { name }) => ({ ...s, [name]: {} }), {});
 
 // Factory function that creates entity methods that can be spread into
 // the return object.
-const entityMethods = (configs, fn) =>
+export const entityMethods = (configs, fn) =>
   configs.reduce((methods, config) => ({
     ...methods,
     [config.shortName]: {
       ...fn(config),
     },
   }), {});
-
-module.exports = { entities, emptySchemata, entityMethods };

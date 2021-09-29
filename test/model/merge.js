@@ -1,6 +1,6 @@
-const { expect } = require('chai');
-const model = require('../../src/model');
-const schemata = require('../../src/model/schemata/stub');
+import chai from 'chai'; const { expect } = chai;
+import model from '../../src/model/index.js';
+import schemata from '../../src/model/schemata/stub.js';
 
 const farm = model({ schemata });
 

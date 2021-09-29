@@ -1,11 +1,11 @@
-const { omit } = require('ramda');
-const d9JsonApiAdapter = require('./connect/adapter');
-const model = require('./model');
-const { entities, entityMethods } = require('./entities');
+import omit from 'ramda/src/omit.js';
+import d9JsonApiAdapter from './connect/adapter.js';
+import model from './model/index.js';
+import { entities, entityMethods } from './entities.js';
 
 const shortNames = entities.map(e => e.shortName);
 
-function farmOS(config) {
+export default function farmOS(config) {
   const {
     schemata = {},
     remote: {
@@ -35,5 +35,3 @@ function farmOS(config) {
     })),
   };
 }
-
-module.exports = farmOS;

@@ -1,6 +1,6 @@
-const axios = require('axios');
+import axios from 'axios';
 
-module.exports = function oAuth(client, opts) {
+export default function oAuth(client, opts) {
   let memToken = {};
   const {
     host,
