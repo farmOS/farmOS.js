@@ -2,8 +2,10 @@ name: Run 2.x tests
 on:
   push:
     branches:
-      - '2.x'
-      - '2.x-**'
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
 
 jobs:
   build:
