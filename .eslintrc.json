@@ -17,7 +17,8 @@
   "rules": {
     "implicit-arrow-linebreak": "off",
     "no-underscore-dangle": "off",
-    "import/extensions": "off"
+    "import/extensions": "off",
+    "no-warning-comments": "warn"
   },
   "overrides": [
     {
