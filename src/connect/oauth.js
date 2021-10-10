@@ -194,4 +194,4 @@ export default function oAuth(client, opts) {
         });
     },
   };
-};
+}

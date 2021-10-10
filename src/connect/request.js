@@ -38,4 +38,4 @@ export default function farmRequest(client, filterTransforms) {
   return {
     request, fetchEntity, sendEntity, deleteEntity,
   };
-};
+}

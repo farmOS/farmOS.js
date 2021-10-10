@@ -1,8 +1,10 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import { validate } from 'uuid';
 import model from '../../src/model/index.js';
 import schemata from '../../src/model/schemata/stub.js';
 import baseFieldDefaults from '../../src/model/schemata/baseFieldDefaults.js';
+
+const { expect } = chai;
 
 const farm = model({ schemata });
 

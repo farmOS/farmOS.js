@@ -1,6 +1,8 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import model from '../../src/model/index.js';
 import schemata from '../../src/model/schemata/stub.js';
+
+const { expect } = chai;
 
 const farm = model({ schemata });
 

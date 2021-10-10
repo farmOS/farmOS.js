@@ -1,6 +1,8 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import { v4 as uuidv4 } from 'uuid';
 import { farm, session } from './client.js';
+
+const { expect } = chai;
 
 describe('asset', function () {
   this.timeout(10000);

@@ -1,5 +1,7 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import connect from '../../src/connect/index.js';
+
+const { expect } = chai;
 
 const host = 'http://localhost';
 const username = 'admin';

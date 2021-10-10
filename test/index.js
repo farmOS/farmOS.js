@@ -1,5 +1,7 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import farmOS from '../src/index.js';
+
+const { expect } = chai;
 
 const host = 'http://localhost';
 const clientId = 'farm_client';

@@ -1,7 +1,9 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import string from 'chai-string';
-chai.use(string);
 import makeParseFilter from '../../src/connect/parseFilter.js';
+
+chai.use(string);
+const { expect } = chai;
 const parseFilter = makeParseFilter({});
 
 describe('parseFilter', () => {

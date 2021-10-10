@@ -1,5 +1,7 @@
-import chai from 'chai'; const { expect } = chai;
+import chai from 'chai';
 import { farm, session } from './client.js';
+
+const { expect } = chai;
 
 describe('user', () => {
   it('can look up all users and admin by uuid.', () => session()
