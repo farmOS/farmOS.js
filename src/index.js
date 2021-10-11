@@ -26,8 +26,7 @@ export default function farmOS(config) {
     remote: { ...omit(shortNames, connection) },
     ...entityMethods(entities, ({ shortName }) => ({
       create: farm[shortName].create,
-      serialize: farm[shortName].serialize,
-      deserialize: farm[shortName].deserialize,
+      update: farm[shortName].update,
       merge: farm[shortName].merge,
       fetch: connection[shortName].fetch,
       send: connection[shortName].send,

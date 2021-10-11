@@ -1,75 +1,53 @@
-import { v4 as uuidv4 } from 'uuid';
+import { validate, v4 as uuidv4 } from 'uuid';
+import clone from 'ramda/src/clone.js';
 import { getPropertiesStub, getDefaultStub } from './schemata/index.js';
 
-function setOnce(obj, key, value) {
-  const writable = value === undefined;
-  Object.defineProperty(obj, key, {
-    value,
-    writable,
-    configurable: true,
-    enumerable: true,
-  });
-}
-
-const createEntity = (entName, metaSymbol, schemata) => (props, metadata = {}) => {
-  const getProperties = getPropertiesStub(entName); // TODO: Replace stub
-  const getDefault = getDefaultStub(entName); // TODO: Replace stub
+const createEntity = (entName, schemata) => (props) => {
   const { id = uuidv4(), type } = props;
+  if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
   const schema = schemata[entName][type];
   if (!schema) { throw new Error(`Cannot find a schema for the ${entName} type: ${type}.`); }
-  const entity = {};
-  setOnce(entity, 'id', id);
-  setOnce(entity, 'type', type);
   const {
-    remote: { lastSync = null, url = null, meta: remoteMeta = {} } = {},
-    fields: metafields = {},
-  } = metadata;
-  const now = new Date().toISOString();
-  const { created = now, changed = now } = remoteMeta;
-  Object.defineProperty(entity, metaSymbol, {
-    writable: true,
-    enumerable: false,
-    value: {
+    attributes = {}, relationships = {}, meta = {}, ...rest
+  } = clone(props);
+  // Spread attr's and rel's like this so other entities can be passed as props,
+  // but nesting props is still not required.
+  const copyProps = { ...attributes, ...relationships, ...rest };
+  const {
+    created = new Date().toISOString(),
+    changed = created,
+    remote: { lastSync = null, url = null, meta: remoteMeta = null } = {},
+  } = meta;
+  const fieldChanges = {};
+  const getProperties = getPropertiesStub(entName); // TODO: Replace stub
+  const getDefault = getDefaultStub(entName); // TODO: Replace stub
+  const initFields = (fieldType) => {
+    const fields = {};
+    getProperties(schema, fieldType).forEach((name) => {
+      if (name in copyProps) {
+        const changedProp = meta.fieldChanges && meta.fieldChanges[name];
+        fieldChanges[name] = changedProp || changed;
+        fields[name] = copyProps[name];
+      } else {
+        fieldChanges[name] = changed;
+        fields[name] = getDefault(schema, fieldType, name);
+      }
+    });
+    return fields;
+  };
+  return {
+    id,
+    type,
+    attributes: initFields('attributes'),
+    relationships: initFields('relationships'),
+    meta: {
       created,
       changed,
       remote: { lastSync, url, meta: remoteMeta },
-      fields: {},
+      fieldChanges,
+      conflicts: [],
     },
-  });
-  const attributes = getProperties(schema, 'attributes')
-    .map(attr => ({ field: attr, fieldType: 'attributes' }));
-  const relationships = getProperties(schema, 'relationships')
-    .map(rel => ({ field: rel, fieldType: 'relationships' }));
-  attributes.concat(relationships).forEach(({ field, fieldType }) => {
-    let data;
-    if (field in props) {
-      data = props[field];
-    } else if (field in metafields) {
-      ({ data } = metafields[field]);
-    } else {
-      data = getDefault(schema, fieldType, field);
-    }
-    const {
-      changed: fieldChanged = changed,
-      conflicts = [],
-    } = metafields[field] || {};
-    entity[metaSymbol].fields[field] = {
-      data, changed: fieldChanged, conflicts, fieldType,
-    };
-    Object.defineProperty(entity, field, {
-      enumerable: true,
-      configurable: true,
-      get: function entityPropGetter() {
-        return this[metaSymbol].fields[field].data;
-      },
-      set: function entityPropSetter(val) {
-        this[metaSymbol].fields[field].changed = new Date().toISOString();
-        this[metaSymbol].fields[field].data = val;
-      },
-    });
-  });
-  Object.preventExtensions(entity);
-  return entity;
+  };
 };
 
 export default createEntity;

@@ -27,19 +27,14 @@ describe('farmOS', function () {
   it('create an activity log, send it to the server and delete it', () => {
     const activity = farm.log.create({ type: 'activity', name: 'did some stuff' });
     const { id } = activity;
-    const serialized = farm.log.serialize(activity);
-    return farm.log.send(serialized)
+    return farm.log.send(activity)
       .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
       .then(({ data: [remoteActivity] }) => {
-        activity.name = 'did some more stuff';
-        farm.log.merge(activity, remoteActivity);
-        const meta = farm.meta.get(activity);
+        const updatedActivity = farm.log.update(activity, { name: 'did some more stuff' });
+        const mergedActivity = farm.log.merge(updatedActivity, remoteActivity);
         const {
-          fields: {
-            name: { changed: nameChanged },
-            status: { changed: statusChanged },
-          },
-        } = meta;
+          meta: { fieldChanges: { name: nameChanged, status: statusChanged } },
+        } = mergedActivity;
         const nameChangedAfterStatus = new Date(nameChanged) > new Date(statusChanged);
         expect(nameChangedAfterStatus).to.be.true;
         return farm.log.delete('activity', id);

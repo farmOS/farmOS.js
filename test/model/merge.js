@@ -9,35 +9,18 @@ const farm = model({ schemata });
 describe('log', () => {
   describe('#merge', () => {
     it('merges a remote log with no conflicts', (done) => {
-      const props = { type: 'activity', name: 'local log' };
-      const local = farm.log.create(props);
+      // Start with a log created locally.
+      const local = farm.log.create({ type: 'activity', name: 'local log' });
       setTimeout(() => {
-        farm.meta.setLastSync(local);
-        const remote = farm.log.serialize(local);
-        remote.attributes.name = 'remote log';
-        remote.attributes.changed = new Date().toISOString();
-        delete remote.meta;
+        // Simulate syncing it to a remote system, which then updates it.
+        const remote = farm.log.merge(undefined, local);
+        const syncedLocal = farm.log.merge(local, remote);
+        const updatedRemote = farm.log.update(remote, { name: 'remote log' });
         setTimeout(() => {
-          farm.log.merge(local, remote);
-          expect(local.name).to.equal('remote log');
-          const { conflicts } = farm.meta.get(local).fields.name;
-          expect(conflicts.length).to.equal(0);
-          done();
-        }, 10);
-      }, 10);
-    });
-    it('merges a remote, non-Drupal log with no conflicts', (done) => {
-      const props = { type: 'activity', name: 'local log' };
-      const local = farm.log.create(props);
-      setTimeout(() => {
-        farm.meta.setLastSync(local);
-        const remote = farm.log.serialize(local);
-        remote.attributes.name = 'remote log';
-        remote.meta.fields.name.changed = new Date().toISOString();
-        setTimeout(() => {
-          farm.log.merge(local, remote);
-          expect(local.name).to.equal('remote log');
-          const { conflicts } = farm.meta.get(local).fields.name;
+          // Simulate sending it back to the original system.
+          const merged = farm.log.merge(syncedLocal, updatedRemote);
+          expect(merged.attributes.name).to.equal('remote log');
+          const { meta: { conflicts } } = merged;
           expect(conflicts.length).to.equal(0);
           done();
         }, 10);

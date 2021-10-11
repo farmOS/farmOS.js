@@ -1,12 +1,10 @@
-/* eslint-disable no-param-reassign */
 import clone from 'ramda/src/clone.js';
+import partition from 'ramda/src/partition.js';
 import createEntity from './create.js';
-import serializeEntity from './serialize.js';
-import deserializeEntity from './deserialize.js';
 import mergeEntity from './merge.js';
+import updateEntity from './update.js';
 import { entities, entityMethods, emptySchemata } from '../entities.js';
 
-const meta = Symbol('meta');
 const entityNames = entities.map(e => e.name);
 
 export default function model(opts = {}) {
@@ -52,42 +50,33 @@ export default function model(opts = {}) {
       set: setSchemata,
     },
     meta: {
-      get(entity) {
-        return clone(entity[meta]);
-      },
-      setLastSync(entity, time = new Date()) {
-        // The call to toISOString will (purposely) throw if a valid time
-        // parameter is not provided.
-        const date = 'toISOString' in time ? time : new Date(time);
-        const iso = date.toISOString();
-        entity[meta].remote.lastSync = iso;
-      },
       resolve(entity, field, cb) {
-        const { conflicts } = entity[meta].fields[field];
-        const index = cb(clone(conflicts));
-        const winner = conflicts[index];
-        if (typeof index === 'number') {
-          if (winner !== undefined) {
-            entity[meta].fields[field].data = winner.data;
-            entity[meta].fields[field].changed = winner.changed;
-          }
-          if (index <= conflicts.length - 1) {
-            entity[meta].fields[field].conflicts = [];
-          }
+        const copy = clone(entity);
+        const byField = c => c.field === field;
+        const [conflicts, others] = partition(byField, copy.meta.conflicts);
+        const index = cb(conflicts);
+        if (typeof index !== 'number') return copy;
+        if (index > -1 && index < conflicts.length) {
+          const { changed, data, fieldType } = conflicts[index];
+          copy[fieldType][field] = data;
+          copy.meta.fieldChanges[field] = changed;
+          copy.meta.conflicts = others;
+          if (changed > copy.meta.changed) copy.meta.changed = changed;
         }
+        if (index === -1) {
+          copy.meta.conflicts = others;
+        }
+        return copy;
       },
       isUnsynced(entity) {
-        // Works for serialized entities too.
-        const { fields, remote } = (entity[meta] || entity.meta);
-        return remote.lastSync === null || Object.values(fields)
-          .some(({ changed }) => changed > remote.lastSync);
+        const { changed, remote: { lastSync } } = entity.meta;
+        return lastSync === null || changed > lastSync;
       },
     },
     ...entityMethods(entities, ({ name }) => ({
-      create: createEntity(name, meta, schemata),
-      serialize: serializeEntity(name, meta),
-      deserialize: deserializeEntity(name, meta, schemata),
-      merge: mergeEntity(name, meta, schemata),
+      create: createEntity(name, schemata),
+      merge: mergeEntity(name, schemata),
+      update: updateEntity(name, schemata),
     })),
   };
 }

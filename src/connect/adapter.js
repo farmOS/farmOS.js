@@ -5,6 +5,7 @@ import omit from 'ramda/src/omit.js';
 import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
 import map from 'ramda/src/map.js';
 import pick from 'ramda/src/pick.js';
+import prop from 'ramda/src/prop.js';
 import replace from 'ramda/src/replace.js';
 import path from 'ramda/src/path.js';
 import connect from './index.js';
@@ -37,7 +38,7 @@ const drupalMetaFields = {
 };
 
 const dropMilliseconds = replace(/\.\d\d\d/, '');
-const insertMilliseconds = str => new Date(str).toISOString();
+const safeIso = t => t && new Date(t).toISOString();
 
 const typeConst = (entName, d9Schema) => ({
   const: typeToBundle(entName, d9Schema.definitions.type.const),
@@ -62,25 +63,39 @@ const transformD9Schema = entName => d9Schema => ({
 });
 
 const transformRemoteAttributes = compose(
-  evolve({ timestamp: insertMilliseconds }),
+  evolve({ timestamp: safeIso }),
   omit(drupalMetaFields.attributes),
 );
+const transformRemoteRelationships = compose(
+  map(prop('data')),
+  omit(drupalMetaFields.attributes),
+);
+const makeFieldChanges = (attrs, rels) => ({
+  ...map(() => attrs.changed, omit(drupalMetaFields.attributes, attrs)),
+  ...map(() => attrs.changed, omit(drupalMetaFields.relationships, rels)),
+});
 
-const safeIso = t => t && new Date(t).toISOString();
-
+const defAttrs = { created: null, changed: null, drupal_internal__id: null };
 const transformRemoteEntity = entName => ({
-  id, type, attributes = {}, relationships = {},
+  id, type, attributes = defAttrs, relationships = {},
 }) => ({
   id,
   type: typeToBundle(entName, type),
   meta: {
     created: safeIso(attributes.created),
     changed: safeIso(attributes.changed),
-    attributes: pick(drupalMetaFields.attributes, attributes),
-    relationships: pick(drupalMetaFields.relationships, relationships),
+    fieldChanges: makeFieldChanges(attributes, relationships),
+    remote: {
+      lastSync: null,
+      url: `/${entName}/${attributes.drupal_internal__id}`,
+      meta: {
+        attributes: pick(drupalMetaFields.attributes, attributes),
+        relationships: pick(drupalMetaFields.relationships, relationships),
+      },
+    },
   },
   attributes: transformRemoteAttributes(attributes),
-  relationships: omit(drupalMetaFields.relationships, relationships),
+  relationships: transformRemoteRelationships(relationships),
 });
 
 const transformSendResponse = name => compose(
@@ -92,9 +107,8 @@ const transformLocalEntity = (entName, data) => compose(
   dissoc('meta'),
   evolve({
     type: t => `${entName}--${t}`,
-    attributes: {
-      timestamp: dropMilliseconds,
-    },
+    attributes: { timestamp: dropMilliseconds },
+    relationships: map(r => ({ data: r })),
   }),
 )(data);
 
