@@ -56,19 +56,11 @@ export default function oAuth(client, opts) {
   // Helper function to refresh OAuth2 token.
   function refreshToken(token) {
     isRefreshing = true;
-    const refreshOpts = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'json',
-      },
-      data: {
-        grant_type: 'refresh_token',
-        client_id: clientId,
-        refresh_token: token,
-      },
-    };
-    return axios(accessTokenUri, refreshOpts)
+    const refreshParams = new URLSearchParams();
+    refreshParams.append('grant_type', 'refresh_token');
+    refreshParams.append('client_id', clientId);
+    refreshParams.append('refresh_token', token);
+    return axios.post(accessTokenUri, refreshParams)
       .then((res) => {
         const newToken = parseToken(res.data);
         isRefreshing = false;
@@ -86,18 +78,10 @@ export default function oAuth(client, opts) {
 
   // Helper function to revoke OAuth2 token.
   function revokeToken(tokenType, token) {
-    const revokeOpts = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'json',
-      },
-      data: {
-        token_type_hint: tokenType,
-        token,
-      },
-    };
-    return axios(revokeTokenUri, revokeOpts)
+    const revokeParams = new URLSearchParams();
+    revokeParams.append('token_type_hint', tokenType);
+    revokeParams.append('token', token);
+    return axios.post(revokeTokenUri, revokeParams)
       .catch((error) => { throw error; });
   }
 
