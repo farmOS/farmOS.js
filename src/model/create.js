@@ -16,7 +16,11 @@ const createEntity = (entName, schemata) => (props) => {
   const {
     created = new Date().toISOString(),
     changed = created,
-    remote: { lastSync = null, url = null, meta: remoteMeta = null } = {},
+    remote: {
+      lastSync = null,
+      url = null,
+      meta: remoteMeta = null,
+    } = {},
   } = meta;
   const fieldChanges = {};
   const getProperties = getPropertiesStub(entName); // TODO: Replace stub

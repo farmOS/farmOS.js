@@ -4,6 +4,7 @@ import compose from 'ramda/src/compose.js';
 import cond from 'ramda/src/cond.js';
 import eqBy from 'ramda/src/eqBy.js';
 import equals from 'ramda/src/equals.js';
+import evolve from 'ramda/src/evolve.js';
 import has from 'ramda/src/has.js';
 import identity from 'ramda/src/identity.js';
 import isNil from 'ramda/src/isNil.js';
@@ -15,7 +16,7 @@ import { getPropertiesStub } from './schemata/index.js';
 // Helpers for determining if a set of fields are equivalent. Attributes are
 // fairly straightforward, but relationships need to be compared strictly by
 // their id(s), b/c JSON:API gives a lot of leeway for how these references
-// can be structured.
+// can be ordered and structured.
 const setOfIds = compose(
   array => new Set(array),
   map(prop('id')),
@@ -29,79 +30,110 @@ const eqFields = fieldType =>
   (fieldType === 'relationships' ? eqBy(relsTransform) : equals);
 
 const mergeEntity = (entName, schemata) => (local, remote) => {
-  const localCopy = clone(local);
-  if (!remote) return localCopy;
-  if (!local) return createEntity(entName, schemata)(remote);
-  const { id, type } = localCopy;
+  if (!remote) return clone(local);
+  const now = new Date().toISOString();
+  if (!local) {
+    // A nullish local value represents the first time a remotely generated
+    // entity was fetched, so all changes are considered synced with the remote.
+    const resetLastSync = evolve({ meta: { remote: { lastSync: () => now } } });
+    return createEntity(entName, schemata)(resetLastSync(remote));
+  }
+  const { id, type } = local;
   if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
   const schema = schemata[entName][type];
   if (!schema) {
     throw new Error(`Cannot find a schema for the ${entName} type: ${type}.`);
   }
-  const localName = localCopy.attributes && `"${localCopy.attributes.name || ''}" `;
+  const localName = local.attributes && `"${local.attributes.name || ''}" `;
   if (id !== remote.id) {
     throw new Error(`Cannot merge remote ${entName} with UUID ${remote.id} `
       + `and local ${entName} ${localName}with UUID ${id}.`);
   }
-  if (localCopy.type !== remote.type) {
+  if (local.type !== remote.type) {
     throw new Error(`Cannot merge remote ${entName} of type ${remote.type} `
-      + `and local ${entName} ${localName}of type ${localCopy.type}.`);
+      + `and local ${entName} ${localName}of type ${local.type}.`);
   }
-  if (localCopy.meta.conflicts.length > 0) {
+  if (local.meta.conflicts.length > 0) {
     throw new Error(`Cannot merge local ${entName} ${localName}`
       + 'while it still has unresolved conflicts.');
   }
 
+  // Establish a consistent value for the current time.
+  // const now = new Date().toISOString();
+
+  // Deep clone the local & destructure its metadata for internal reference.
+  const localCopy = clone(local);
+  const {
+    meta: {
+      fieldChanges: localChanges,
+      changed: localChanged = now,
+      remote: { lastSync: localLastSync = null },
+    },
+  } = localCopy;
+
+  // Deep clone the remote & destructure its metadata for internal reference.
   const remoteCopy = clone(remote);
-  const now = new Date().toISOString();
-  let { meta: { changed = now } } = localCopy;
+  const {
+    meta: {
+      fieldChanges: remoteChanges,
+      changed: remoteChanged = now,
+      remote: { lastSync: remoteLastSync = null },
+    },
+  } = remoteCopy;
+
+  // These variables are for storing the values that will ultimately be returned
+  // as metadata. They are all considered mutable within this function scope and
+  // will be reassigned or appeneded to during the iterations of mergeFields, or
+  // afterwards in the case of lastSync.
+  let changed = localChanged; let lastSync = localLastSync;
   const fieldChanges = {}; const conflicts = [];
 
   const getProperties = getPropertiesStub(entName); // TODO: Replace stub
   const mergeFields = (fieldType) => {
     const checkEquality = eqFields(fieldType);
-    const {
-      [fieldType]: localFields,
-      meta: { fieldChanges: localChanges, remote: { lastSync } },
-    } = localCopy;
-    const {
-      [fieldType]: remoteFields,
-      meta: { fieldChanges: remoteChanges, changed: remoteChanged = now },
-    } = remoteCopy;
+    const { [fieldType]: localFields } = localCopy;
+    const { [fieldType]: remoteFields } = remoteCopy;
+    // Spread localFields so lf.data and lf.changed aren't mutated when fields is.
     const fields = { ...localFields };
     // This loop comprises the main algorithm for merging changes to concurrent
     // versions of the same entity that may exist on separate systems. It uses a
     // "Last Write Wins" (LWW) strategy, which applies to each field individually.
     getProperties(schema, fieldType).forEach((name) => {
-      const l = { data: localFields[name], changed: localChanges[name] || changed };
-      const r = { data: remoteFields[name], changed: remoteChanges[name] || remoteChanged };
-      const localChangeHasBeenSynced = !!lastSync && lastSync > l.changed;
+      const lf = { // localField shorthand
+        data: localFields[name],
+        changed: localChanges[name] || localChanged,
+      };
+      const rf = { // remoteField shorthand
+        data: remoteFields[name],
+        changed: remoteChanges[name] || remoteChanged,
+      };
+      const localFieldHasBeenSent = !!localLastSync && localLastSync > lf.changed;
       // Use the local changed value as our default.
-      fieldChanges[name] = l.changed;
+      fieldChanges[name] = lf.changed;
       // If the remote field changed more recently than the local field, and the
       // local was synced more recently than it changed, apply the remote changes.
-      if (r.changed > l.changed && localChangeHasBeenSynced) {
-        fields[name] = r.data;
-        fieldChanges[name] = r.changed;
+      if (rf.changed > lf.changed && localFieldHasBeenSent) {
+        fields[name] = rf.data;
+        fieldChanges[name] = rf.changed;
         // Also update the global changed value if the remote field changed more recently.
-        if (r.changed > changed) ({ changed } = r);
+        if (rf.changed > localChanged) ({ changed } = rf);
       }
       // If the remote field changed more recently than the local field, and the
       // local entity has NOT been synced since then, there may be a conflict.
-      if (r.changed > l.changed && !localChangeHasBeenSynced) {
+      if (rf.changed > lf.changed && !localFieldHasBeenSent) {
         // Run one last check to make sure the data isn't actually the same. If
         // they are, there's no conflict, but apply the remote changed timestamps.
-        if (checkEquality(l.data, r.data)) {
-          fieldChanges[name] = r.changed;
-          if (r.changed > changed) ({ changed } = r);
+        if (checkEquality(lf.data, rf.data)) {
+          fieldChanges[name] = rf.changed;
+          if (rf.changed > localChanged) ({ changed } = rf);
         } else {
           // Otherwise keep the local values, but add the remote changes to the
           // list of conflicts.
           conflicts.push({
             fieldType,
             field: name,
-            changed: r.changed,
-            data: r.data,
+            changed: rf.changed,
+            data: rf.data,
           });
         }
       }
@@ -110,11 +142,29 @@ const mergeEntity = (entName, schemata) => (local, remote) => {
     return fields;
   };
 
+  const attributes = mergeFields('attributes');
+  const relationships = mergeFields('relationships');
+
+  // These tests will set the lastSync value to the current timestamp if any one
+  // of the following criteria can be met: 1) a remote entity is being merged
+  // with a local entity whose changes have already been sent to that remote,
+  // 2) the merge occurs after the very first time a locally generated entity
+  // was sent to the remote system, 3) all changes from the remote have been
+  // fetched since the most recent local change. Otherwise, the local lastSync
+  // value will be retained.
+  const localChangesHaveBeenSent = !!localLastSync && localLastSync >= localChanged;
+  const remoteIsInitialSendResponse = !localLastSync && !!remoteLastSync;
+  const remoteChangesHaveBeenFetched = !!remoteLastSync && remoteLastSync >= localChanged;
+  const syncHasCompleted = localChangesHaveBeenSent
+    || remoteIsInitialSendResponse
+    || remoteChangesHaveBeenFetched;
+  if (syncHasCompleted) lastSync = now;
+
   return {
     id,
     type,
-    attributes: mergeFields('attributes'),
-    relationships: mergeFields('relationships'),
+    attributes,
+    relationships,
     meta: {
       ...localCopy.meta,
       changed,
@@ -122,7 +172,7 @@ const mergeEntity = (entName, schemata) => (local, remote) => {
       conflicts,
       remote: {
         ...remoteCopy.meta.remote,
-        lastSync: now,
+        lastSync,
       },
     },
   };

@@ -76,7 +76,7 @@ const makeFieldChanges = (attrs, rels) => ({
 });
 
 const defAttrs = { created: null, changed: null, drupal_internal__id: null };
-const transformRemoteEntity = entName => ({
+const transformRemoteEntity = (entName, setLastSync = false) => ({
   id, type, attributes = defAttrs, relationships = {},
 }) => ({
   id,
@@ -86,7 +86,7 @@ const transformRemoteEntity = entName => ({
     changed: safeIso(attributes.changed),
     fieldChanges: makeFieldChanges(attributes, relationships),
     remote: {
-      lastSync: null,
+      lastSync: setLastSync ? new Date().toISOString() : null,
       url: `/${entName}/${attributes.drupal_internal__id}`,
       meta: {
         attributes: pick(drupalMetaFields.attributes, attributes),
@@ -99,7 +99,7 @@ const transformRemoteEntity = entName => ({
 });
 
 const transformSendResponse = name => compose(
-  transformRemoteEntity(name),
+  transformRemoteEntity(name, true),
   path(['data', 'data']),
 );
 
