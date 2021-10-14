@@ -8,10 +8,10 @@ export default function farmRequest(client, filterTransforms) {
 
   const parse = parseFilter(filterTransforms);
   const fetchEntity = entity => (bundle, { filter = {} } = {}) =>
-    request(`api/${entity}/${bundle}?${parse(filter)}`);
+    request(`/api/${entity}/${bundle}?${parse(filter)}`);
 
   const postEntity = entity => (bundle, data) =>
-    request(`api/${entity}/${bundle}`, { method: 'POST', data });
+    request(`/api/${entity}/${bundle}`, { method: 'POST', data });
   // We assume if an entity has an id it is a PATCH request, but that may not be
   // the case if it has a client-generated id. Such a PATCH request will result
   // in a 404 (NOT FOUND), since the endpoint includes the id, so we handle this
@@ -22,7 +22,7 @@ export default function farmRequest(client, filterTransforms) {
     Promise.reject,
   );
   const patchEntity = entity => (bundle, data) =>
-    request(`api/${entity}/${bundle}/${data.id}`, { method: 'PATCH', data })
+    request(`/api/${entity}/${bundle}/${data.id}`, { method: 'PATCH', data })
       .catch(handlePatch404(entity, bundle, data));
   const sendEntity = entity => ifElse(
     (_, data) => has('id', data),
@@ -31,7 +31,7 @@ export default function farmRequest(client, filterTransforms) {
   );
 
   const deleteEntity = entity => (bundle, id) => request(
-    `api/${entity}/${bundle}/${id}`,
+    `/api/${entity}/${bundle}/${id}`,
     { method: 'DELETE' },
   );
 
