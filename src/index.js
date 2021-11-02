@@ -1,9 +1,9 @@
 import omit from 'ramda/src/omit.js';
 import d9JsonApiAdapter from './connect/adapter.js';
 import model from './model/index.js';
-import { entities, entityMethods } from './entities.js';
+import entities, { entityMethods } from './entities.js';
 
-const shortNames = entities.map(e => e.shortName);
+const shortNames = Object.values(entities).map(e => e.shortName);
 
 export default function farmOS(config) {
   const {
@@ -24,13 +24,13 @@ export default function farmOS(config) {
     },
     meta: farm.meta,
     remote: { ...omit(shortNames, connection) },
-    ...entityMethods(entities, ({ shortName }) => ({
+    ...entityMethods(({ nomenclature: { shortName } }) => ({
       create: farm[shortName].create,
       update: farm[shortName].update,
       merge: farm[shortName].merge,
       fetch: connection[shortName].fetch,
       send: connection[shortName].send,
       delete: connection[shortName].delete,
-    })),
+    }), entities),
   };
 }

@@ -1,9 +1,10 @@
 import axios from 'axios';
+import map from 'ramda/src/map.js';
 import prop from 'ramda/src/prop.js';
 import farmRequest from './request.js';
 import oauth from './oauth.js';
 import typeToBundle from './typeToBundle.js';
-import { entities, entityMethods, emptySchemata } from '../entities.js';
+import entities, { entityMethods } from '../entities.js';
 
 export default function connect(host, opts) {
   const {
@@ -49,7 +50,7 @@ export default function connect(host, opts) {
     schema: {
       fetch(entity, bundle) {
         if (!entity) {
-          const schemata = emptySchemata(entities);
+          const schemata = map(() => ({}), entities);
           return request('/api/')
             .then(res => Promise.all(Object.keys(res.data.links)
               .filter(type => entities.some(({ name }) => type.startsWith(`${name}--`)))
@@ -75,11 +76,11 @@ export default function connect(host, opts) {
           .then(prop('data'));
       },
     },
-    ...entityMethods(entities, ({ name }) => ({
+    ...entityMethods(({ nomenclature: { name } }) => ({
       delete: deleteEntity(name),
       fetch: fetchEntity(name),
       send: sendEntity(name),
-    })),
+    }), entities),
   };
   return farm;
 }

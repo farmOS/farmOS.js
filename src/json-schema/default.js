@@ -6,7 +6,8 @@ import omit from 'ramda/src/omit.js';
 import pick from 'ramda/src/pick.js';
 import pickBy from 'ramda/src/pickBy.js';
 import { getPath } from './properties.js';
-import { isObject, hasLogicalKeyword } from './utils.js';
+import { hasLogicalKeyword } from './schema-utils.js';
+import { isObject } from '../utils.js';
 
 /**
  * @typedef {import('./reference').JsonSchema} JsonSchema
@@ -52,10 +53,6 @@ export const getDefault = (schema, path = [], options = {}) => {
   const {
     byType, byFormat, byProperty = false, use,
   } = options;
-  if (byType && type in byType) {
-    const { [type]: transform } = byType;
-    return transform(subschema);
-  }
   if (type === 'string') {
     if (byFormat && 'format' in subschema && subschema.format in byFormat) {
       const { [subschema.format]: transform } = byFormat;
@@ -86,6 +83,11 @@ export const getDefault = (schema, path = [], options = {}) => {
     }
   }
   if ('const' in subschema) return subschema.const;
+  // Evaluate byType last, so options of higher specificity take precedence.
+  if (byType && type in byType) {
+    const { [type]: transform } = byType;
+    return transform(subschema);
+  }
   if (type === 'null') {
     // This is the only case that should return null; if a default can't be
     // resolved, undefined should be returned, as below.

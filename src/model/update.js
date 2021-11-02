@@ -1,6 +1,6 @@
 import { validate } from 'uuid';
 import clone from 'ramda/src/clone.js';
-import { getPropertiesStub } from './schemata/index.js';
+import { listProperties } from '../json-schema/index.js';
 
 const updateEntity = (entName, schemata) => (entity, props) => {
   const { id, type } = entity;
@@ -14,10 +14,9 @@ const updateEntity = (entName, schemata) => (entity, props) => {
   const { meta = {} } = entityCopy;
   let { changed = now } = meta;
   const { fieldChanges = {}, conflicts = [] } = meta;
-  const getProperties = getPropertiesStub(entName); // TODO: Replace stub
   const updateFields = (fieldType) => {
     const fields = { ...entityCopy[fieldType] };
-    getProperties(schema, fieldType).forEach((name) => {
+    listProperties(schema, fieldType).forEach((name) => {
       if (name in propsCopy) {
         fields[name] = propsCopy[name];
         fieldChanges[name] = now;

@@ -9,7 +9,7 @@ import prop from 'ramda/src/prop.js';
 import replace from 'ramda/src/replace.js';
 import path from 'ramda/src/path.js';
 import connect from './index.js';
-import { entities, entityMethods } from '../entities.js';
+import entities, { entityMethods } from '../entities.js';
 import typeToBundle from './typeToBundle.js';
 
 // These functions correspond to entity fields and provide transformations that
@@ -201,7 +201,7 @@ export default function adapter(model, opts) {
           });
       },
     },
-    ...entityMethods(entities, ({ name, shortName }) => ({
+    ...entityMethods(({ nomenclature: { name, shortName } }) => ({
       ...connection[shortName],
       fetch: fetchBundles(
         () => Object.keys(model.schema.get(name)),
@@ -212,6 +212,6 @@ export default function adapter(model, opts) {
         data.type,
         transformLocalEntity(name, data),
       ).then(transformSendResponse(name)),
-    })),
+    }), entities),
   };
 }

@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
+  "$id": "http://localhost/api/user/user/resource/schema",
+  "title": "User",
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#definitions/type"
+        },
+        "attributes": {
+          "$ref": "#/definitions/attributes"
+        },
+        "relationships": {
+          "$ref": "#/definitions/relationships"
+        }
+      }
+    },
+    {
+      "$ref": "https://jsonapi.org/schema#/definitions/resource"
+    }
+  ],
+  "definitions": {
+    "type": {
+      "const": "user--user"
+    },
+    "attributes": {
+      "description": "Entity attributes",
+      "type": "object",
+      "properties": {
+        "drupal_internal__uid": {
+          "type": "integer",
+          "title": "User ID",
+          "description": "The user ID."
+        },
+        "langcode": {
+          "type": "string",
+          "title": "Language code",
+          "description": "The user language code."
+        },
+        "preferred_langcode": {
+          "type": "string",
+          "title": "Preferred language code",
+          "description": "The user\\'s preferred language code for receiving emails and viewing the site."
+        },
+        "preferred_admin_langcode": {
+          "type": "string",
+          "title": "Preferred admin language code",
+          "description": "The user\\'s preferred language code for viewing administration pages.",
+          "default": null
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "maxLength": 255,
+          "description": "The name of this user."
+        },
+        "pass": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "title": "The hashed password",
+              "maxLength": 255
+            },
+            "existing": {
+              "type": "string",
+              "title": "Existing password"
+            },
+            "pre_hashed": {
+              "type": "boolean",
+              "title": "Determines if a password needs hashing"
+            }
+          },
+          "title": "Password",
+          "description": "The password of this user (hashed)."
+        },
+        "mail": {
+          "type": "string",
+          "title": "Email",
+          "format": "email",
+          "description": "The email of this user.",
+          "default": ""
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Timezone",
+          "maxLength": 32,
+          "description": "The timezone of this user."
+        },
+        "status": {
+          "type": "boolean",
+          "title": "User status",
+          "description": "Whether the user is active or blocked.",
+          "default": false
+        },
+        "created": {
+          "type": "string",
+          "title": "Created",
+          "format": "date-time",
+          "description": "The time that the user was created."
+        },
+        "changed": {
+          "type": "string",
+          "title": "Changed",
+          "format": "date-time",
+          "description": "The time that the user was last edited."
+        },
+        "access": {
+          "type": "string",
+          "title": "Last access",
+          "format": "date-time",
+          "description": "The time that the user last accessed the site.",
+          "default": 0
+        },
+        "login": {
+          "type": "string",
+          "title": "Last login",
+          "format": "date-time",
+          "description": "The time that the user last logged in.",
+          "default": 0
+        },
+        "init": {
+          "type": "string",
+          "title": "Initial email",
+          "format": "email",
+          "description": "The email address used for initial account creation.",
+          "default": ""
+        },
+        "default_langcode": {
+          "type": "boolean",
+          "title": "Default translation",
+          "description": "A flag indicating whether this is the default translation.",
+          "default": true
+        },
+        "display_name": {
+          "title": "display_name"
+        }
+      },
+      "required": [
+        "drupal_internal__uid",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "relationships": {
+      "description": "Entity relationships",
+      "properties": {
+        "roles": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "user_role--user_role"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "string",
+                    "title": "Role ID"
+                  }
+                }
+              }
+            }
+          },
+          "title": "Roles",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/user/user/resource/relationships/roles/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+}

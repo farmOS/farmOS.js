@@ -1,6 +1,7 @@
 import { validate, v4 as uuidv4 } from 'uuid';
 import clone from 'ramda/src/clone.js';
-import { getPropertiesStub, getDefaultStub } from './schemata/index.js';
+import { getDefault, listProperties } from '../json-schema/index.js';
+import entities from '../entities.js';
 
 const createEntity = (entName, schemata) => (props) => {
   const { id = uuidv4(), type } = props;
@@ -23,18 +24,17 @@ const createEntity = (entName, schemata) => (props) => {
     } = {},
   } = meta;
   const fieldChanges = {};
-  const getProperties = getPropertiesStub(entName); // TODO: Replace stub
-  const getDefault = getDefaultStub(entName); // TODO: Replace stub
+  const { [entName]: { defaultOptions } } = entities;
   const initFields = (fieldType) => {
     const fields = {};
-    getProperties(schema, fieldType).forEach((name) => {
+    listProperties(schema, fieldType).forEach((name) => {
       if (name in copyProps) {
         const changedProp = meta.fieldChanges && meta.fieldChanges[name];
         fieldChanges[name] = changedProp || changed;
         fields[name] = copyProps[name];
       } else {
         fieldChanges[name] = changed;
-        fields[name] = getDefault(schema, fieldType, name);
+        fields[name] = getDefault(schema, [fieldType, name], defaultOptions);
       }
     });
     return fields;

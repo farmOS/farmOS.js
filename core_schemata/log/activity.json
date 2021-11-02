@@ -42,9 +42,9 @@
           "title": "Language"
         },
         "revision_created": {
-          "type": "number",
+          "type": "string",
           "title": "Revision create time",
-          "format": "utc-millisec",
+          "format": "date-time",
           "description": "The time that the current revision was created."
         },
         "revision_log_message": {
@@ -61,9 +61,9 @@
           "default": ""
         },
         "timestamp": {
-          "type": "number",
+          "type": "string",
           "title": "Timestamp",
-          "format": "utc-millisec",
+          "format": "date-time",
           "description": "Timestamp of the event being logged."
         },
         "status": {
@@ -73,15 +73,15 @@
           "description": "Indicates the status of the log."
         },
         "created": {
-          "type": "number",
+          "type": "string",
           "title": "Authored on",
-          "format": "utc-millisec",
+          "format": "date-time",
           "description": "The time that the log was created."
         },
         "changed": {
-          "type": "number",
+          "type": "string",
           "title": "Changed",
-          "format": "utc-millisec",
+          "format": "date-time",
           "description": "The time the log was last edited."
         },
         "default_langcode": {

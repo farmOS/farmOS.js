@@ -6,7 +6,8 @@ import map from 'ramda/src/map.js';
 import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
 import rPath from 'ramda/src/path.js';
 import parseURI from './uri.js';
-import { isObject, boolOrThrow, hasLogicalKeyword } from './utils.js';
+import { boolOrThrow, hasLogicalKeyword } from './schema-utils.js';
+import { isObject } from '../utils.js';
 
 /**
  * @template T

@@ -11,7 +11,7 @@ import isNil from 'ramda/src/isNil.js';
 import map from 'ramda/src/map.js';
 import prop from 'ramda/src/prop.js';
 import createEntity from './create.js';
-import { getPropertiesStub } from './schemata/index.js';
+import { listProperties } from '../json-schema/index.js';
 
 // Helpers for determining if a set of fields are equivalent. Attributes are
 // fairly straightforward, but relationships need to be compared strictly by
@@ -88,7 +88,6 @@ const mergeEntity = (entName, schemata) => (local, remote) => {
   let changed = localChanged; let lastSync = localLastSync;
   const fieldChanges = {}; const conflicts = [];
 
-  const getProperties = getPropertiesStub(entName); // TODO: Replace stub
   const mergeFields = (fieldType) => {
     const checkEquality = eqFields(fieldType);
     const { [fieldType]: localFields } = localCopy;
@@ -98,7 +97,7 @@ const mergeEntity = (entName, schemata) => (local, remote) => {
     // This loop comprises the main algorithm for merging changes to concurrent
     // versions of the same entity that may exist on separate systems. It uses a
     // "Last Write Wins" (LWW) strategy, which applies to each field individually.
-    getProperties(schema, fieldType).forEach((name) => {
+    listProperties(schema, fieldType).forEach((name) => {
       const lf = { // localField shorthand
         data: localFields[name],
         changed: localChanges[name] || localChanged,

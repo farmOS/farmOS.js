@@ -1,10 +1,10 @@
 import chai from 'chai';
 import model from '../../src/model/index.js';
-import schemata from '../../src/model/schemata/stub.js';
+import { loadSchema } from '../test-utils.js';
 
 const { expect } = chai;
-
-const farm = model({ schemata });
+const activitySchema = loadSchema('log', 'activity');
+const farm = model({ schemata: { log: { activity: activitySchema } } });
 
 describe('resolve', () => {
   const localUpdate = { name: 'updated locally' };

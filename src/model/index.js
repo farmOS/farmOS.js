@@ -1,14 +1,16 @@
 import clone from 'ramda/src/clone.js';
+import map from 'ramda/src/map.js';
 import partition from 'ramda/src/partition.js';
 import createEntity from './create.js';
 import mergeEntity from './merge.js';
 import updateEntity from './update.js';
-import { entities, entityMethods, emptySchemata } from '../entities.js';
+import entities, { entityMethods } from '../entities.js';
+import { dereference } from '../json-schema/reference.js';
 
-const entityNames = entities.map(e => e.name);
+const entityNames = Object.keys(entities);
 
 export default function model(opts = {}) {
-  const schemata = emptySchemata(entities);
+  const schemata = map(() => ({}), entities);
 
   function getSchemata(entName, type) {
     if (!entName) {
@@ -23,7 +25,7 @@ export default function model(opts = {}) {
   function setSchemata(...args) {
     if (args.length === 1) {
       entityNames.forEach((entName) => {
-        if (args[0][entName]) {
+        if (entName in args[0]) {
           setSchemata(entName, args[0][entName]);
         }
       });
@@ -32,13 +34,14 @@ export default function model(opts = {}) {
       const [entName, newSchemata] = args;
       if (entityNames.includes(entName)) {
         Object.entries(newSchemata).forEach(([type, schema]) => {
-          setSchemata(entName, type, schema);
+          const dereffed = dereference(schema);
+          setSchemata(entName, type, dereffed);
         });
       }
     }
     if (args.length > 2) {
       const [entName, type, schema] = args;
-      schemata[entName][type] = clone(schema);
+      schemata[entName][type] = dereference(schema);
     }
   }
 
@@ -73,10 +76,10 @@ export default function model(opts = {}) {
         return lastSync === null || changed > lastSync;
       },
     },
-    ...entityMethods(entities, ({ name }) => ({
+    ...entityMethods(({ nomenclature: { name } }) => ({
       create: createEntity(name, schemata),
       merge: mergeEntity(name, schemata),
       update: updateEntity(name, schemata),
-    })),
+    }), entities),
   };
 }

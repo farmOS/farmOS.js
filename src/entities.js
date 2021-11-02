@@ -1,42 +1,119 @@
-import reduce from 'ramda/src/reduce.js';
+import { reduceObjIndexed } from './utils.js';
+
+const byType = {
+  string: () => '',
+  boolean: () => false,
+  object: () => null,
+  array: () => [],
+};
+const byFormat = {
+  'date-time': () => new Date().toISOString(),
+};
 
 // Configuration objects for the entities supported by this library.
-export const entities = [
-  {
-    name: 'asset',
-    shortName: 'asset',
+export default {
+  asset: {
+    nomenclature: {
+      name: 'asset',
+      shortName: 'asset',
+      plural: 'assets',
+      shortPlural: 'assets',
+      display: 'Asset',
+      displayPlural: 'Assets',
+    },
+    defaultOptions: {
+      byType,
+      byFormat,
+      byProperty: {
+        status: () => 'active',
+      },
+    },
   },
-  {
-    name: 'log',
-    shortName: 'log',
+  log: {
+    nomenclature: {
+      name: 'log',
+      shortName: 'log',
+      plural: 'logs',
+      shortPlural: 'logs',
+      display: 'Log',
+      displayPlural: 'Logs',
+    },
+    defaultOptions: {
+      byType,
+      byFormat,
+      byProperty: {
+        status: () => 'pending',
+      },
+    },
   },
-  {
-    name: 'plan',
-    shortName: 'plan',
+  plan: {
+    nomenclature: {
+      name: 'plan',
+      shortName: 'plan',
+      plural: 'plans',
+      shortPlural: 'plans',
+      display: 'Plan',
+      displayPlural: 'Plans',
+    },
+    defaultOptions: {
+      byType,
+      byFormat,
+      byProperty: {
+        status: () => 'active',
+      },
+    },
   },
-  {
-    name: 'quantity',
-    shortName: 'quantity',
+  quantity: {
+    nomenclature: {
+      name: 'quantity',
+      shortName: 'quantity',
+      plural: 'quantities',
+      shortPlural: 'quantities',
+      display: 'Quantity',
+      displayPlural: 'Quantities',
+    },
+    defaultOptions: {
+      byType,
+      byFormat,
+    },
   },
-  {
-    name: 'taxonomy_term',
-    shortName: 'term',
+  taxonomy_term: {
+    nomenclature: {
+      name: 'taxonomy_term',
+      shortName: 'term',
+      plural: 'taxonomy_terms',
+      shortPlural: 'terms',
+      display: 'Taxonomy Term',
+      displayPlural: 'Taxonomy Terms',
+    },
+    defaultOptions: {
+      byType,
+      byFormat,
+    },
   },
-  {
-    name: 'user',
-    shortName: 'user',
+  user: {
+    nomenclature: {
+      name: 'user',
+      shortName: 'user',
+      plural: 'users',
+      shortPlural: 'users',
+      display: 'User',
+      displayPlural: 'Users',
+    },
+    defaultOptions: {
+      byType,
+      byFormat,
+      byProperty: {
+        langcode: () => 'en',
+      },
+    },
   },
-];
+};
 
-// Takes a list of entity configs and returns an empty schemata object.
-export const emptySchemata = reduce((s, { name }) => ({ ...s, [name]: {} }), {});
-
-// Factory function that creates entity methods that can be spread into
-// the return object.
-export const entityMethods = (configs, fn) =>
-  configs.reduce((methods, config) => ({
+export const entityMethods = (fn, allConfigs) =>
+  reduceObjIndexed((methods, config) => ({
     ...methods,
-    [config.shortName]: {
+    [config.nomenclature.shortName]: {
       ...fn(config),
     },
-  }), {});
+  }), {}, allConfigs);

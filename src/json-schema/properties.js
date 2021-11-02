@@ -1,6 +1,7 @@
 import map from 'ramda/src/map.js';
 import mergeWith from 'ramda/src/mergeWith.js';
-import { isObject, logicalKeywords, hasLogicalKeyword } from './utils.js';
+import { logicalKeywords, hasLogicalKeyword } from './schema-utils.js';
+import { isObject } from '../utils.js';
 
 /**
  * @typedef {import('./reference').JsonSchema} JsonSchema

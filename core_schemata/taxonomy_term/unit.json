@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
+  "$id": "http://localhost/api/taxonomy_term/unit/resource/schema",
+  "title": "Units taxonomy term",
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#definitions/type"
+        },
+        "attributes": {
+          "$ref": "#/definitions/attributes"
+        },
+        "relationships": {
+          "$ref": "#/definitions/relationships"
+        }
+      }
+    },
+    {
+      "$ref": "https://jsonapi.org/schema#/definitions/resource"
+    }
+  ],
+  "definitions": {
+    "type": {
+      "const": "taxonomy_term--unit"
+    },
+    "attributes": {
+      "description": "Entity attributes",
+      "type": "object",
+      "properties": {
+        "drupal_internal__tid": {
+          "type": "integer",
+          "title": "Term ID",
+          "description": "The term ID."
+        },
+        "drupal_internal__revision_id": {
+          "type": "integer",
+          "title": "Revision ID"
+        },
+        "langcode": {
+          "type": "string",
+          "title": "Language",
+          "description": "The term language code."
+        },
+        "revision_created": {
+          "type": "string",
+          "title": "Revision create time",
+          "format": "date-time",
+          "description": "The time that the current revision was created."
+        },
+        "revision_log_message": {
+          "type": "string",
+          "title": "Revision log message",
+          "description": "Briefly describe the changes you have made.",
+          "default": ""
+        },
+        "status": {
+          "type": "boolean",
+          "title": "Published",
+          "default": true
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "maxLength": 255
+        },
+        "description": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "title": "Text"
+            },
+            "format": {
+              "type": "string",
+              "title": "Text format"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "title": "Description"
+        },
+        "weight": {
+          "type": "integer",
+          "title": "Weight",
+          "description": "The weight of this term in relation to other terms.",
+          "default": 0
+        },
+        "changed": {
+          "type": "string",
+          "title": "Changed",
+          "format": "date-time",
+          "description": "The time that the term was last edited."
+        },
+        "default_langcode": {
+          "type": "boolean",
+          "title": "Default translation",
+          "description": "A flag indicating whether this is the default translation.",
+          "default": true
+        },
+        "revision_default": {
+          "type": "boolean",
+          "title": "Default revision",
+          "description": "A flag indicating whether this was a default revision when it was saved."
+        },
+        "revision_translation_affected": {
+          "type": "boolean",
+          "title": "Revision translation affected",
+          "description": "Indicates if the last edit of a translation belongs to current revision."
+        }
+      },
+      "required": [
+        "drupal_internal__tid",
+        "drupal_internal__revision_id",
+        "name",
+        "revision_translation_affected"
+      ],
+      "additionalProperties": false
+    },
+    "relationships": {
+      "description": "Entity relationships",
+      "properties": {
+        "vid": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "taxonomy_vocabulary--taxonomy_vocabulary"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "string",
+                  "title": "Taxonomy vocabulary ID"
+                }
+              }
+            }
+          },
+          "title": "Vocabulary",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/taxonomy_term/unit/resource/relationships/vid/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "revision_user": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "user--user"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "integer",
+                  "title": "User ID"
+                }
+              }
+            }
+          },
+          "title": "Revision user",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/taxonomy_term/unit/resource/relationships/revision_user/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "parent": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "taxonomy_term--unit"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "integer",
+                    "title": "Taxonomy term ID"
+                  }
+                }
+              }
+            }
+          },
+          "title": "Term Parents",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/taxonomy_term/unit/resource/relationships/parent/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+}

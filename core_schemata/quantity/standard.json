@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
+  "$id": "http://localhost/api/quantity/standard/resource/schema",
+  "title": "Standard quantity",
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#definitions/type"
+        },
+        "attributes": {
+          "$ref": "#/definitions/attributes"
+        },
+        "relationships": {
+          "$ref": "#/definitions/relationships"
+        }
+      }
+    },
+    {
+      "$ref": "https://jsonapi.org/schema#/definitions/resource"
+    }
+  ],
+  "definitions": {
+    "type": {
+      "const": "quantity--standard"
+    },
+    "attributes": {
+      "description": "Entity attributes",
+      "type": "object",
+      "properties": {
+        "drupal_internal__id": {
+          "type": "integer",
+          "title": "ID"
+        },
+        "drupal_internal__revision_id": {
+          "type": "integer",
+          "title": "Revision ID"
+        },
+        "revision_created": {
+          "type": "string",
+          "title": "Revision create time",
+          "format": "date-time",
+          "description": "The time that the current revision was created."
+        },
+        "revision_log_message": {
+          "type": "string",
+          "title": "Revision log message",
+          "description": "Briefly describe the changes you have made.",
+          "default": ""
+        },
+        "measure": {
+          "type": "string",
+          "title": "Measure",
+          "description": "The measure of the quantity.",
+          "default": ""
+        },
+        "value": {
+          "type": "object",
+          "properties": {
+            "numerator": {
+              "type": "integer",
+              "title": "Numerator value"
+            },
+            "denominator": {
+              "type": "integer",
+              "title": "Denominator value"
+            }
+          },
+          "title": "Value",
+          "description": "Value of the quantity."
+        },
+        "label": {
+          "type": "string",
+          "title": "Label",
+          "maxLength": 255,
+          "description": "Label of the quantity.",
+          "default": ""
+        },
+        "created": {
+          "type": "string",
+          "title": "Authored on",
+          "format": "date-time",
+          "description": "The time that the quantity was created."
+        },
+        "changed": {
+          "type": "string",
+          "title": "Changed",
+          "format": "date-time",
+          "description": "The time the quantity was last edited."
+        },
+        "revision_default": {
+          "type": "boolean",
+          "title": "Default revision",
+          "description": "A flag indicating whether this was a default revision when it was saved."
+        }
+      },
+      "required": [
+        "drupal_internal__id",
+        "drupal_internal__revision_id"
+      ],
+      "additionalProperties": false
+    },
+    "relationships": {
+      "description": "Entity relationships",
+      "properties": {
+        "quantity_type": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "quantity_type--quantity_type"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "string",
+                  "title": "Quantity type ID"
+                }
+              }
+            }
+          },
+          "title": "Quantity type",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/quantity/standard/resource/relationships/quantity_type/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "revision_user": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "user--user"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "integer",
+                  "title": "User ID"
+                }
+              }
+            }
+          },
+          "title": "Revision user",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/quantity/standard/resource/relationships/revision_user/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "uid": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "user--user"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "integer",
+                  "title": "User ID"
+                }
+              }
+            }
+          },
+          "title": "Authored by",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/quantity/standard/resource/relationships/uid/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "units": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "taxonomy_term--unit"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "integer",
+                  "title": "Taxonomy term ID"
+                }
+              }
+            }
+          },
+          "title": "Units",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/quantity/standard/resource/relationships/units/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+}
