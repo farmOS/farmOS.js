@@ -1,116 +1,13 @@
 import compose from 'ramda/src/compose.js';
-import dissoc from 'ramda/src/dissoc.js';
-import evolve from 'ramda/src/evolve.js';
-import omit from 'ramda/src/omit.js';
 import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
 import map from 'ramda/src/map.js';
-import pick from 'ramda/src/pick.js';
-import prop from 'ramda/src/prop.js';
-import replace from 'ramda/src/replace.js';
-import path from 'ramda/src/path.js';
+import reduce from 'ramda/src/reduce.js';
 import connect from './index.js';
 import entities, { entityMethods } from '../entities.js';
-import typeToBundle from './typeToBundle.js';
-
-// These functions correspond to entity fields and provide transformations that
-// are passed ultimately to parseFilter, so it can compare values of the same
-// format. This is not a long term solution, and should eventually be replaced
-// by transforms based on the `format` keyword in JSON Schema, independent of
-// the actual field names.
-const filterTransforms = {
-  timestamp: t => Math.floor(new Date(t).valueOf() / 1000),
-};
-
-const drupalMetaFields = {
-  attributes: [
-    'created',
-    'changed',
-    'drupal_internal__id',
-    'drupal_internal__revision_id',
-    'langcode',
-    'revision_created',
-    'revision_log_message',
-    'default_langcode',
-    'revision_translation_affected',
-    'revision_default',
-  ],
-  relationships: ['revision_user'],
-};
-
-const dropMilliseconds = replace(/\.\d\d\d/, '');
-const safeIso = t => t && new Date(t).toISOString();
-
-const typeConst = (entName, d9Schema) => ({
-  const: typeToBundle(entName, d9Schema.definitions.type.const),
-});
-
-const transformD9Schema = entName => d9Schema => ({
-  ...omit(['definitions', 'allOf'], d9Schema),
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    type: typeConst(entName, d9Schema),
-    meta: { type: 'object' },
-    attributes: omit(
-      drupalMetaFields.attributes,
-      d9Schema.definitions.attributes,
-    ),
-    relationships: omit(
-      drupalMetaFields.relationships,
-      d9Schema.definitions.relationships,
-    ),
-  },
-});
-
-const transformRemoteAttributes = compose(
-  evolve({ timestamp: safeIso }),
-  omit(drupalMetaFields.attributes),
-);
-const transformRemoteRelationships = compose(
-  map(prop('data')),
-  omit(drupalMetaFields.attributes),
-);
-const makeFieldChanges = (attrs, rels) => ({
-  ...map(() => attrs.changed, omit(drupalMetaFields.attributes, attrs)),
-  ...map(() => attrs.changed, omit(drupalMetaFields.relationships, rels)),
-});
-
-const defAttrs = { created: null, changed: null, drupal_internal__id: null };
-const transformRemoteEntity = (entName, setLastSync = false) => ({
-  id, type, attributes = defAttrs, relationships = {},
-}) => ({
-  id,
-  type: typeToBundle(entName, type),
-  meta: {
-    created: safeIso(attributes.created),
-    changed: safeIso(attributes.changed),
-    fieldChanges: makeFieldChanges(attributes, relationships),
-    remote: {
-      lastSync: setLastSync ? new Date().toISOString() : null,
-      url: `/${entName}/${attributes.drupal_internal__id}`,
-      meta: {
-        attributes: pick(drupalMetaFields.attributes, attributes),
-        relationships: pick(drupalMetaFields.relationships, relationships),
-      },
-    },
-  },
-  attributes: transformRemoteAttributes(attributes),
-  relationships: transformRemoteRelationships(relationships),
-});
-
-const transformSendResponse = name => compose(
-  transformRemoteEntity(name, true),
-  path(['data', 'data']),
-);
-
-const transformLocalEntity = (entName, data) => compose(
-  dissoc('meta'),
-  evolve({
-    type: t => `${entName}--${t}`,
-    attributes: { timestamp: dropMilliseconds },
-    relationships: map(r => ({ data: r })),
-  }),
-)(data);
+import {
+  generateFilterTransforms, transformD9Schema, transformLocalEntity,
+  transformFetchResponse, transformSendResponse,
+} from './transformations.js';
 
 function parseBundles(filter, validTypes) {
   const bundles = [];
@@ -149,35 +46,31 @@ function parseBundles(filter, validTypes) {
   return bundles;
 }
 
-const aggregateBundles = (transform = a => a) => results =>
-  results.reduce(({ data, fulfilled, rejected }, { reason, value, status }) => {
-    if (status === 'fulfilled') {
-      const ents = value.data.data.map(transform);
-      return {
-        data: data.concat(ents),
-        fulfilled: fulfilled.concat(value),
-        rejected,
-      };
-    }
+const aggregateBundles = reduce((aggregate, result) => {
+  const { data, fulfilled, rejected } = aggregate;
+  const { reason, value, status } = result;
+  if (status === 'fulfilled') {
     return {
-      data,
-      fulfilled,
-      rejected: rejected.concat(reason),
+      data: data.concat(value.data.data),
+      fulfilled: fulfilled.concat(value),
+      rejected,
     };
-  }, { data: [], fulfilled: [], rejected: [] });
-
-const fetchBundles = (getTypes, request, transform) => ({ filter }) => {
-  const validTypes = getTypes();
-  const bundles = parseBundles(filter, validTypes);
-  const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) =>
-    request(bundle, { filter: bundleFilter }));
-  return Promise.allSettled(bundleRequests)
-    .then(aggregateBundles(transform));
-};
+  }
+  return {
+    data,
+    fulfilled,
+    rejected: rejected.concat(reason),
+  };
+}, { data: [], fulfilled: [], rejected: [] });
 
 export default function adapter(model, opts) {
   const { host, ...rest } = opts;
-  const connection = connect(host, { ...rest, filterTransforms });
+  const connection = connect(host, rest);
+  const initSchemata = model.schema.get();
+  let filterTransforms = generateFilterTransforms(initSchemata);
+  model.schema.on('set', (schemata) => {
+    filterTransforms = generateFilterTransforms(schemata);
+  });
 
   return {
     ...connection,
@@ -203,11 +96,18 @@ export default function adapter(model, opts) {
     },
     ...entityMethods(({ nomenclature: { name, shortName } }) => ({
       ...connection[shortName],
-      fetch: fetchBundles(
-        () => Object.keys(model.schema.get(name)),
-        connection[shortName].fetch,
-        transformRemoteEntity(name),
-      ),
+      fetch: ({ filter }) => {
+        const validTypes = Object.keys(model.schema.get(name));
+        const bundles = parseBundles(filter, validTypes);
+        const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) =>
+          connection[shortName].fetch(bundle, { filter: bundleFilter, filterTransforms }));
+        const handleBundleResponse = compose(
+          transformFetchResponse(name),
+          aggregateBundles,
+        );
+        return Promise.allSettled(bundleRequests)
+          .then(handleBundleResponse);
+      },
       send: data => connection[shortName].send(
         data.type,
         transformLocalEntity(name, data),

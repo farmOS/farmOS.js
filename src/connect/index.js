@@ -6,12 +6,13 @@ import oauth from './oauth.js';
 import typeToBundle from './typeToBundle.js';
 import entities, { entityMethods } from '../entities.js';
 
+const entityNames = Object.keys(entities);
+
 export default function connect(host, opts) {
   const {
     clientId,
     getToken: getTokenOpt,
     setToken,
-    filterTransforms,
   } = opts;
 
   // Instantiate axios client.
@@ -36,7 +37,7 @@ export default function connect(host, opts) {
   } = oauth(client, oAuthOpts);
   const {
     request, deleteEntity, fetchEntity, sendEntity,
-  } = farmRequest(client, filterTransforms);
+  } = farmRequest(client);
 
   const farm = {
     authorize,
@@ -53,7 +54,7 @@ export default function connect(host, opts) {
           const schemata = map(() => ({}), entities);
           return request('/api/')
             .then(res => Promise.all(Object.keys(res.data.links)
-              .filter(type => entities.some(({ name }) => type.startsWith(`${name}--`)))
+              .filter(type => entityNames.some(name => type.startsWith(`${name}--`)))
               .map((type) => {
                 const [entName, b] = type.split('--');
                 return request(`/api/${entName}/${b}/resource/schema`)

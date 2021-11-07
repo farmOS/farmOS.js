@@ -1,10 +1,5 @@
-/* eslint-disable import/prefer-default-export */
 import evolve from 'ramda/src/evolve.js';
 import map from 'ramda/src/map.js';
-import mergeLeft from 'ramda/src/mergeLeft.js';
-import omit from 'ramda/src/omit.js';
-import pick from 'ramda/src/pick.js';
-import pickBy from 'ramda/src/pickBy.js';
 import { getPath } from './properties.js';
 import { hasLogicalKeyword } from './schema-utils.js';
 import { isObject } from '../utils.js';
@@ -29,7 +24,7 @@ import { isObject } from '../utils.js';
  * @param {Object} [options.use]
  * @returns {*}
  */
-export const getDefault = (schema, path = [], options = {}) => {
+const getDefault = (schema, path = [], options = {}) => {
   const subschema = getPath(schema, path);
   if (!isObject(subschema)) return undefined;
   if ('default' in subschema) return subschema.default;
@@ -51,7 +46,7 @@ export const getDefault = (schema, path = [], options = {}) => {
   }
   const { type } = subschema;
   const {
-    byType, byFormat, byProperty = false, use,
+    byType, byFormat, use,
   } = options;
   if (type === 'string') {
     if (byFormat && 'format' in subschema && subschema.format in byFormat) {
@@ -64,23 +59,6 @@ export const getDefault = (schema, path = [], options = {}) => {
     const useOptions = Array.isArray(use) ? use : [use];
     const kw = useOptions.find(k => k in subschema && keywords.includes(k));
     return subschema[kw];
-  }
-  if (type === 'object') {
-    if (byProperty && 'properties' in subschema) {
-      const { required = [], properties } = subschema;
-      const pickResolved = pickBy(v => v !== undefined);
-      if (isObject(byProperty)) {
-        const optionsDefaults = evolve(byProperty, properties);
-        const nonOptionsSchema = omit(Object.keys(byProperty), properties);
-        const nonOptionsDefaults = pickResolved(mapGetDef(nonOptionsSchema));
-        return mergeLeft(optionsDefaults, nonOptionsDefaults);
-      }
-      if (byProperty === 'required' && Array.isArray(required)) {
-        const requiredSchema = pick(required, properties);
-        return mapGetDef(requiredSchema);
-      }
-      return pickResolved(mapGetDef(properties));
-    }
   }
   if ('const' in subschema) return subschema.const;
   // Evaluate byType last, so options of higher specificity take precedence.
@@ -95,3 +73,5 @@ export const getDefault = (schema, path = [], options = {}) => {
   }
   return undefined;
 };
+
+export default getDefault;

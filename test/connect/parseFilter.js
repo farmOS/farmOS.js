@@ -1,10 +1,9 @@
 import chai from 'chai';
 import string from 'chai-string';
-import makeParseFilter from '../../src/connect/parseFilter.js';
+import parseFilter from '../../src/connect/parseFilter.js';
 
 chai.use(string);
 const { expect } = chai;
-const parseFilter = makeParseFilter({});
 
 describe('parseFilter', () => {
   it('parses a simple query w/ id only', () => {

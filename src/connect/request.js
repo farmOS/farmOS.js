@@ -2,13 +2,12 @@ import has from 'ramda/src/has.js';
 import ifElse from 'ramda/src/ifElse.js';
 import parseFilter from './parseFilter.js';
 
-export default function farmRequest(client, filterTransforms) {
+export default function farmRequest(client) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
     client(endpoint, { method, data: JSON.stringify(data) });
 
-  const parse = parseFilter(filterTransforms);
-  const fetchEntity = entity => (bundle, { filter = {} } = {}) =>
-    request(`/api/${entity}/${bundle}?${parse(filter)}`);
+  const fetchEntity = entity => (bundle, { filter = {}, filterTransforms } = {}) =>
+    request(`/api/${entity}/${bundle}?${parseFilter(filter, { filterTransforms })}`);
 
   const postEntity = entity => (bundle, data) =>
     request(`/api/${entity}/${bundle}`, { method: 'POST', data });

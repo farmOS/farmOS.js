@@ -27,7 +27,18 @@ describe('schema', () => {
   });
   describe('#set', () => {
     it('adds another schema to logs', () => {
-      farm.schema.set('log', 'foo', {});
+      const fooSchema = {
+        type: 'object',
+        properties: {
+          attributes: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+            },
+          },
+        },
+      };
+      farm.schema.set('log', 'foo', fooSchema);
       const logTypes = Object.keys(farm.schema.get('log'));
       expect(logTypes).to.be.an('array').that.includes(
         'activity',

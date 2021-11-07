@@ -24,9 +24,6 @@ export default {
     defaultOptions: {
       byType,
       byFormat,
-      byProperty: {
-        status: () => 'active',
-      },
     },
   },
   log: {
@@ -41,9 +38,6 @@ export default {
     defaultOptions: {
       byType,
       byFormat,
-      byProperty: {
-        status: () => 'pending',
-      },
     },
   },
   plan: {
@@ -58,9 +52,6 @@ export default {
     defaultOptions: {
       byType,
       byFormat,
-      byProperty: {
-        status: () => 'active',
-      },
     },
   },
   quantity: {
@@ -103,9 +94,6 @@ export default {
     defaultOptions: {
       byType,
       byFormat,
-      byProperty: {
-        langcode: () => 'en',
-      },
     },
   },
 };

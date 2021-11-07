@@ -248,83 +248,10 @@ describe('jsonSchema', () => {
       const fooDefault = getDefault(schema, 'foo', options);
       expect(fooDefault).to.equal(iso);
     });
-    it('uses the byProperty function option for an object', () => {
-      const schema = {
-        type: 'object',
-        properties: {
-          foo: {
-            type: 'string',
-          },
-        },
-      };
-      const options = { byProperty: { foo: () => 'bar' } };
-      const schemaDefault = getDefault(schema, [], options);
-      expect(schemaDefault).to.have.property('foo', 'bar');
-    });
-    it('uses the byProperty \'required\' option along with byType', () => {
-      const schema = {
-        type: 'object',
-        properties: {
-          foo: {
-            type: 'string',
-          },
-          bar: {
-            type: 'string',
-          },
-        },
-        required: ['foo'],
-      };
-      const options = { byProperty: 'required', byType: { string: () => 'baz' } };
-      const schemaDefault = getDefault(schema, [], options);
-      expect(schemaDefault).to.have.property('foo', 'baz');
-      expect(schemaDefault).not.to.have.property('bar');
-    });
-    it('uses the byProperty option set to `true` along with byType', () => {
-      const schema = {
-        type: 'object',
-        properties: {
-          foo: {
-            type: 'string',
-          },
-          bar: {
-            type: 'string',
-          },
-        },
-      };
-      const options = { byProperty: true, byType: { string: () => 'baz' } };
-      const schemaDefault = getDefault(schema, [], options);
-      expect(schemaDefault).to.have.property('foo', 'baz');
-      expect(schemaDefault).to.have.property('bar', 'baz');
-    });
-    it('uses the byProperty option alone set to `true`', () => {
-      const schema = {
-        type: 'object',
-        properties: {
-          foo: {
-            type: 'string',
-          },
-          bar: {
-            type: 'string',
-          },
-        },
-      };
-      const options = { byProperty: true };
-      const schemaDefault = getDefault(schema, [], options);
-      expect(schemaDefault).to.be.empty;
-    });
     it('gets the default "name" for a farmOS activity log', () => {
       const dereffedSchema = dereference(activitySchema);
       const nameDefault = getDefault(dereffedSchema, ['attributes', 'name']);
       expect(nameDefault).to.equal('');
-    });
-    it('gets the default for "notes" in a farmOS activity log', () => {
-      const dereffedSchema = dereference(activitySchema);
-      const path = ['attributes', 'notes'];
-      const byType = { string: () => '' };
-      const byProperty = 'required';
-      const options = { byType, byProperty };
-      const notesDefault = getDefault(dereffedSchema, path, options);
-      expect(notesDefault).to.deep.equal({ value: '' });
     });
     it('gets the default for "asset" in a farmOS activity log', () => {
       const dereffedSchema = dereference(activitySchema);
