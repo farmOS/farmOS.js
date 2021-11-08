@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
-  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/taxonomy_term/unit.json",
-  "title": "Units taxonomy term",
+  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/taxonomy_term/plant_type.json",
+  "title": "Plant types taxonomy term",
   "type": "object",
   "properties": {
     "id": {
@@ -9,7 +9,7 @@
       "format": "uuid"
     },
     "type": {
-      "const": "unit"
+      "const": "plant_type"
     },
     "meta": {
       "type": "object"
@@ -55,6 +55,14 @@
           "title": "Weight",
           "description": "The weight of this term in relation to other terms.",
           "default": 0
+        },
+        "maturity_days": {
+          "type": "integer",
+          "title": "Days to maturity"
+        },
+        "transplant_days": {
+          "type": "integer",
+          "title": "Days to transplant"
         }
       },
       "required": [
@@ -88,6 +96,69 @@
         "parent": {
           "type": "array",
           "title": "Term Parents",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "companions": {
+          "type": "array",
+          "title": "Companions",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "crop_family": {
+          "title": "Crop family",
+          "type": "object",
+          "required": [
+            "id",
+            "type"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "title": "Resource ID",
+              "format": "uuid",
+              "maxLength": 128
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "image": {
+          "type": "array",
+          "title": "Photos",
           "items": {
             "type": "object",
             "required": [

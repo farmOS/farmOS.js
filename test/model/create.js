@@ -1,31 +1,14 @@
 import chai from 'chai';
 import { validate } from 'uuid';
 import model from '../../src/model/index.js';
-import { loadSchema } from '../test-utils.js';
+import { readSchema } from '../../core_schemata/fs-utils.js';
 
 const { expect } = chai;
-const activitySchema = loadSchema('log', 'activity');
+const activitySchema = readSchema('log', 'activity');
 const farm = model({ schemata: { log: { activity: activitySchema } } });
 
-// Temporary fix until schema tranformations are updated in adapter.js
-const drupalMetaFields = {
-  attributes: [
-    'created',
-    'changed',
-    'drupal_internal__id',
-    'drupal_internal__revision_id',
-    'langcode',
-    'revision_created',
-    'revision_log_message',
-    'default_langcode',
-    'revision_translation_affected',
-    'revision_default',
-  ],
-  relationships: ['revision_user'],
-};
 const keys = {
   attributes: [
-    ...drupalMetaFields.attributes,
     'name',
     'timestamp',
     'status',
@@ -36,17 +19,14 @@ const keys = {
     'is_movement',
   ],
   relationships: [
-    ...drupalMetaFields.relationships,
     'asset',
     'category',
     'equipment',
     'file',
     'image',
     'location',
-    'log_type',
     'owner',
     'quantity',
-    'uid',
   ],
 };
 

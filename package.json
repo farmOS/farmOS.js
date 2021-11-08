@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha --recursive",
-    "lint": "eslint --color --ext .js ."
+    "lint": "eslint --color --ext .js .",
+    "update-core-schemata": "node core_schemata/update-script.js"
   },
   "repository": {
     "type": "git",

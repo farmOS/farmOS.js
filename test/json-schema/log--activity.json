@@ -1,0 +1,739 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
+  "$id": "http://localhost/api/log/activity/resource/schema",
+  "title": "Activity log",
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#definitions/type"
+        },
+        "attributes": {
+          "$ref": "#/definitions/attributes"
+        },
+        "relationships": {
+          "$ref": "#/definitions/relationships"
+        }
+      }
+    },
+    {
+      "$ref": "https://jsonapi.org/schema#/definitions/resource"
+    }
+  ],
+  "definitions": {
+    "type": {
+      "const": "log--activity"
+    },
+    "attributes": {
+      "description": "Entity attributes",
+      "type": "object",
+      "properties": {
+        "drupal_internal__id": {
+          "type": "integer",
+          "title": "ID"
+        },
+        "drupal_internal__revision_id": {
+          "type": "integer",
+          "title": "Revision ID"
+        },
+        "langcode": {
+          "type": "string",
+          "title": "Language"
+        },
+        "revision_created": {
+          "type": "string",
+          "title": "Revision create time",
+          "format": "date-time",
+          "description": "The time that the current revision was created."
+        },
+        "revision_log_message": {
+          "type": "string",
+          "title": "Revision log message",
+          "description": "Briefly describe the changes you have made.",
+          "default": ""
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "maxLength": 255,
+          "description": "The name of the log. Leave this blank to automatically generate a name.",
+          "default": ""
+        },
+        "timestamp": {
+          "type": "string",
+          "title": "Timestamp",
+          "format": "date-time",
+          "description": "Timestamp of the event being logged."
+        },
+        "status": {
+          "type": "string",
+          "title": "Status",
+          "maxLength": 255,
+          "description": "Indicates the status of the log."
+        },
+        "created": {
+          "type": "string",
+          "title": "Authored on",
+          "format": "date-time",
+          "description": "The time that the log was created."
+        },
+        "changed": {
+          "type": "string",
+          "title": "Changed",
+          "format": "date-time",
+          "description": "The time the log was last edited."
+        },
+        "default_langcode": {
+          "type": "boolean",
+          "title": "Default translation",
+          "description": "A flag indicating whether this is the default translation.",
+          "default": true
+        },
+        "revision_default": {
+          "type": "boolean",
+          "title": "Default revision",
+          "description": "A flag indicating whether this was a default revision when it was saved."
+        },
+        "revision_translation_affected": {
+          "type": "boolean",
+          "title": "Revision translation affected",
+          "description": "Indicates if the last edit of a translation belongs to current revision."
+        },
+        "data": {
+          "type": "string",
+          "title": "Data",
+          "maxLength": 255
+        },
+        "flag": {
+          "type": "array",
+          "title": "Flags",
+          "description": "Add flags to enable better sorting and filtering of records.",
+          "items": {
+            "type": "string",
+            "title": "Text value"
+          }
+        },
+        "notes": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "title": "Text"
+            },
+            "format": {
+              "type": "string",
+              "title": "Text format"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "title": "Notes"
+        },
+        "geometry": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "title": "Geometry"
+            },
+            "geo_type": {
+              "type": "string",
+              "title": "Geometry Type"
+            },
+            "lat": {},
+            "lon": {},
+            "left": {},
+            "top": {},
+            "right": {},
+            "bottom": {},
+            "geohash": {
+              "type": "string",
+              "title": "Geohash"
+            },
+            "latlon": {
+              "type": "string",
+              "title": "LatLong Pair"
+            }
+          },
+          "title": "Geometry",
+          "description": "Add geometry data to this log to describe where it took place."
+        },
+        "is_movement": {
+          "type": "boolean",
+          "title": "Is movement",
+          "description": "If this log is a movement, then all assets referenced by it will be located in the referenced locations and/or geometry at the time the log takes place. The log must be complete in order for the movement to take effect."
+        }
+      },
+      "required": [
+        "drupal_internal__id",
+        "drupal_internal__revision_id",
+        "status",
+        "revision_translation_affected"
+      ],
+      "additionalProperties": false
+    },
+    "relationships": {
+      "description": "Entity relationships",
+      "properties": {
+        "log_type": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "log_type--log_type"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "string",
+                  "title": "Log type ID"
+                }
+              }
+            }
+          },
+          "title": "Log type",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/log_type/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "revision_user": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "user--user"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "integer",
+                  "title": "User ID"
+                }
+              }
+            }
+          },
+          "title": "Revision user",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/revision_user/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "uid": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": [
+                "type",
+                "id"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "title": "Referenced resource",
+                  "enum": [
+                    "user--user"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "title": "Resource ID",
+                  "format": "uuid",
+                  "maxLength": 128
+                },
+                "meta": {
+                  "type": "integer",
+                  "title": "User ID"
+                }
+              }
+            }
+          },
+          "title": "Authored by",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/uid/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "asset": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource"
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          },
+          "title": "Assets",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/asset/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "category": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "taxonomy_term--log_category"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "integer",
+                    "title": "Taxonomy term ID"
+                  }
+                }
+              }
+            }
+          },
+          "title": "Log category",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/category/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "file": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "file--file"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "object",
+                    "properties": {
+                      "target_id": {
+                        "type": "integer",
+                        "title": "File ID"
+                      },
+                      "display": {
+                        "type": "boolean",
+                        "title": "Display",
+                        "description": "Flag to control whether this file should be displayed when viewing content"
+                      },
+                      "description": {
+                        "type": "string",
+                        "title": "Description"
+                      }
+                    },
+                    "required": [
+                      "target_id"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "title": "Files",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/file/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "file--file"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "object",
+                    "properties": {
+                      "target_id": {
+                        "type": "integer",
+                        "title": "File ID"
+                      },
+                      "alt": {
+                        "type": "string",
+                        "title": "Alternative text",
+                        "description": "Alternative image text, for the image\\'s \\'alt\\' attribute."
+                      },
+                      "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Image title text, for the image\\'s \\'title\\' attribute."
+                      },
+                      "width": {
+                        "type": "integer",
+                        "title": "Width",
+                        "description": "The width of the image in pixels."
+                      },
+                      "height": {
+                        "type": "integer",
+                        "title": "Height",
+                        "description": "The height of the image in pixels."
+                      }
+                    },
+                    "required": [
+                      "target_id"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "title": "Images",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/image/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "user--user"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "integer",
+                    "title": "User ID"
+                  }
+                }
+              }
+            }
+          },
+          "title": "Assigned to",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/owner/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "quantity": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource"
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          },
+          "title": "Quantity",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/quantity/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource"
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          },
+          "title": "Location",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/location/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        },
+        "equipment": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Referenced resource",
+                    "enum": [
+                      "asset--equipment"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Resource ID",
+                    "format": "uuid",
+                    "maxLength": 128
+                  },
+                  "meta": {
+                    "type": "integer",
+                    "title": "Asset ID"
+                  }
+                }
+              }
+            }
+          },
+          "title": "Equipment used",
+          "links": [
+            {
+              "href": "{instanceHref}",
+              "rel": "related",
+              "targetMediaType": "application/vnd.api+json",
+              "targetSchema": "http://localhost/api/log/activity/resource/relationships/equipment/related/schema",
+              "templatePointers": {
+                "instanceHref": "/links/related/href"
+              },
+              "templateRequired": [
+                "instanceHref"
+              ]
+            }
+          ]
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+}

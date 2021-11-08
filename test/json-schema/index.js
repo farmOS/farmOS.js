@@ -1,12 +1,13 @@
 import chai from 'chai';
+import { readFileSync } from 'fs';
 import {
   getDefinition, getReference, dereference, getProperties, getProperty, getPath,
   listProperties, getDefault,
 } from '../../src/json-schema/index.js';
-import { loadSchema } from '../test-utils.js';
 
 const { expect } = chai;
-const activitySchema = loadSchema('log', 'activity');
+const json = readFileSync('test/json-schema/log--activity.json');
+const activitySchema = JSON.parse(json);
 const derefOptions = {
   ignore: ['https://jsonapi.org/schema#/definitions/resource'],
 };

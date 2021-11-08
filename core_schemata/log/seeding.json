@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
-  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/log/activity.json",
-  "title": "Activity log",
+  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/log/seeding.json",
+  "title": "Seeding log",
   "type": "object",
   "properties": {
     "id": {
@@ -9,7 +9,7 @@
       "format": "uuid"
     },
     "type": {
-      "const": "activity"
+      "const": "seeding"
     },
     "meta": {
       "type": "object"
@@ -102,6 +102,24 @@
           "type": "boolean",
           "title": "Is movement",
           "description": "If this log is a movement, then all assets referenced by it will be located in the referenced locations and/or geometry at the time the log takes place. The log must be complete in order for the movement to take effect."
+        },
+        "lot_number": {
+          "type": "string",
+          "title": "Lot number",
+          "maxLength": 255,
+          "description": "If the seed is part of a batch or lot, enter the lot number here."
+        },
+        "purchase_date": {
+          "type": "string",
+          "title": "Purchase date",
+          "format": "date-time",
+          "description": "When was the seed purchased (if applicable)?"
+        },
+        "source": {
+          "type": "string",
+          "title": "Source",
+          "maxLength": 255,
+          "description": "Where was the seed obtained? Who supplied it?"
         }
       },
       "required": [

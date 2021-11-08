@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
-  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/log/activity.json",
-  "title": "Activity log",
+  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/asset/land.json",
+  "title": "Land asset",
   "type": "object",
   "properties": {
     "id": {
@@ -9,7 +9,7 @@
       "format": "uuid"
     },
     "type": {
-      "const": "activity"
+      "const": "land"
     },
     "meta": {
       "type": "object"
@@ -22,21 +22,20 @@
           "type": "string",
           "title": "Name",
           "maxLength": 255,
-          "description": "The name of the log. Leave this blank to automatically generate a name.",
-          "default": ""
-        },
-        "timestamp": {
-          "type": "string",
-          "title": "Timestamp",
-          "format": "date-time",
-          "description": "Timestamp of the event being logged."
+          "description": "The name of the asset."
         },
         "status": {
           "type": "string",
           "title": "Status",
           "maxLength": 255,
-          "description": "Indicates the status of the log.",
-          "default": "pending"
+          "description": "Indicates the status of the asset.",
+          "default": "active"
+        },
+        "archived": {
+          "type": "string",
+          "title": "Timestamp",
+          "format": "date-time",
+          "description": "The time the asset was archived."
         },
         "data": {
           "type": "string",
@@ -50,6 +49,28 @@
           "items": {
             "type": "string",
             "title": "Text value"
+          }
+        },
+        "id_tag": {
+          "type": "array",
+          "title": "ID tags",
+          "description": "List any identification tags that this asset has. Use the fields below to describe the type, location, and ID of each.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "ID of the tag"
+              },
+              "type": {
+                "type": "string",
+                "title": "Type of the tag"
+              },
+              "location": {
+                "type": "string",
+                "title": "Location of the tag"
+              }
+            }
           }
         },
         "notes": {
@@ -95,67 +116,63 @@
               "title": "LatLong Pair"
             }
           },
-          "title": "Geometry",
-          "description": "Add geometry data to this log to describe where it took place."
+          "title": "Current geometry"
         },
-        "is_movement": {
+        "intrinsic_geometry": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "title": "Geometry"
+            },
+            "geo_type": {
+              "type": "string",
+              "title": "Geometry Type"
+            },
+            "lat": {},
+            "lon": {},
+            "left": {},
+            "top": {},
+            "right": {},
+            "bottom": {},
+            "geohash": {
+              "type": "string",
+              "title": "Geohash"
+            },
+            "latlon": {
+              "type": "string",
+              "title": "LatLong Pair"
+            }
+          },
+          "title": "Intrinsic geometry",
+          "description": "Add geometry data to this asset to describe its intrinsic location. This will only be used if the asset is fixed."
+        },
+        "is_location": {
           "type": "boolean",
-          "title": "Is movement",
-          "description": "If this log is a movement, then all assets referenced by it will be located in the referenced locations and/or geometry at the time the log takes place. The log must be complete in order for the movement to take effect."
+          "title": "Is location",
+          "description": "If this asset is a location, then other assets can be moved to it."
+        },
+        "is_fixed": {
+          "type": "boolean",
+          "title": "Is fixed",
+          "description": "If this asset is fixed, then it can have an intrinsic geometry. If the asset will move around, then it is not fixed and geometry will be determined by movement logs."
+        },
+        "land_type": {
+          "type": "string",
+          "title": "Land type"
         }
       },
       "required": [
-        "status"
+        "name",
+        "status",
+        "geometry",
+        "land_type"
       ],
       "additionalProperties": false
     },
     "relationships": {
       "description": "Entity relationships",
       "properties": {
-        "asset": {
-          "type": "array",
-          "title": "Assets",
-          "items": {
-            "type": "object",
-            "required": [
-              "id",
-              "type"
-            ],
-            "properties": {
-              "id": {
-                "type": "string",
-                "title": "Resource ID",
-                "format": "uuid",
-                "maxLength": 128
-              },
-              "type": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "category": {
-          "type": "array",
-          "title": "Log category",
-          "items": {
-            "type": "object",
-            "required": [
-              "id",
-              "type"
-            ],
-            "properties": {
-              "id": {
-                "type": "string",
-                "title": "Resource ID",
-                "format": "uuid",
-                "maxLength": 128
-              },
-              "type": {
-                "type": "string"
-              }
-            }
-          }
-        },
         "file": {
           "type": "array",
           "title": "Files",
@@ -200,31 +217,9 @@
             }
           }
         },
-        "owner": {
+        "parent": {
           "type": "array",
-          "title": "Assigned to",
-          "items": {
-            "type": "object",
-            "required": [
-              "id",
-              "type"
-            ],
-            "properties": {
-              "id": {
-                "type": "string",
-                "title": "Resource ID",
-                "format": "uuid",
-                "maxLength": 128
-              },
-              "type": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "quantity": {
-          "type": "array",
-          "title": "Quantity",
+          "title": "Parents",
           "items": {
             "type": "object",
             "required": [
@@ -246,29 +241,7 @@
         },
         "location": {
           "type": "array",
-          "title": "Location",
-          "items": {
-            "type": "object",
-            "required": [
-              "id",
-              "type"
-            ],
-            "properties": {
-              "id": {
-                "type": "string",
-                "title": "Resource ID",
-                "format": "uuid",
-                "maxLength": 128
-              },
-              "type": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "equipment": {
-          "type": "array",
-          "title": "Equipment used",
+          "title": "Current location",
           "items": {
             "type": "object",
             "required": [

@@ -1,12 +1,12 @@
 import chai from 'chai';
 import farmOS from '../src/index.js';
+import localServerConfig from '../local-server-config.js';
 
 const { expect } = chai;
 
-const host = 'http://localhost';
-const clientId = 'farm_client';
-const username = 'admin';
-const password = 'admin';
+const {
+  host, clientId, username, password,
+} = localServerConfig;
 const remote = {
   options: { host, clientId },
 };

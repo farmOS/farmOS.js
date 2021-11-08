@@ -1,58 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
-  "$id": "http://localhost/api/asset/equipment/resource/schema",
+  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/asset/equipment.json",
   "title": "Equipment asset",
-  "allOf": [
-    {
-      "type": "object",
-      "properties": {
-        "type": {
-          "$ref": "#definitions/type"
-        },
-        "attributes": {
-          "$ref": "#/definitions/attributes"
-        },
-        "relationships": {
-          "$ref": "#/definitions/relationships"
-        }
-      }
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
     },
-    {
-      "$ref": "https://jsonapi.org/schema#/definitions/resource"
-    }
-  ],
-  "definitions": {
     "type": {
-      "const": "asset--equipment"
+      "const": "equipment"
+    },
+    "meta": {
+      "type": "object"
     },
     "attributes": {
       "description": "Entity attributes",
       "type": "object",
       "properties": {
-        "drupal_internal__id": {
-          "type": "integer",
-          "title": "ID"
-        },
-        "drupal_internal__revision_id": {
-          "type": "integer",
-          "title": "Revision ID"
-        },
-        "langcode": {
-          "type": "string",
-          "title": "Language"
-        },
-        "revision_created": {
-          "type": "string",
-          "title": "Revision create time",
-          "format": "date-time",
-          "description": "The time that the current revision was created."
-        },
-        "revision_log_message": {
-          "type": "string",
-          "title": "Revision log message",
-          "description": "Briefly describe the changes you have made.",
-          "default": ""
-        },
         "name": {
           "type": "string",
           "title": "Name",
@@ -63,41 +28,14 @@
           "type": "string",
           "title": "Status",
           "maxLength": 255,
-          "description": "Indicates the status of the asset."
-        },
-        "created": {
-          "type": "string",
-          "title": "Authored on",
-          "format": "date-time",
-          "description": "The time that the asset was created."
-        },
-        "changed": {
-          "type": "string",
-          "title": "Changed",
-          "format": "date-time",
-          "description": "The time the asset was last edited."
+          "description": "Indicates the status of the asset.",
+          "default": "active"
         },
         "archived": {
           "type": "string",
           "title": "Timestamp",
           "format": "date-time",
           "description": "The time the asset was archived."
-        },
-        "default_langcode": {
-          "type": "boolean",
-          "title": "Default translation",
-          "description": "A flag indicating whether this is the default translation.",
-          "default": true
-        },
-        "revision_default": {
-          "type": "boolean",
-          "title": "Default revision",
-          "description": "A flag indicating whether this was a default revision when it was saved."
-        },
-        "revision_translation_affected": {
-          "type": "boolean",
-          "title": "Revision translation affected",
-          "description": "Indicates if the last edit of a translation belongs to current revision."
         },
         "data": {
           "type": "string",
@@ -236,11 +174,8 @@
         }
       },
       "required": [
-        "drupal_internal__id",
-        "drupal_internal__revision_id",
         "name",
         "status",
-        "revision_translation_affected",
         "geometry"
       ],
       "additionalProperties": false
@@ -248,370 +183,93 @@
     "relationships": {
       "description": "Entity relationships",
       "properties": {
-        "asset_type": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "object",
-              "required": [
-                "type",
-                "id"
-              ],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "title": "Referenced resource",
-                  "enum": [
-                    "asset_type--asset_type"
-                  ]
-                },
-                "id": {
-                  "type": "string",
-                  "title": "Resource ID",
-                  "format": "uuid",
-                  "maxLength": 128
-                },
-                "meta": {
-                  "type": "string",
-                  "title": "Asset type ID"
-                }
-              }
-            }
-          },
-          "title": "Asset type",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/asset_type/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
-        },
-        "revision_user": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "object",
-              "required": [
-                "type",
-                "id"
-              ],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "title": "Referenced resource",
-                  "enum": [
-                    "user--user"
-                  ]
-                },
-                "id": {
-                  "type": "string",
-                  "title": "Resource ID",
-                  "format": "uuid",
-                  "maxLength": 128
-                },
-                "meta": {
-                  "type": "integer",
-                  "title": "User ID"
-                }
-              }
-            }
-          },
-          "title": "Revision user",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/revision_user/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
-        },
-        "uid": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "object",
-              "required": [
-                "type",
-                "id"
-              ],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "title": "Referenced resource",
-                  "enum": [
-                    "user--user"
-                  ]
-                },
-                "id": {
-                  "type": "string",
-                  "title": "Resource ID",
-                  "format": "uuid",
-                  "maxLength": 128
-                },
-                "meta": {
-                  "type": "integer",
-                  "title": "User ID"
-                }
-              }
-            }
-          },
-          "title": "Authored by",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/uid/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
-        },
         "file": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "type",
-                  "id"
-                ],
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "title": "Referenced resource",
-                    "enum": [
-                      "file--file"
-                    ]
-                  },
-                  "id": {
-                    "type": "string",
-                    "title": "Resource ID",
-                    "format": "uuid",
-                    "maxLength": 128
-                  },
-                  "meta": {
-                    "type": "object",
-                    "properties": {
-                      "target_id": {
-                        "type": "integer",
-                        "title": "File ID"
-                      },
-                      "display": {
-                        "type": "boolean",
-                        "title": "Display",
-                        "description": "Flag to control whether this file should be displayed when viewing content"
-                      },
-                      "description": {
-                        "type": "string",
-                        "title": "Description"
-                      }
-                    },
-                    "required": [
-                      "target_id"
-                    ]
-                  }
-                }
+          "type": "array",
+          "title": "Files",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
               }
             }
-          },
-          "title": "Files",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/file/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
+          }
         },
         "image": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "type",
-                  "id"
-                ],
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "title": "Referenced resource",
-                    "enum": [
-                      "file--file"
-                    ]
-                  },
-                  "id": {
-                    "type": "string",
-                    "title": "Resource ID",
-                    "format": "uuid",
-                    "maxLength": 128
-                  },
-                  "meta": {
-                    "type": "object",
-                    "properties": {
-                      "target_id": {
-                        "type": "integer",
-                        "title": "File ID"
-                      },
-                      "alt": {
-                        "type": "string",
-                        "title": "Alternative text",
-                        "description": "Alternative image text, for the image\\'s \\'alt\\' attribute."
-                      },
-                      "title": {
-                        "type": "string",
-                        "title": "Title",
-                        "description": "Image title text, for the image\\'s \\'title\\' attribute."
-                      },
-                      "width": {
-                        "type": "integer",
-                        "title": "Width",
-                        "description": "The width of the image in pixels."
-                      },
-                      "height": {
-                        "type": "integer",
-                        "title": "Height",
-                        "description": "The height of the image in pixels."
-                      }
-                    },
-                    "required": [
-                      "target_id"
-                    ]
-                  }
-                }
+          "type": "array",
+          "title": "Images",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
               }
             }
-          },
-          "title": "Images",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/image/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
+          }
         },
         "parent": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "type",
-                  "id"
-                ],
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "title": "Referenced resource"
-                  },
-                  "id": {
-                    "type": "string",
-                    "title": "Resource ID",
-                    "format": "uuid",
-                    "maxLength": 128
-                  }
-                }
+          "type": "array",
+          "title": "Parents",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
               }
             }
-          },
-          "title": "Parents",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/parent/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
+          }
         },
         "location": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "type",
-                  "id"
-                ],
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "title": "Referenced resource"
-                  },
-                  "id": {
-                    "type": "string",
-                    "title": "Resource ID",
-                    "format": "uuid",
-                    "maxLength": 128
-                  }
-                }
+          "type": "array",
+          "title": "Current location",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
               }
             }
-          },
-          "title": "Current location",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/asset/equipment/resource/relationships/location/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
+          }
         }
       },
       "type": "object",

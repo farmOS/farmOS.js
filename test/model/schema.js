@@ -1,9 +1,9 @@
 import chai from 'chai';
 import model from '../../src/model/index.js';
-import { loadSchema } from '../test-utils.js';
+import { readSchema } from '../../core_schemata/fs-utils.js';
 
 const { expect } = chai;
-const activitySchema = loadSchema('log', 'activity');
+const activitySchema = readSchema('log', 'activity');
 const farm = model({ schemata: { log: { activity: activitySchema } } });
 
 describe('schema', () => {

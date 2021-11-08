@@ -1,18 +1,19 @@
 import chai from 'chai';
 import connect from '../../src/connect/index.js';
+import localServerConfig from '../../local-server-config.js';
 
 const { expect } = chai;
 
-const host = 'http://localhost';
-const username = 'admin';
-const password = 'admin';
+const {
+  host, clientId, username, password,
+} = localServerConfig;
 
 let token;
 const getToken = () => token;
 const setToken = (t) => { token = t; };
 
 const farm = connect(host, {
-  clientId: 'farm_client',
+  clientId,
   getToken,
   setToken,
 });

@@ -1,29 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
-  "$id": "http://localhost/api/user/user/resource/schema",
+  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/user/user.json",
   "title": "User",
-  "allOf": [
-    {
-      "type": "object",
-      "properties": {
-        "type": {
-          "$ref": "#definitions/type"
-        },
-        "attributes": {
-          "$ref": "#/definitions/attributes"
-        },
-        "relationships": {
-          "$ref": "#/definitions/relationships"
-        }
-      }
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
     },
-    {
-      "$ref": "https://jsonapi.org/schema#/definitions/resource"
-    }
-  ],
-  "definitions": {
     "type": {
-      "const": "user--user"
+      "const": "user"
+    },
+    "meta": {
+      "type": "object"
     },
     "attributes": {
       "description": "Entity attributes",
@@ -33,11 +22,6 @@
           "type": "integer",
           "title": "User ID",
           "description": "The user ID."
-        },
-        "langcode": {
-          "type": "string",
-          "title": "Language code",
-          "description": "The user language code."
         },
         "preferred_langcode": {
           "type": "string",
@@ -95,18 +79,6 @@
           "description": "Whether the user is active or blocked.",
           "default": false
         },
-        "created": {
-          "type": "string",
-          "title": "Created",
-          "format": "date-time",
-          "description": "The time that the user was created."
-        },
-        "changed": {
-          "type": "string",
-          "title": "Changed",
-          "format": "date-time",
-          "description": "The time that the user was last edited."
-        },
         "access": {
           "type": "string",
           "title": "Last access",
@@ -128,12 +100,6 @@
           "description": "The email address used for initial account creation.",
           "default": ""
         },
-        "default_langcode": {
-          "type": "boolean",
-          "title": "Default translation",
-          "description": "A flag indicating whether this is the default translation.",
-          "default": true
-        },
         "display_name": {
           "title": "display_name"
         }
@@ -148,53 +114,26 @@
       "description": "Entity relationships",
       "properties": {
         "roles": {
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "type",
-                  "id"
-                ],
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "title": "Referenced resource",
-                    "enum": [
-                      "user_role--user_role"
-                    ]
-                  },
-                  "id": {
-                    "type": "string",
-                    "title": "Resource ID",
-                    "format": "uuid",
-                    "maxLength": 128
-                  },
-                  "meta": {
-                    "type": "string",
-                    "title": "Role ID"
-                  }
-                }
+          "type": "array",
+          "title": "Roles",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
               }
             }
-          },
-          "title": "Roles",
-          "links": [
-            {
-              "href": "{instanceHref}",
-              "rel": "related",
-              "targetMediaType": "application/vnd.api+json",
-              "targetSchema": "http://localhost/api/user/user/resource/relationships/roles/related/schema",
-              "templatePointers": {
-                "instanceHref": "/links/related/href"
-              },
-              "templateRequired": [
-                "instanceHref"
-              ]
-            }
-          ]
+          }
         }
       },
       "type": "object",

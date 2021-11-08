@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/hyper-schema",
-  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/log/activity.json",
-  "title": "Activity log",
+  "$id": "https://raw.githubusercontent.com/farmOS/farmOS.js/main/core_schemata/log/input.json",
+  "title": "Input log",
   "type": "object",
   "properties": {
     "id": {
@@ -9,7 +9,7 @@
       "format": "uuid"
     },
     "type": {
-      "const": "activity"
+      "const": "input"
     },
     "meta": {
       "type": "object"
@@ -102,6 +102,30 @@
           "type": "boolean",
           "title": "Is movement",
           "description": "If this log is a movement, then all assets referenced by it will be located in the referenced locations and/or geometry at the time the log takes place. The log must be complete in order for the movement to take effect."
+        },
+        "lot_number": {
+          "type": "string",
+          "title": "Lot number",
+          "maxLength": 255,
+          "description": "If this harvest is part of a batch or lot, enter the lot number here."
+        },
+        "method": {
+          "type": "string",
+          "title": "Method",
+          "maxLength": 255,
+          "description": "How was this input applied?"
+        },
+        "purchase_date": {
+          "type": "string",
+          "title": "Purchase date",
+          "format": "date-time",
+          "description": "When was this input purchased (if applicable)?"
+        },
+        "source": {
+          "type": "string",
+          "title": "Source",
+          "maxLength": 255,
+          "description": "Where was this input obtained? Who manufactured it?"
         }
       },
       "required": [
@@ -269,6 +293,28 @@
         "equipment": {
           "type": "array",
           "title": "Equipment used",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Resource ID",
+                "format": "uuid",
+                "maxLength": 128
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "material": {
+          "type": "array",
+          "title": "Material",
           "items": {
             "type": "object",
             "required": [
