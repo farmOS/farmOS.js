@@ -2,8 +2,8 @@ import compose from 'ramda/src/compose.js';
 import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
 import map from 'ramda/src/map.js';
 import reduce from 'ramda/src/reduce.js';
-import client from './index.js';
-import entities, { entityMethods } from '../entities.js';
+import client from '../index.js';
+import entities, { entityMethods } from '../../entities.js';
 import {
   generateFilterTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,

@@ -1,5 +1,5 @@
 import omit from 'ramda/src/omit.js';
-import d9JsonApiAdapter from './client/adapter.js';
+import d9JsonApiAdapter from './client/adapter/index.js';
 import model from './model/index.js';
 import entities, { entityMethods } from './entities.js';
 
