@@ -1,6 +1,6 @@
 import chai from 'chai';
 import string from 'chai-string';
-import parseFilter from '../../src/connect/parseFilter.js';
+import parseFilter from '../../src/client/parseFilter.js';
 
 chai.use(string);
 const { expect } = chai;

@@ -8,7 +8,7 @@ import entities, { entityMethods } from '../entities.js';
 
 const entityNames = Object.keys(entities);
 
-export default function connect(host, opts) {
+export default function client(host, opts) {
   const {
     clientId,
     getToken: getTokenOpt,
@@ -23,7 +23,7 @@ export default function connect(host, opts) {
       Accept: 'application/vnd.api+json',
     },
   };
-  const client = axios.create(clientOptions);
+  const axiosClient = axios.create(clientOptions);
 
   // Create oAuth & request helpers.
   const oAuthOpts = {
@@ -34,10 +34,10 @@ export default function connect(host, opts) {
   };
   const {
     authorize, setHost, getToken, revokeTokens,
-  } = oauth(client, oAuthOpts);
+  } = oauth(axiosClient, oAuthOpts);
   const {
     request, deleteEntity, fetchEntity, sendEntity,
-  } = farmRequest(client);
+  } = farmRequest(axiosClient);
 
   const farm = {
     authorize,

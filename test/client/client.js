@@ -1,4 +1,4 @@
-import connect from '../../src/connect/index.js';
+import client from '../../src/client/index.js';
 import localServerConfig from '../../local-server-config.js';
 
 const {
@@ -9,7 +9,7 @@ let token;
 const getToken = () => token;
 const setToken = (t) => { token = t; };
 
-export const farm = connect(host, {
+export const farm = client(host, {
   clientId,
   getToken,
   setToken,

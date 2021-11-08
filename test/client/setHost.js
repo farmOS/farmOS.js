@@ -1,5 +1,5 @@
 import chai from 'chai';
-import connect from '../../src/connect/index.js';
+import client from '../../src/client/index.js';
 import localServerConfig from '../../local-server-config.js';
 
 const { expect } = chai;
@@ -12,7 +12,7 @@ let token;
 const getToken = () => token;
 const setToken = (t) => { token = t; };
 
-const farm = connect(host, {
+const farm = client(host, {
   clientId,
   getToken,
   setToken,

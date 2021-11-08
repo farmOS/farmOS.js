@@ -2,7 +2,7 @@ import compose from 'ramda/src/compose.js';
 import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
 import map from 'ramda/src/map.js';
 import reduce from 'ramda/src/reduce.js';
-import connect from './index.js';
+import client from './index.js';
 import entities, { entityMethods } from '../entities.js';
 import {
   generateFilterTransforms, transformD9Schema, transformLocalEntity,
@@ -65,7 +65,7 @@ const aggregateBundles = reduce((aggregate, result) => {
 
 export default function adapter(model, opts) {
   const { host, ...rest } = opts;
-  const connection = connect(host, rest);
+  const connection = client(host, rest);
   const initSchemata = model.schema.get();
   let filterTransforms = generateFilterTransforms(initSchemata);
   model.schema.on('set', (schemata) => {
