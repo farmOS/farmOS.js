@@ -28,6 +28,7 @@ const getDefault = (schema, path = [], options = {}) => {
   const subschema = getPath(schema, path);
   if (!isObject(subschema)) return undefined;
   if ('default' in subschema) return subschema.default;
+  if ('const' in subschema) return subschema.const;
 
   // For recursive calls
   /** @type {(sub: JsonSchemaDereferenced) => *} */
@@ -45,6 +46,11 @@ const getDefault = (schema, path = [], options = {}) => {
     }, subschema);
   }
   const { type } = subschema;
+  if (type === 'null') {
+    // This is the only case that should return null; if a default can't be
+    // resolved, undefined should be returned, as below.
+    return null;
+  }
   const {
     byType, byFormat, use,
   } = options;
@@ -58,18 +64,12 @@ const getDefault = (schema, path = [], options = {}) => {
     const keywords = ['minimum', 'maximum', 'multipleOf'];
     const useOptions = Array.isArray(use) ? use : [use];
     const kw = useOptions.find(k => k in subschema && keywords.includes(k));
-    return subschema[kw];
+    if (kw !== undefined) return subschema[kw];
   }
-  if ('const' in subschema) return subschema.const;
   // Evaluate byType last, so options of higher specificity take precedence.
   if (byType && type in byType) {
     const { [type]: transform } = byType;
     return transform(subschema);
-  }
-  if (type === 'null') {
-    // This is the only case that should return null; if a default can't be
-    // resolved, undefined should be returned, as below.
-    return null;
   }
   return undefined;
 };
