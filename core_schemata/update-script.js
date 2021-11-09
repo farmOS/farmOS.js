@@ -17,7 +17,7 @@ const {
   host, clientId, username, password,
 } = localServerConfig;
 const farm = farmOS({
-  remote: { options: { host, clientId } },
+  remote: { host, clientId },
 });
 
 farm.remote.authorize(username, password)

@@ -10,7 +10,7 @@ export default function farmOS(config) {
     schemata = {},
     remote: {
       adapter = d9JsonApiAdapter,
-      options = {},
+      ...options
     } = {},
   } = config;
 

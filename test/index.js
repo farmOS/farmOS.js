@@ -7,9 +7,7 @@ const { expect } = chai;
 const {
   host, clientId, username, password,
 } = localServerConfig;
-const remote = {
-  options: { host, clientId },
-};
+const remote = { host, clientId };
 
 describe('farmOS', function () {
   this.timeout(10000);
