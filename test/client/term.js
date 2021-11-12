@@ -1,5 +1,6 @@
 import chai from 'chai';
 import { v4 as uuidv4 } from 'uuid';
+import { reportError } from '../report.js';
 import { farm, session } from './client.js';
 
 const { expect } = chai;
@@ -42,6 +43,7 @@ describe('term', function () {
       .then(() => farm.term.fetch('material_type', { filter: { id } }))
       .then((response) => {
         expect(response.data.data).to.have.lengthOf(0);
-      });
+      })
+      .catch(reportError);
   });
 });

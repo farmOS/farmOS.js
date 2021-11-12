@@ -1,4 +1,5 @@
 import chai from 'chai';
+import { reportError } from '../report.js';
 import { session } from './client.js';
 
 const { expect } = chai;
@@ -10,5 +11,5 @@ describe('authorize', () => {
       expect(token).to.have.property('access_token').that.is.a('string');
       expect(token).to.have.property('refresh_token').that.is.a('string');
       expect(token).to.have.property('expires').that.is.a('number');
-    }));
+    }).catch(reportError));
 });

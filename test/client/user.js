@@ -1,6 +1,7 @@
 import chai from 'chai';
 import { farm, session } from './client.js';
 import localServerConfig from '../../local-server-config.js';
+import { reportError } from '../report.js';
 
 const { expect } = chai;
 const { username } = localServerConfig;
@@ -16,5 +17,6 @@ describe('user', () => {
     })
     .then((response) => {
       expect(response.data.data[0]).to.have.nested.property('attributes.name', username);
-    }));
+    })
+    .catch(reportError));
 });

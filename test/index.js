@@ -1,6 +1,7 @@
 import chai from 'chai';
 import farmOS from '../src/index.js';
 import localServerConfig from '../local-server-config.js';
+import { reportError } from './report.js';
 
 const { expect } = chai;
 
@@ -21,7 +22,8 @@ describe('farmOS', function () {
       farm.schema.set(res);
       const season = farm.schema.get('taxonomy_term', 'season');
       expect(season).to.have.nested.property('properties.type.const', 'season');
-    }));
+    })
+    .catch(reportError));
   it('create an activity log, send it to the server and delete it', () => {
     const activity = farm.log.create({ type: 'activity', name: 'did some stuff' });
     const { id } = activity;
@@ -40,6 +42,7 @@ describe('farmOS', function () {
       .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
       .then((results) => {
         expect(results.data).to.have.lengthOf(0);
-      });
+      })
+      .catch(reportError);
   });
 });
