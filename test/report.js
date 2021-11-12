@@ -24,14 +24,22 @@ export default function report(data, filename = 'report.json') {
 }
 
 export function reportError(error, options = {}) {
-  const { filename = 'error.json', message } = options;
+  const { filename = 'errors.json', message } = options;
+  let errors = [];
+  if (fs.existsSync(filename)) {
+    const json = fs.readFileSync(filename);
+    const prevErrors = JSON.parse(json);
+    errors = Array.isArray(prevErrors) ? prevErrors : [prevErrors];
+  }
   if (error instanceof Error) {
     const props = ['name', ...Object.getOwnPropertyNames(error)];
     const errorObject = props.reduce((o, p) => ({ ...o, [p]: error[p] }), {});
-    report(errorObject, filename);
+    errors.push(errorObject);
+    report(errors, filename);
     throw error;
   } else {
-    report(error, filename);
+    errors.push(error);
+    report(errors, filename);
     const msg = message || `Error encountered. See ${filename} for more details.`;
     throw new Error(msg, { cause: error });
   }
