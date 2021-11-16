@@ -19,6 +19,9 @@ To install using npm:
 $ npm install farmos
 ```
 
+# Documentation
+[__Go to Documentation__](docs/index.md)
+
 # Supporters
 
 Current maintainers:
