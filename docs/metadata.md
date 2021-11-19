@@ -49,3 +49,22 @@ Other options exist that might refine our merging strategy, such as [CRDT's](htt
 When a conflict does occur, it can be detected as a non-zero length on the `conflicts` array. Note, too, that `merge` operations will not be permitted on entities that have any outstanding conflicts, although `update` operations will be allowed.
 
 To resolve a conflict, you can use the `farm.meta.resolve` method, which takes the entity with the conflict, the field you wish to resolve, and a callback, which receives an array of all the conflicts for that field, and must return the index of the conflict to select, or `-1` if the local value is to be preserved.
+
+# Sync status
+The `farm.isUnsynced` method is a quick way of determining whether or not an entity has been synced to a remote system:
+
+```js
+const merged = farm.log.merge(local, remote);
+const hasUnsyncedChanges = farm.meta.isUnsynced(merged);
+```
+
+This is essentially a shorthand for comparing whether the log's `changed` metadata is greater than its `lastSync` metadata, or if `lastSync` is `null`, returning `true` in both instances, or `false` if `changed` is less than or equal to `lastSync`.
+
+Note that the `merge` method will always set the lastSync value of the merged entity to the current timestamp if any one of the following criteria can be met:
+
+1) The merge occurs after the very first time a locally generated entity was sent to the remote system.
+2) A remote entity is being merged with a local entity whose changes have already been sent to that remote.
+3) All changes from the remote have been fetched since the most recent local change.
+
+Otherwise, the local lastSync value will be retained.
+
