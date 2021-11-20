@@ -45,11 +45,6 @@ Finally, there may be occasions when "first write wins" would be more appropriat
 
 Other options exist that might refine our merging strategy, such as [CRDT's](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type), but so far such an approach has yet to be implemented.
 
-# Resolving conflicts
-When a conflict does occur, it can be detected as a non-zero length on the `conflicts` array. Note, too, that `merge` operations will not be permitted on entities that have any outstanding conflicts, although `update` operations will be allowed.
-
-To resolve a conflict, you can use the `farm.meta.resolve` method, which takes the entity with the conflict, the field you wish to resolve, and a callback, which receives an array of all the conflicts for that field, and must return the index of the conflict to select, or `-1` if the local value is to be preserved.
-
 # Sync status
 The `farm.isUnsynced` method is a quick way of determining whether or not an entity has been synced to a remote system:
 

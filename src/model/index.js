@@ -1,6 +1,5 @@
 import clone from 'ramda/src/clone.js';
 import map from 'ramda/src/map.js';
-import partition from 'ramda/src/partition.js';
 import createEntity from './create.js';
 import mergeEntity from './merge.js';
 import updateEntity from './update.js';
@@ -68,24 +67,6 @@ export default function model(opts = {}) {
       on: addListeners('schema'),
     },
     meta: {
-      resolve(entity, field, cb) {
-        const copy = clone(entity);
-        const byField = c => c.field === field;
-        const [conflicts, others] = partition(byField, copy.meta.conflicts);
-        const index = cb(conflicts);
-        if (typeof index !== 'number') return copy;
-        if (index > -1 && index < conflicts.length) {
-          const { changed, data, fieldType } = conflicts[index];
-          copy[fieldType][field] = data;
-          copy.meta.fieldChanges[field] = changed;
-          copy.meta.conflicts = others;
-          if (changed > copy.meta.changed) copy.meta.changed = changed;
-        }
-        if (index === -1) {
-          copy.meta.conflicts = others;
-        }
-        return copy;
-      },
       isUnsynced(entity) {
         const { changed, remote: { lastSync } } = entity.meta;
         return lastSync === null || changed > lastSync;
