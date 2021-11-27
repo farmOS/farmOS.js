@@ -45,4 +45,25 @@ describe('farmOS', function () {
       })
       .catch(reportError);
   });
+  it('accepts a limit option of 5 on fetch requests', () => farm.asset.fetch({
+    filter: { type: 'animal' },
+    limit: 5,
+  }).then(({ data, fulfilled }) => {
+    expect(data).to.have.lengthOf(5);
+    expect(fulfilled).to.have.lengthOf(1);
+  }));
+  it('accepts a limit option of 150 on fetch requests', () => farm.asset.fetch({
+    filter: { type: 'animal' },
+    limit: 150,
+  }).then(({ data, fulfilled }) => {
+    expect(data).to.have.lengthOf(150);
+    expect(fulfilled).to.have.lengthOf(3);
+  }));
+  it('accepts a limit option of Infinity on fetch requests', () => farm.asset.fetch({
+    filter: { type: 'animal' },
+    limit: Infinity,
+  }).then(({ data, fulfilled }) => {
+    expect(data).to.have.lengthOf.within(200, 250);
+    expect(fulfilled).to.have.lengthOf(5);
+  }));
 });

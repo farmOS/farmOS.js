@@ -2,12 +2,17 @@ import has from 'ramda/src/has.js';
 import ifElse from 'ramda/src/ifElse.js';
 import parseFilter from './parseFilter.js';
 
+const parseLimit = limit =>
+  (Number.isInteger(limit) && limit > 0 ? `&page[limit]=${limit}` : '');
+const parseFetchParams = ({ filter = {}, filterTransforms, limit }) =>
+  parseFilter(filter, { filterTransforms }) + parseLimit(limit);
+
 export default function farmRequest(client) {
   const request = (endpoint, { method = 'GET', ...data } = {}) =>
     client(endpoint, { method, data: JSON.stringify(data) });
 
-  const fetchEntity = entity => (bundle, { filter = {}, filterTransforms } = {}) =>
-    request(`/api/${entity}/${bundle}?${parseFilter(filter, { filterTransforms })}`);
+  const fetchEntity = entity => (bundle, options = {}) =>
+    request(`/api/${entity}/${bundle}?${parseFetchParams(options)}`);
 
   const postEntity = entity => (bundle, data) =>
     request(`/api/${entity}/${bundle}`, { method: 'POST', data });
