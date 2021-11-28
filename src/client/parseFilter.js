@@ -17,14 +17,17 @@ const comparison = {
   $gte: '>=',
   $lt: '<',
   $lte: '<=',
+  $in: 'IN',
+  $nin: 'NOT%20IN',
 };
 
 export default function parseFilter(filter, options = {}) {
   const { filterTransforms = {} } = options;
 
-  function parseComparison(path, expr, comGroup = null, i = 0) {
-    const amp = i > 0 ? '&' : '';
-    const membership = comGroup ? `&filter[${path}-${i}-filter][condition][memberOf]=${comGroup}` : '';
+  function parseComparison(path, expr, comGroup = null, index = 0) {
+    const amp = index > 0 ? '&' : '';
+    const pre = `filter[${path}-${index}-filter][condition]`;
+    const membership = comGroup ? `&${pre}[memberOf]=${comGroup}` : '';
     const [[op, rawValue], ...tail] = Object.entries(expr);
     const val = typeof filterTransforms[path] === 'function'
       ? filterTransforms[path](rawValue)
@@ -36,13 +39,15 @@ export default function parseFilter(filter, options = {}) {
     }
     const urlEncodedOp = comparison[op];
     if (!urlEncodedOp) throw new Error(`Invalid comparison operator: ${op}`);
-    const pathStr = `${amp}filter[${path}-${i}-filter][condition][path]=${path}`;
-    const opStr = `&filter[${path}-${i}-filter][condition][operator]=${urlEncodedOp}`;
-    const valStr = `&filter[${path}-${i}-filter][condition][value]=${val}`;
+    const pathStr = `${amp}${pre}[path]=${path}`;
+    const opStr = `&${pre}[operator]=${urlEncodedOp}`;
+    const valStr = Array.isArray(val)
+      ? val.reduce((substr, v, i) => `${substr}&${pre}[value][${i}]=${v}`, '')
+      : `&${pre}[value]=${val}`;
     const str = pathStr + opStr + valStr + membership;
     if (tail.length === 0) return str;
     const nextExpr = Object.fromEntries(tail);
-    return str + parseComparison(path, nextExpr, comGroup, i + 1);
+    return str + parseComparison(path, nextExpr, comGroup, index + 1);
   }
 
   function parseLogic(op, filters, logicGroup, logicDepth) {

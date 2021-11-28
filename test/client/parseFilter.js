@@ -52,4 +52,18 @@ describe('parseFilter', () => {
       &filter[owner.id-0-filter][condition][value]=1
     `);
   });
+  it('parses a filter with an array operator ($in)', () => {
+    const filter = {
+      log_category: {
+        $in: ['soil', 'water'],
+      },
+    };
+    const params = parseFilter(filter);
+    expect(params).to.equalIgnoreSpaces(`
+      filter[log_category-0-filter][condition][path]=log_category
+      &filter[log_category-0-filter][condition][operator]=IN
+      &filter[log_category-0-filter][condition][value][0]=soil
+      &filter[log_category-0-filter][condition][value][1]=water
+    `);
+  });
 });
