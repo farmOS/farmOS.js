@@ -33,7 +33,7 @@ export default function client(host, opts) {
     setToken,
   };
   const {
-    authorize, setHost, getToken, revokeTokens,
+    authorize, setHost, getToken,
   } = oauth(axiosClient, oAuthOpts);
   const {
     request, deleteEntity, fetchEntity, sendEntity,
@@ -41,7 +41,6 @@ export default function client(host, opts) {
 
   const farm = {
     authorize,
-    revokeTokens,
     setHost,
     getToken,
     request,

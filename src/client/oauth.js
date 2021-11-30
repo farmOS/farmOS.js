@@ -10,10 +10,8 @@ export default function oAuth(client, opts) {
   } = opts;
 
   let accessTokenUri = `${host}/oauth/token`;
-  let revokeTokenUri = `${host}/oauth/revoke`;
   const setHost = (newHost) => {
     accessTokenUri = `${newHost}/oauth/token`;
-    revokeTokenUri = `${newHost}/oauth/revoke`;
   };
   /*
    * SUBSCRIBE TO TOKEN REFRESH
@@ -74,15 +72,6 @@ export default function oAuth(client, opts) {
         isRefreshing = false;
         throw error;
       });
-  }
-
-  // Helper function to revoke OAuth2 token.
-  function revokeToken(tokenType, token) {
-    const revokeParams = new URLSearchParams();
-    revokeParams.append('token_type_hint', tokenType);
-    revokeParams.append('token', token);
-    return axios.post(revokeTokenUri, revokeParams)
-      .catch((error) => { throw error; });
   }
 
   // Helper function to get an OAuth access token.
@@ -166,16 +155,5 @@ export default function oAuth(client, opts) {
       .catch((error) => { throw error; }),
     setHost,
     getToken,
-    revokeTokens() {
-      const token = getToken() || {};
-      const revokeAccessToken = revokeToken('access_token', token.access_token);
-      const revokeRefreshToken = revokeToken('refresh_token', token.refresh_token);
-      return Promise.all([revokeAccessToken, revokeRefreshToken])
-        .then(() => true)
-        .catch(() => false)
-        .finally(() => {
-          setToken(null);
-        });
-    },
   };
 }
