@@ -6,6 +6,12 @@ import oauth from './oauth.js';
 import typeToBundle from './typeToBundle.js';
 import entities, { entityMethods } from '../entities.js';
 
+/**
+ * @typedef {import('../json-schema/reference').JsonSchema} JsonSchema
+ * @typedef {import('../model/index').EntitySchemata} EntitySchemata
+ * @typedef {import('../model/index').BundleSchemata} BundleSchemata
+ */
+
 const entityNames = Object.keys(entities);
 
 export default function client(host, opts) {
@@ -48,6 +54,12 @@ export default function client(host, opts) {
       return request('/api');
     },
     schema: {
+      /**
+       * Fetch JSON Schema documents for farmOS data structures.
+       * @param {string} [entity] The farmOS entity for which you wish to retrieve schemata.
+       * @param {string} [bundle] The entity bundle for which you wish to retrieve schemata.
+       * @returns {Promise<EntitySchemata|BundleSchemata|JsonSchema>}
+       */
       fetch(entity, bundle) {
         if (!entity) {
           const schemata = map(() => ({}), entities);

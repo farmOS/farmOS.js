@@ -7,9 +7,26 @@ import entities, { entityMethods } from '../entities.js';
 import { dereference } from '../json-schema/reference.js';
 import { createObserver } from '../utils.js';
 
+/**
+ * @typedef {import('../json-schema/reference').JsonSchema} JsonSchema
+ * @typedef {import('../json-schema/reference').JsonSchemaDereferenced} JsonSchemaDereferenced
+ * An object containing the schemata for the bundles of a farmOS entity, with
+ * the bundle name as key and its corresponding schema as its value.
+ * @typedef {Object.<string, JsonSchema>} BundleSchemata
+ * An object containing the schemata for the bundles of a farmOS entity, with
+ * the bundle name as key and its corresponding schema as its value.
+ * @typedef {Object.<string, BundleSchemata>} EntitySchemata
+ */
+
 const entityNames = Object.keys(entities);
 
-export default function model(opts = {}) {
+/**
+ * Create a farm model for generating and manipulating farmOS data structures.
+ * @param {Object} options
+ * @property {EntitySchemata} [options.schemata]
+ * @returns {Object}
+ */
+export default function model(options = {}) {
   const schemata = map(() => ({}), entities);
 
   const observers = {
@@ -18,16 +35,29 @@ export default function model(opts = {}) {
     },
   };
 
-  function getSchemata(entName, type) {
-    if (!entName) {
+  /**
+   * Retrieve all schemata that have been previously set, or the schemata of a
+   * particular entity, or one bundle's schema, if specified.
+   * @param {String} [entity] The name of a farmOS entity (eg, 'asset', 'log', etc).
+   * @param {String} [type] The entity's type (aka, bundle).
+   * @returns {EntitySchemata|BundleSchemata|JsonSchemaDereferenced}
+   */
+  function getSchemata(entity, type) {
+    if (!entity) {
       return clone(schemata);
     }
     if (!type) {
-      return clone(schemata[entName]);
+      return clone(schemata[entity]);
     }
-    return clone(schemata[entName][type]);
+    return clone(schemata[entity][type]);
   }
 
+  /**
+   * Load all schemata, the schemata of a particular entity, or one bundle's
+   * schema, if spcified.
+   * @param {...String|EntitySchemata|BundleSchemata|JsonSchema} args
+   * @void
+   */
   function setSchemata(...args) {
     if (args.length === 1) {
       entityNames.forEach((entName) => {
@@ -51,7 +81,7 @@ export default function model(opts = {}) {
     }
   }
 
-  setSchemata(opts.schemata);
+  setSchemata(options.schemata);
 
   const addListeners = namespace => (name, callback) => {
     if (name in observers[namespace]) {

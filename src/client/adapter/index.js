@@ -14,6 +14,12 @@ import {
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
 
+/**
+ * @typedef {import('../../json-schema/reference').JsonSchema} JsonSchema
+ * @typedef {import('../../model/index').EntitySchemata} EntitySchemata
+ * @typedef {import('../../model/index').BundleSchemata} BundleSchemata
+ */
+
 const DRUPAL_PAGE_LIMIT = 50;
 
 function parseBundles(filter, validTypes) {
@@ -93,6 +99,12 @@ export default function adapter(model, opts) {
   return {
     ...connection,
     schema: {
+      /**
+       * Fetch JSON Schema documents for farmOS data structures.
+       * @param {string} [entity] The farmOS entity for which you wish to retrieve schemata.
+       * @param {string} [bundle] The entity bundle for which you wish to retrieve schemata.
+       * @returns {Promise<EntitySchemata|BundleSchemata|JsonSchema>}
+       */
       fetch(entName, type) {
         return connection.schema.fetch(entName, type)
           .then((schemata) => {
