@@ -11,15 +11,47 @@ import entities, { entityMethods } from '../entities.js';
  * @typedef {import('../model/index').EntitySchemata} EntitySchemata
  * @typedef {import('../model/index').BundleSchemata} BundleSchemata
  */
+/**
+ * @typedef {Object} ClientEntityMethods
+ * @property {import('./request.js').FetchEntityMethod} fetch
+ * @property {import('./request.js').SendEntityMethod} send
+ * @property {import('./request.js').DeleteEntityMethod} delete
+ */
+/**
+ * @typedef {Object} FarmClient
+ * @property {Function} authorize
+ * @property {Function} setHost
+ * @property {Function} getToken
+ * @property {import('./request.js').FarmRequest} request
+ * @property {Function} info
+ * @property {Object} schema
+ * @property {Function} schema.fetch
+ * @property {ClientEntityMethods} asset
+ * @property {ClientEntityMethods} log
+ * @property {ClientEntityMethods} plan
+ * @property {ClientEntityMethods} quantity
+ * @property {ClientEntityMethods} term
+ * @property {ClientEntityMethods} user
+ */
 
 const entityNames = Object.keys(entities);
 
-export default function client(host, opts) {
+/**
+ * Create a farm client for transmitting farmOS data structures to and from a
+ * farmOS Drupal 9 server using JSON:API.
+ * @param {String} host
+ * @param {Object} options
+ * @property {String} options.clientId
+ * @property {Function} options.getToken
+ * @property {Function} options.setToken
+ * @returns {FarmClient}
+ */
+export default function client(host, options) {
   const {
     clientId,
     getToken: getTokenOpt,
     setToken,
-  } = opts;
+  } = options;
 
   // Instantiate axios client.
   const clientOptions = {
