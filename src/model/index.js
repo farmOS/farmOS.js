@@ -18,13 +18,35 @@ import { createObserver } from '../utils.js';
  * @typedef {Object.<string, BundleSchemata>} EntitySchemata
  */
 
+/**
+ * @typedef {Object} ModelEntityMethods
+ * @property {import('./create.js').CreateEntityMethod} create
+ * @property {import('./update.js').UpdateEntityMethod} update
+ * @property {import('./merge.js').MergeEntityMethod} merge
+ */
+/**
+ * @typedef {Object} FarmModel
+ * @property {Object} schema
+ * @property {Function} schema.get
+ * @property {Function} schema.set
+ * @property {Function} schema.on
+ * @property {Object} meta
+ * @property {Function} meta.isUnsynced
+ * @property {ModelEntityMethods} asset
+ * @property {ModelEntityMethods} log
+ * @property {ModelEntityMethods} plan
+ * @property {ModelEntityMethods} quantity
+ * @property {ModelEntityMethods} term
+ * @property {ModelEntityMethods} user
+ */
+
 const entityNames = Object.keys(entities);
 
 /**
  * Create a farm model for generating and manipulating farmOS data structures.
  * @param {Object} options
  * @property {EntitySchemata} [options.schemata]
- * @returns {Object}
+ * @returns {FarmModel}
  */
 export default function model(options = {}) {
   const schemata = map(() => ({}), entities);

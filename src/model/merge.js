@@ -29,6 +29,23 @@ const relsTransform = cond([
 const eqFields = fieldType =>
   (fieldType === 'relationships' ? eqBy(relsTransform) : equals);
 
+/**
+ * @typedef {import('../entities.js').Entity} Entity
+ */
+/**
+ * Merge a local copy of a farmOS entity with an incoming remote copy. They must
+ * share the same id (UUID v4) and type (aka, bundle).
+ * @typedef {Function} MergeEntityMethod
+ * @param {Entity} [local] If the local is nullish, merging will dispatch to the
+ * create method instead, creating a new local copy of the remote entity.
+ * @param {Entity} [remote] If the remote is nullish, a clone of the local will be returned.
+ * @returns {Entity}
+ */
+/**
+ * @param {string} entName
+ * @param {import('./index.js').BundleSchemata} schemata
+ * @returns {MergeEntityMethod}
+ */
 const mergeEntity = (entName, schemata) => (local, remote) => {
   if (!remote) return clone(local);
   const now = new Date().toISOString();

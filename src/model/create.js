@@ -3,6 +3,23 @@ import clone from 'ramda/src/clone.js';
 import { getDefault, listProperties } from '../json-schema/index.js';
 import entities from '../entities.js';
 
+/**
+ * @typedef {import('../entities.js').Entity} Entity
+ */
+/**
+ * Create a farmOS entity that will validate against the schema for the
+ * specified bundle (ie, the `type` prop).
+ * @typedef {Function} CreateEntityMethod
+ * @param {Object.<String, any>|Entity} props
+ * @property {String} props.type The only required prop. It must correspond to a
+ * valid entity bundle (eg, 'activity') whose schema has been previously set.
+ * @returns {Entity}
+ */
+/**
+ * @param {string} entName
+ * @param {import('./index.js').BundleSchemata} schemata
+ * @returns {CreateEntityMethod}
+ */
 const createEntity = (entName, schemata) => (props) => {
   const { id = uuidv4(), type } = props;
   if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
