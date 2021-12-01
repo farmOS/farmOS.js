@@ -3,6 +3,10 @@ import d9JsonApiAdapter from './client/adapter/index.js';
 import model from './model/index.js';
 import entities, { entityMethods } from './entities.js';
 
+export { default as entities } from './entities.js';
+export { default as client } from './client/index.js';
+export { default as model } from './model/index.js';
+
 const shortNames = Object.values(entities).map(e => e.shortName);
 
 /**
