@@ -64,3 +64,6 @@ farm.log.send(activity)
     return farm.log.delete('activity', id);
   });
 ```
+
+# Requirements & browser support
+farmOS.js requires Node versions 12.9.0 and higher. IE 11 is not supported.
