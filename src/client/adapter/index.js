@@ -73,6 +73,11 @@ const aggregateBundles = reduce((aggregate, result) => {
   }, aggregate);
 }, { data: [], fulfilled: [], rejected: [] });
 
+/**
+ * @param {import('../../model/index').FarmModel} model
+ * @param {Object} opts
+ * @returns {import('../index.js').FarmClient}
+ */
 export default function adapter(model, opts) {
   const { host, maxPageLimit = DRUPAL_PAGE_LIMIT, ...rest } = opts;
   const connection = client(host, rest);
@@ -99,12 +104,6 @@ export default function adapter(model, opts) {
   return {
     ...connection,
     schema: {
-      /**
-       * Fetch JSON Schema documents for farmOS data structures.
-       * @param {string} [entity] The farmOS entity for which you wish to retrieve schemata.
-       * @param {string} [bundle] The entity bundle for which you wish to retrieve schemata.
-       * @returns {Promise<EntitySchemata|BundleSchemata|JsonSchema>}
-       */
       fetch(entName, type) {
         return connection.schema.fetch(entName, type)
           .then((schemata) => {
