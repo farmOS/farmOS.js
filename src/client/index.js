@@ -1,7 +1,9 @@
 import axios from 'axios';
 import map from 'ramda/src/map.js';
 import prop from 'ramda/src/prop.js';
-import farmRequest from './request.js';
+import deleteEntity from './delete.js';
+import fetchEntity from './fetch.js';
+import sendEntity from './send.js';
 import oauth from './oauth.js';
 import typeToBundle from './typeToBundle.js';
 import entities, { entityMethods } from '../entities.js';
@@ -13,16 +15,16 @@ import entities, { entityMethods } from '../entities.js';
  */
 /**
  * @typedef {Object} ClientEntityMethods
- * @property {import('./request.js').FetchEntityMethod} fetch
- * @property {import('./request.js').SendEntityMethod} send
- * @property {import('./request.js').DeleteEntityMethod} delete
+ * @property {import('./fetch.js').FetchEntityMethod} fetch
+ * @property {import('./send.js').SendEntityMethod} send
+ * @property {import('./delete.js').DeleteEntityMethod} delete
  */
 /**
  * @typedef {Object} FarmClient
  * @property {Function} authorize
  * @property {Function} setHost
  * @property {Function} getToken
- * @property {import('./request.js').FarmRequest} request
+ * @property {import('axios').AxiosInstance} request
  * @property {Function} info
  * @property {Object} schema
  * @property {Function} schema.fetch
@@ -61,7 +63,7 @@ export default function client(host, options) {
       Accept: 'application/vnd.api+json',
     },
   };
-  const axiosClient = axios.create(clientOptions);
+  const request = axios.create(clientOptions);
 
   // Create oAuth & request helpers.
   const oAuthOpts = {
@@ -72,10 +74,7 @@ export default function client(host, options) {
   };
   const {
     authorize, setHost, getToken,
-  } = oauth(axiosClient, oAuthOpts);
-  const {
-    request, deleteEntity, fetchEntity, sendEntity,
-  } = farmRequest(axiosClient);
+  } = oauth(request, oAuthOpts);
 
   const farm = {
     authorize,
@@ -121,9 +120,9 @@ export default function client(host, options) {
       },
     },
     ...entityMethods(({ nomenclature: { name } }) => ({
-      delete: deleteEntity(name),
-      fetch: fetchEntity(name),
-      send: sendEntity(name),
+      delete: deleteEntity(name, request),
+      fetch: fetchEntity(name, request),
+      send: sendEntity(name, request),
     }), entities),
   };
   return farm;

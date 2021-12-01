@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export default function oAuth(client, opts) {
+export default function oAuth(request, opts) {
   let memToken = {};
   const {
     host,
@@ -99,7 +99,7 @@ export default function oAuth(client, opts) {
 
   // Add axios request interceptor to the client.
   // This adds the Authorization Bearer token header.
-  client.interceptors.request.use(
+  request.interceptors.request.use(
     config => getAccessToken(getToken() || {})
       .then(accessToken => ({
         ...config,
@@ -115,7 +115,7 @@ export default function oAuth(client, opts) {
 
   // Add axios response interceptor to the client.
   // This tries to resolve 403 errors due to expired tokens.
-  client.interceptors.response.use(undefined, (err) => {
+  request.interceptors.response.use(undefined, (err) => {
     const { config } = err;
     const originalRequest = config;
 
