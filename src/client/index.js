@@ -1,12 +1,10 @@
 import axios from 'axios';
-import map from 'ramda/src/map.js';
-import prop from 'ramda/src/prop.js';
 import deleteEntity from './delete.js';
 import fetchEntity from './fetch.js';
 import sendEntity from './send.js';
 import oauth from './oauth.js';
-import typeToBundle from './typeToBundle.js';
 import entities, { entityMethods } from '../entities.js';
+import fetchSchema from './schema.js';
 
 /**
  * @typedef {import('../json-schema/reference').JsonSchema} JsonSchema
@@ -35,8 +33,6 @@ import entities, { entityMethods } from '../entities.js';
  * @property {ClientEntityMethods} term
  * @property {ClientEntityMethods} user
  */
-
-const entityNames = Object.keys(entities);
 
 /**
  * Create a farm client for transmitting farmOS data structures to and from a
@@ -85,39 +81,7 @@ export default function client(host, options) {
       return request('/api');
     },
     schema: {
-      /**
-       * Fetch JSON Schema documents for farmOS data structures.
-       * @param {string} [entity] The farmOS entity for which you wish to retrieve schemata.
-       * @param {string} [bundle] The entity bundle for which you wish to retrieve schemata.
-       * @returns {Promise<EntitySchemata|BundleSchemata|JsonSchema>}
-       */
-      fetch(entity, bundle) {
-        if (!entity) {
-          const schemata = map(() => ({}), entities);
-          return request('/api/')
-            .then(res => Promise.all(Object.keys(res.data.links)
-              .filter(type => entityNames.some(name => type.startsWith(`${name}--`)))
-              .map((type) => {
-                const [entName, b] = type.split('--');
-                return request(`/api/${entName}/${b}/resource/schema`)
-                  .then(({ data: schema }) => { schemata[entName][b] = schema; });
-              })))
-            .then(() => schemata);
-        }
-        if (!bundle) {
-          return request('/api/')
-            .then(res => Promise.all(Object.keys(res.data.links)
-              .filter(type => type.startsWith(`${entity}--`))
-              .map((type) => {
-                const b = typeToBundle(entity, type);
-                return request(`/api/${entity}/${b}/resource/schema`)
-                  .then(({ data: schema }) => [b, schema]);
-              }))
-              .then(Object.fromEntries));
-        }
-        return request(`/api/${entity}/${bundle}/resource/schema`)
-          .then(prop('data'));
-      },
+      fetch: fetchSchema(request),
     },
     ...entityMethods(({ nomenclature: { name } }) => ({
       delete: deleteEntity(name, request),
