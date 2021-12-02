@@ -11,13 +11,9 @@ const byFormat = {
 };
 
 /**
- * @typedef {Object} ResourceObject
+ * @typedef {Object} EntityReference
  * @property {String} id A v4 UUID as specified by RFC 4122.
  * @property {String} type Corresponding to the entity bundle (eg, 'activity').
- */
-
-/**
- * @typedef {ResourceObject|Array.<ResourceObject>} ResourceIdentifier
  */
 
 /**
@@ -25,8 +21,8 @@ const byFormat = {
  * @property {String} id A v4 UUID as specified by RFC 4122.
  * @property {String} type Corresponding to the entity bundle (eg, 'activity').
  * @property {Object} attributes Values directly attributable to this entity.
- * @property {Object.<String, ResourceIdentifier>} relationships References to
- * other entities that define a one-to-one or one-to-many relationship.
+ * @property {Object.<String, EntityReference|Array.<EntityReference>>} relationships
+ * References to other entities that define a one-to-one or one-to-many relationship.
  * @property {Object} meta Non-domain information associated with the creation,
  * modification, storage and transmission of the entity.
  * @property {String} meta.created An ISO 8601 date-time string indicating when
@@ -39,6 +35,22 @@ const byFormat = {
  */
 
 // Configuration objects for the entities supported by this library.
+
+/**
+ * @typedef {Object} EntityConfig
+ * @property {Object} nomenclature
+ * @property {Object} nomenclature.name
+ * @property {Object} nomenclature.shortName
+ * @property {Object} nomenclature.plural
+ * @property {Object} nomenclature.shortPlural
+ * @property {Object} nomenclature.display
+ * @property {Object} nomenclature.displayPlural
+ * @property {Object} defaultOptions
+ * @property {Object} defaultOptions.byType
+ * @property {Object} defaultOptions.byFormat
+ */
+
+/** @type {Object.<String, EntityConfig>} */
 export default {
   asset: {
     nomenclature: {

@@ -1,6 +1,6 @@
 /**
  * farmOS client method for sending an entity to a Drupal JSON:API server
- * @typedef {Function} SendEntityMethod
+ * @typedef {Function} sendEntity
  * @param {String} bundle The bundle type (eg, 'activity', 'equipment', etc).
  * @param {Object} entity The entity being sent to the server.
  * @returns {Promise}
@@ -18,7 +18,7 @@ const postEntity = (entityName, request, bundle) => data =>
 /**
  * @param {String} entityName
  * @param {Function} request
- * @returns {SendEntityMethod}
+ * @returns {sendEntity}
  */
 const sendEntity = (entityName, request) => (bundle, entity) => {
   const data = JSON.stringify({ data: entity });

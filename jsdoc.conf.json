@@ -1,0 +1,11 @@
+{
+  "plugins": ["jsdoc-tsimport-plugin"],
+  "source": {
+    "include": [
+      "src/index.js",
+      "src/model/index.js",
+      "src/client/index.js",
+      "src/entities.js"
+    ]
+  }
+}

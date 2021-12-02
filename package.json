@@ -8,7 +8,8 @@
     "test": "mocha --recursive",
     "lint": "eslint --color --ext .js .",
     "tsc": "tsc",
-    "update-core-schemata": "node core_schemata/update-script.js"
+    "update-core-schemata": "node core_schemata/update-script.js",
+    "build-api-ref": "echo '# API Reference\n' > docs/api.md && jsdoc2md -c jsdoc.conf.json . >> docs/api.md"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,8 @@
     "eslint": "^8.2.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.25.3",
+    "jsdoc-to-markdown": "^7.1.0",
+    "jsdoc-tsimport-plugin": "^1.0.5",
     "mocha": "^9.1.3",
     "typescript": "^4.4.3"
   }

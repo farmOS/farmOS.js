@@ -6,18 +6,16 @@ import oauth from './oauth.js';
 import entities, { entityMethods } from '../entities.js';
 import fetchSchema from './schema.js';
 
-/**
- * @typedef {import('../json-schema/reference').JsonSchema} JsonSchema
- * @typedef {import('../model/index').EntitySchemata} EntitySchemata
- * @typedef {import('../model/index').BundleSchemata} BundleSchemata
- */
-/**
+/** The methods for transmitting farmOS data structures, such as assets, logs,
+ * etc, to a farmOS server.
  * @typedef {Object} ClientEntityMethods
- * @property {import('./fetch.js').FetchEntityMethod} fetch
- * @property {import('./send.js').SendEntityMethod} send
- * @property {import('./delete.js').DeleteEntityMethod} delete
+ * @property {import('./fetch.js').fetchEntity} fetch
+ * @property {import('./send.js').sendEntity} send
+ * @property {import('./delete.js').deleteEntity} delete
  */
-/**
+
+/** A collection of functions for transmitting farmOS data structures to and
+ * from a farmOS Drupal 9 server using JSON:API.
  * @typedef {Object} FarmClient
  * @property {Function} authorize
  * @property {Function} setHost
@@ -35,8 +33,8 @@ import fetchSchema from './schema.js';
  */
 
 /**
- * Create a farm client for transmitting farmOS data structures to and from a
- * farmOS Drupal 9 server using JSON:API.
+ * Create a farm client for interacting with farmOS servers.
+ * @typedef {Function} client
  * @param {String} host
  * @param {Object} options
  * @property {String} options.clientId

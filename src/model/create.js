@@ -9,7 +9,7 @@ import entities from '../entities.js';
 /**
  * Create a farmOS entity that will validate against the schema for the
  * specified bundle (ie, the `type` prop).
- * @typedef {Function} CreateEntityMethod
+ * @typedef {Function} createEntity
  * @param {Object.<String, any>|Entity} props
  * @property {String} props.type The only required prop. It must correspond to a
  * valid entity bundle (eg, 'activity') whose schema has been previously set.
@@ -18,7 +18,7 @@ import entities from '../entities.js';
 /**
  * @param {string} entName
  * @param {import('./index.js').BundleSchemata} schemata
- * @returns {CreateEntityMethod}
+ * @returns {createEntity}
  */
 const createEntity = (entName, schemata) => (props) => {
   const { id = uuidv4(), type } = props;

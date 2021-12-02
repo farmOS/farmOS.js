@@ -8,23 +8,35 @@ import { dereference } from '../json-schema/reference.js';
 import { createObserver } from '../utils.js';
 
 /**
+ * JSON Schema for defining the entities supported by a farmOS instance.
+ * @see {@link https://json-schema.org/understanding-json-schema/index.html}
  * @typedef {import('../json-schema/reference').JsonSchema} JsonSchema
+ */
+/**
+ * JSON Schema Dereferenced: A JSON Schema, but w/o any $ref keywords. As such,
+ * it may contain circular references that cannot be serialized.
  * @typedef {import('../json-schema/reference').JsonSchemaDereferenced} JsonSchemaDereferenced
+ */
+/**
  * An object containing the schemata for the bundles of a farmOS entity, with
  * the bundle name as key and its corresponding schema as its value.
  * @typedef {Object.<string, JsonSchema>} BundleSchemata
+ */
+/**
  * An object containing the schemata for the bundles of a farmOS entity, with
  * the bundle name as key and its corresponding schema as its value.
  * @typedef {Object.<string, BundleSchemata>} EntitySchemata
  */
 
-/**
+/** The methods for writing to local copies of farmOS data structures, such as
+ * assets, logs, etc.
  * @typedef {Object} ModelEntityMethods
- * @property {import('./create.js').CreateEntityMethod} create
- * @property {import('./update.js').UpdateEntityMethod} update
- * @property {import('./merge.js').MergeEntityMethod} merge
+ * @property {import('./create.js').createEntity} create
+ * @property {import('./update.js').updateEntity} update
+ * @property {import('./merge.js').mergeEntity} merge
  */
-/**
+/** A collection of functions for working with farmOS data structures, their
+ * associated metadata and schemata.
  * @typedef {Object} FarmModel
  * @property {Object} schema
  * @property {Function} schema.get
@@ -44,6 +56,7 @@ const entityNames = Object.keys(entities);
 
 /**
  * Create a farm model for generating and manipulating farmOS data structures.
+ * @typedef {Function} model
  * @param {Object} options
  * @property {EntitySchemata} [options.schemata]
  * @returns {FarmModel}

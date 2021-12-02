@@ -35,7 +35,7 @@ const eqFields = fieldType =>
 /**
  * Merge a local copy of a farmOS entity with an incoming remote copy. They must
  * share the same id (UUID v4) and type (aka, bundle).
- * @typedef {Function} MergeEntityMethod
+ * @typedef {Function} mergeEntity
  * @param {Entity} [local] If the local is nullish, merging will dispatch to the
  * create method instead, creating a new local copy of the remote entity.
  * @param {Entity} [remote] If the remote is nullish, a clone of the local will be returned.
@@ -44,7 +44,7 @@ const eqFields = fieldType =>
 /**
  * @param {string} entName
  * @param {import('./index.js').BundleSchemata} schemata
- * @returns {MergeEntityMethod}
+ * @returns {mergeEntity}
  */
 const mergeEntity = (entName, schemata) => (local, remote) => {
   if (!remote) return clone(local);

@@ -2,7 +2,7 @@ import parseFilter from './parseFilter.js';
 
 /**
  * farmOS client method for fetching entities from a Drupal JSON:API server
- * @typedef {Function} FetchEntityMethod
+ * @typedef {Function} fetchEntity
  * @param {String} bundle The bundle type (eg, 'activity', 'equipment', etc).
  * @param {Object} [options] Options for the fetch request.
  * @property {Object} [options.filter]
@@ -27,7 +27,7 @@ const parseFetchParams = ({ filter = {}, filterTransforms, limit } = {}) =>
 /**
  * @param {String} entity
  * @param {Function} request
- * @returns {FetchEntityMethod}
+ * @returns {fetchEntity}
  */
 const fetchEntity = (entity, request) => (bundle, options) =>
   request(`/api/${entity}/${bundle}?${parseFetchParams(options)}`);

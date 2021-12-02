@@ -7,7 +7,7 @@ import { listProperties } from '../json-schema/index.js';
  */
 /**
  * Update a farmOS entity.
- * @typedef {Function} UpdateEntityMethod
+ * @typedef {Function} updateEntity
  * @param {Entity} entity
  * @param {Object.<String, any>} props
  * @returns {Entity}
@@ -15,7 +15,7 @@ import { listProperties } from '../json-schema/index.js';
 /**
  * @param {string} entName
  * @param {import('./index.js').BundleSchemata} schemata
- * @returns {UpdateEntityMethod}
+ * @returns {updateEntity}
  */
 const updateEntity = (entName, schemata) => (entity, props) => {
   const { id, type } = entity;
