@@ -4,7 +4,7 @@ export default function oAuth(request, opts) {
   let memToken = {};
   const {
     host,
-    clientId = 'farm',
+    clientId = 'farm_client',
     getToken = () => memToken,
     setToken = (t) => { memToken = t; },
   } = opts;
