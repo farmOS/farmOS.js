@@ -1,0 +1,7 @@
+site_name: farmOS.js Docs
+nav:
+  - Getting started: index.md
+  - Schemata: schemata.md
+  - Entities: entities.md
+  - Metadata: metadata.md
+  - API reference: api.md
