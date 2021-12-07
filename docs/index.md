@@ -73,3 +73,13 @@ farm.log.send(activity)
     return farm.log.delete('activity', id);
   });
 ```
+
+# Next steps
+Now that you know the basics, dive deeper into following topics:
+
+- [Using farmOS JSON Schema documents](schemata.md)
+- [Connecting to a farmOS server](remotes.md)
+- [Working with farmOS entities](entities.md)
+- [Handling farmOS metadata](metadata.md)
+  
+Or, go straight to the [API reference](api.md).
