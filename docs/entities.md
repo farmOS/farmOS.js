@@ -1,12 +1,12 @@
 # Entities
-As outlined in the [farmOS Data Model](https://docs.farmos.org/model/), there are a few high-level types of records, known as entities, which share some common attributes and can have their own subtype, also referred to as a bundle.
+As outlined in the [farmOS Data Model](https://docs.farmos.org/model/), there are a few high-level types of records, known as entities, which share some common attributes and can have their own subtype, also referred to as a bundle. These entities comprise the main data structures in farmOS domain model.
 
 The two primary entities are [Assets](https://docs.farmos.org/model/type/asset/) and [Logs](https://docs.farmos.org/model/type/log/). A few examples of asset bundles would be equipment, plants, animals, land or water. A few examples of log bundles would be activities, harvests, inputs or observations.
 
 In farmOS.js, there are broadly two types of methods for handling entities: write methods, which return a new entity or modified copy of a previously existing entity; and remote methods, which transport entities between the local and a remote system, using an asynchronous request/response pattern.
 
 # Write methods
-When you wish to generate new entities or modify existing ones, you should always use a write method, which will provide a degree of immutability by returning a deep clone of the original entity, rather than mutating it in place. Write methods will also track and update the entity's [metadata](/docs/metadata.md), which will significantly simplify how remote operations can be performed.
+When you wish to generate new entities or modify existing ones, you should always use a write method, rather than mutating it in place. Write methods will provide a degree of immutability by returning a deep clone of the original entity. Although it will still be possible to reassign properties of that clone, it is not recommended. Largely this is because write methods will also track and update the entity's [metadata](/docs/metadata.md), which will significantly simplify how remote operations can be performed.
 
 Each entity has corresponding write methods on its corresponding namespace of the `farm` instance. For example, `farm.log.create` can be used to generate a new farmOS log:
 
