@@ -1,7 +1,7 @@
 {
   "name": "farmos",
   "type": "module",
-  "version": "2.0.0-alpha.5",
+  "version": "2.0.0-beta.1",
   "description": "A JavaScript library for working with farmOS data structures and interacting with farmOS servers.",
   "main": "src/index.js",
   "scripts": {
