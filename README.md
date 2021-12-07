@@ -8,10 +8,6 @@
 
 A JavaScript library for working with farmOS data structures and interacting with farmOS servers.
 
-## ⚠️ __WARNING__ ⚠️
-This is an alpha release, compatible only with farmOS 2.x and __not intended for general use__. Documentation may not be up-to-date in all places and __breaking changes will occur__ until beta release.
-
-
 # Installation
 To install using npm:
 
