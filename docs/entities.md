@@ -33,3 +33,173 @@ const merged = farm.log.merge(updated, remoteLog);
 ```
 
 Corresponding methods exist for all entities, so `farm.asset.create`, `farm.asset.update` and `farm.asset.merge` methods can be used for writing to assets, as well as users, terms, etc.
+
+# Remote methods
+If you've already [configured a remote host and authorized a user](remotes.md#authenticating), you can exchange entities with that host via AJAX. There are three remote methods for each entity, on the same namespace as the write methods: `fetch`, `send` and `delete`. All remote methods are asynchronous, and use the [axios](https://axios-http.com/) HTTP client internally, so they will work the same in both browser and Node.js environments.
+
+## Fetching entities
+The fetch method can be called without parameters, although it is not recommended for reasons that will be outlined below:
+
+```js
+const request = farm.asset.fetch();
+```
+
+The request above will in fact represent a chain of HTTP requests, at least one for every asset type that has been previously set on the farm instance. These requests are aggregated and resolve to a single object, containing three properties: `data`, which will be an array of all the assets retrieved in the course of all underlying requests; `fulfilled`, an array of all successful [responses objects](https://axios-http.com/docs/res_schema), unaltered; and `rejected`, an array of all [failed requests](https://axios-http.com/docs/handling_errors), also unaltered.
+
+Since the `fetch` call above was passed no options, however, the result object could include an arbitrary number of results. In some cases, however rare (see details on the [`limit`](#limiting-fetch-requests) option below), this could be years worth of the assets of all types, both active an inactive, stored on the remote database, yet it still may be an incomplete collection of the assets you wished to retrieve.
+
+For this reason, it's recommended to use some combination of options as an object parameter passed to the `fetch` method. The options currently supported are:
+
+- `filter`
+- `limit`
+
+### Filtering fetch requests
+A `filter` option can be provided to the `fetch` method, which is a [MongoDB-style query selector](https://docs.mongodb.com/manual/reference/operator/query/), supporting the following operators:
+
+- Logical operators
+  - `$and`
+  - `$or`
+- Comparison Operators
+  - `$eq`
+  - `$gt`
+  - `$gte`
+  - `$in`
+  - `$lt`
+  - `$lte`
+  - `$ne`
+  - `$nin`
+
+So for example, to request completed activity logs, you could use the following request:
+
+```js
+const filter = {
+  type: { $eq: 'activity' },
+  status: { $eq: 'done' },
+};
+const request = farm.log.fetch({ filter });
+```
+
+Generally speaking, it's a good idea to include the `type` in filter queries whenever possible. In some instances, though, you may want to broaden the scope to include multiple types, which can be achieved with the `$or` operator:
+
+```js
+const filter = {
+  type: {
+    $or: [
+      { $eq: 'activity' },
+      { $eq: 'harvest' },
+      { $eq: 'input' },
+    ],
+  },
+  status: { $eq: 'done' },
+};
+```
+
+This can be abbreviated somewhat by omitting the `$or` operator, and simply assigning the value of the array to the `type` property:
+
+```js
+const filter = {
+  type: [
+    { $eq: 'activity' },
+    { $eq: 'harvest' },
+    { $eq: 'input' },
+  ],
+  status: { $eq: 'done' },
+};
+```
+
+And of course, a even more common shorthand is to omit the `$eq` operators, merely assigning the property to the value it should be equivalent to:
+
+```js
+const filter = {
+  type: ['activity', 'harvest', 'input'],
+  status: 'done',
+};
+```
+
+As you can see, this works even for the elements of the array, which have been reduced to simple strings, rather than the previous objects. The `$or` and `$eq` are therefore considered __implicit operators__. Another implicit operator is the `$and` operator wherever there is object notation. In essence, the `filter` object itself is shorthand for:
+
+```js
+const filter = {
+  $and: [
+    { type: ['activity', 'harvest', 'input'] },
+    { status: 'done' },
+  ],
+};
+```
+
+Clearly, this is unnecessarily verbose, but it is helpful to keep this in mind when structuring complex queries.
+
+A final form of syntax sugar supported by filter queries is __dot notation__. A good use case for this is where you want to retrieve all logs that have the same owner. Logs can have multiple owners, so the `owner` relationship is represented by an array of objects with the user's `id` property. To select a log that had with a specific user as one of its owners, you could provide the following query:
+
+```js
+const filter = {
+  type: 'activity',
+  'owner.id': '22222222-2222-2222-2222-222222222222',
+};
+```
+Such a query would match 
+So a typical log that would match such a query might look like the following (as a JavaScript object):
+
+```js
+const log = {
+  id: '00000000-0000-0000-0000-000000000000',
+  type: 'activity',
+  attributes: {/** ... */},
+  relationships: {
+    // ...
+    owner: [
+      { type: 'user', id: '11111111-1111-1111-1111-111111111111' },
+      { type: 'user', id: '22222222-2222-2222-2222-222222222222' },
+      { type: 'user', id: '33333333-3333-3333-3333-333333333333' },
+    ],
+    // ...
+  },
+}
+```
+
+This is a good place to note, too, that query fields should not be nested within the `attributes` or `relationships` objects, even though the corresponding entity field may be so nested.
+
+### Limiting fetch requests
+All the above filters, however, may not be sufficient to retrieve _all_ of activity logs that match the provided query. More likely than not, they will only retrieve the first 50 logs that match, assuming there are as many logs on the server. That's because the default configuration for farmOS servers, at the time of writing this, sets a hard limit of 50 results per page, which can only be changed at the server; clients cannot override it remotely.
+
+It's also important to note that this limit will apply separately for each entity bundle (aka, `type`) being requested. So the example query from above,
+
+```js
+const filter = {
+  $and: [
+    { type: ['activity', 'harvest', 'input'] },
+    { status: 'done' },
+  ],
+};
+const request = farm.log.fetch({ filter });
+```
+
+would at most return 150 logs. farmOS.js, however, can chain together successive requests until a given `limit` option is reached:
+
+```js
+const request = farm.log.fetch({ filter, limit: 200 });
+```
+
+The `limit` option is must be an [integer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger) greater than or equal to `0`, or [`Infinity`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity). So to fetch all logs that match your query:
+
+```js
+const request = farm.log.fetch({ filter, limit: Infinity })
+```
+
+It's especially important, when using a `limit` of `Infinity`, to combine it with a reasonable filter query, to keep the duration of the request cycle as short as possible, or to otherwise be prepared to accommodate long cycles without degrading performance or user experience.
+
+## Sending and deleting entities
+Sending entities to a remote server is much more straightforward in comparison:
+
+```js
+const tractor = farm.asset.create({ type: 'equipment', name: 'Farmall H' });
+farm.asset.send(tractor);
+```
+
+The same `send` method can be used for a locally generated entity that's being sent to the server for the first time (as a `POST` request), or to update an existing entity on that server (as a `PATCH` request).
+
+To delete an entity remotely, you just need to provide the entity's bundle (aka, `type`) and its `id` as the first and second parameters of the `delete` method, respectively:
+
+```js
+farm.asset.delete('equipment', tractor.id);
+```
