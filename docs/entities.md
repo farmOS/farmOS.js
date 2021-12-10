@@ -19,7 +19,7 @@ const log = farm.log.create({
 });
 ```
 
-The `create` method takes a "props" object, which is required to have a valid `type` property. To be considered valid, `type` must match a log schema previously set using [`farm.schema.set`](/docs/schemata.md#setting-schemata). All other props are optional, but will be set if provided. If not provided, they will be assigned a valid default value. Props that do not match any known fields for that entity type (attributes or relationships), will be ignored.
+The `create` method takes a "props" object, which is required to have a valid `type` property. To be considered valid, this `type` must match a log schema previously set using [`farm.schema.set`](/docs/schemata.md#setting-schemata). All other props are optional, but should correspond to a valid attribute or relationship for that entity type, as defined by its schema. If a prop does not match the schema, it will be ignored. An `id` prop will also be accepted as long as it is a valid UUID (v4). Wherever an attribute or relationship in the entity's schema cannot be matched with a prop, a default will be assigned instead.
 
 To update a log, you provide the original log as the first parameter, and an object containing the properties you wish to set as the second parameter. The returned log will have those properties updated, as well as any corresponding metadata.
 
@@ -37,7 +37,7 @@ const merged = farm.log.merge(updated, remoteLog);
 Corresponding methods exist for all entities, so `farm.asset.create`, `farm.asset.update` and `farm.asset.merge` methods can be used for writing to assets, as well as users, terms, etc.
 
 ## Fetching entities
-If you've already [configured a remote host and authorized a user](remotes.md#authenticating), you can exchange entities with that host via AJAX. There are three remote methods for each entity, on the same namespace as the write methods: `fetch`, `send` and `delete`. All remote methods are asynchronous, and use the [axios](https://axios-http.com/) HTTP client internally, so they will work the same in both browser and Node.js environments.
+If you've already [configured a remote host](remotes.md#configuring-the-host) and [authorized a user](remotes.md#authorizing-a-user), you can exchange entities with that host via AJAX. There are three remote methods for each entity, on the same namespace as the write methods: `fetch`, `send` and `delete`. All remote methods are asynchronous, and use the [axios](https://axios-http.com/) HTTP client internally, so they will work the same in both browser and Node.js environments.
 
 The fetch method can be called without parameters, although it is not recommended for reasons that will be outlined below:
 
@@ -117,7 +117,7 @@ const filter = {
 };
 ```
 
-As you can see, this works even for the elements of the array, which have been reduced to simple strings, rather than the previous objects. The `$or` and `$eq` are therefore considered __implicit operators__. Another implicit operator is the `$and` operator wherever there is object notation. In essence, the `filter` object itself is shorthand for:
+As you can see, this works even for the elements of the array, which have been reduced to simple strings, rather than the previous objects. The `$or` and `$eq` are therefore considered __implicit operators__. Another implicit operator is the `$and` operator, which is essentially present wherever there is object notation. In fact, the `filter` object itself is shorthand for:
 
 ```js
 const filter = {
@@ -128,9 +128,9 @@ const filter = {
 };
 ```
 
-Clearly, this is unnecessarily verbose, but it is helpful to keep this in mind when structuring complex queries.
+Clearly, this is unnecessary and verbose, but it is helpful to keep this in mind when structuring complex queries.
 
-A final form of syntax sugar supported by filter queries is __dot notation__. A good use case for this is where you want to retrieve all logs that have the same owner. Logs can have multiple owners, so the `owner` relationship is represented by an array of objects with the user's `id` property. To select a log that had with a specific user as one of its owners, you could provide the following query:
+A final form of syntactic sugar supported by filter queries is __dot notation__. A good use case for this is where you want to retrieve all logs that have the same owner. Logs can have multiple owners, so the `owner` relationship is represented by an array of objects with the user's `id` property. To select a log with a specific user as one of its owners, you could provide the following query:
 
 ```js
 const filter = {
@@ -138,8 +138,7 @@ const filter = {
   'owner.id': '22222222-2222-2222-2222-222222222222',
 };
 ```
-Such a query would match 
-So a typical log that would match such a query might look like the following (as a JavaScript object):
+This query would match a log such as the following, represented as a JavaScript object:
 
 ```js
 const log = {
