@@ -1,4 +1,6 @@
 # Metadata
+
+## The `meta` property
 An important feature of farmOS.js is the way it manages metadata for farmOS data structures. This is of primary importance for easing synchronization and mitigating conflicts when farmOS data may reside on two or more independent devices that can make concurrent changes to that data.
 
 The basic structure of any farmOS entity will look something like the following object, which would be accessed on the `.meta` property:
@@ -34,7 +36,7 @@ If a conflict cannot be resolved automatically during a merge, the remote data w
 
 Finally, the `remote` metadata contains information specific to a particular remote connection to another source of farmOS data.
 
-## Last-Write-Wins (LWW)
+### Last-Write-Wins (LWW)
 The strategy employed for resolving conflicts between a local and remote copy of the same entity (ie, two entities of the same entity type and identical `id`'s), is what's called "last write wins" or LWW. This is a fairly simple algorithm to implement, which essentially uses what metadata is available to determine which value changed most recently, and selects the most recent.
 
 There are limitations to this approach, however, since it can only detect changes down to the field level, which is sufficient for primitive value types like booleans or integers, but fails to capture subtler changes to complex data types. For instance, if an original string of `"Hi my namw is Sam"` was changed locally to `"Hi my name is Joe"`, but remotely changed to `"Hi my name is Sam."`, a plain LWW on the field-level cannot merge those changes, as obvious as they may be to human eyes, so it will generate a conflict which will require some other intervention.
@@ -45,7 +47,7 @@ Finally, there may be occasions when "first write wins" would be more appropriat
 
 Other options exist that might refine our merging strategy, such as [CRDT's](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type), but so far such an approach has yet to be implemented.
 
-# Sync status
+## Sync status
 The `farm.isUnsynced` method is a quick way of determining whether or not an entity has been synced to a remote system:
 
 ```js

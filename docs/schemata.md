@@ -1,11 +1,13 @@
 # Schemata
+
+## Schema publication enables interoperability
 In order to generate and modify farmOS data structures, your farm instance must have the corresponding schema for each entity type (aka, the "bundle") that you wish to work with. For instance, if you wish to create an activity log and send it to a server, you will need the schema for logs with the type `'activity'`.
 
 These schemata are formatted using the [JSON Schema](https://json-schema.org) specification.
 
 Although this requires an extra degree of complexity, to retrieve and load schemata at runtime, it ensures that independent devices using separate configurations can still share data, so long as they adhere to the farmOS Data Model.
 
-# Setting schemata
+## Setting schemata
 To set a schema for a particular entity type, call `farm.schema.set` with the entity and type as the first two parameters, and the JSON Schema itself as the third parameter:
 
 ```js
@@ -62,7 +64,7 @@ const equipment = farm.asset.create({ type: 'equipment' }); // works
 
 In this last example, only the activity log schema would have been overwritten, preserving the original schemata for harvest logs and equipment assets.
 
-## Instantiate your farm with the `schemata` option
+### Instantiate your farm with the `schemata` option
 If schemata are available to your application when you instantiate `farmOS`, you can also provide a `schemata` option to the constructor. This option should have as its value an object, containing each entity as a key (eg, `'log'`), whose value is an object containing each entity type as a key (eg, `'activity'`), whose value is the corresponding schema for that entity type.
 
 ```js
@@ -75,7 +77,7 @@ const myFarm = farmOS({
 });
 ```
 
-# Retrieving schemata with the `get` method
+## Retrieving schemata with the `get` method
 It is also possible to retrieve schemata after they've been set, which can be useful for checking supported types before attempting other operations, or generating a list of available entity types that can be displayed to the user.
 
 As with the `set` method, `farm.schema.get` will accept 0, 1 or 2 parameters:
@@ -131,7 +133,7 @@ Activity schema:
 }
 ```
 
-# Fetching remote schemata
+## Fetching remote schemata
 If your ultimate goal is to send data to a farmOS server, the best way to retrieve a schema is to fetch it from that server. This is facilitated by the `farm.schema.fetch` method, which accepts up to 2 arguments and returns a promise for the request:
 
 ```js
@@ -153,7 +155,7 @@ farm.schema.fetch().then((allSchemata) => {
 });
 ```
 
-# Using core schemata
+## Using core schemata
 The "core" farmOS schemata, those that are included in a standard installation of a farmOS server, can be imported as JSON files from the farmOS.js Node package, if your bundler supports that JSON loading:
 
 ```js
