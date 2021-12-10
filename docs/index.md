@@ -12,7 +12,7 @@ farmOS.js supports the [farmOS 2.x Data Model](https://docs.farmos.org/model/), 
 
 farmOS.js can run in Node.js (versions 12.9.0 or higher), and in most modern browsers. IE 11 is not supported.
 
-## Quick Start
+## Quick start
 Learn farmOS.js by example.
 
 ### 1. Install farmOS.js via npm
