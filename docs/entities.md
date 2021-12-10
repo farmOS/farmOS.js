@@ -36,10 +36,9 @@ const merged = farm.log.merge(updated, remoteLog);
 
 Corresponding methods exist for all entities, so `farm.asset.create`, `farm.asset.update` and `farm.asset.merge` methods can be used for writing to assets, as well as users, terms, etc.
 
-## Remote methods
+## Fetching entities
 If you've already [configured a remote host and authorized a user](remotes.md#authenticating), you can exchange entities with that host via AJAX. There are three remote methods for each entity, on the same namespace as the write methods: `fetch`, `send` and `delete`. All remote methods are asynchronous, and use the [axios](https://axios-http.com/) HTTP client internally, so they will work the same in both browser and Node.js environments.
 
-### Fetching entities
 The fetch method can be called without parameters, although it is not recommended for reasons that will be outlined below:
 
 ```js
@@ -55,7 +54,7 @@ For this reason, it's recommended to use some combination of options as an objec
 - `filter`
 - `limit`
 
-#### Filtering fetch requests
+### Filtering fetch requests
 A `filter` option can be provided to the `fetch` method, which is a [MongoDB-style query selector](https://docs.mongodb.com/manual/reference/operator/query/), supporting the following operators:
 
 - Logical operators
@@ -161,7 +160,7 @@ const log = {
 
 This is a good place to note, too, that query fields should not be nested within the `attributes` or `relationships` objects, even though the corresponding entity field may be so nested.
 
-#### Limiting fetch requests
+### Limiting fetch requests
 All the above filters, however, may not be sufficient to retrieve _all_ of activity logs that match the provided query. More likely than not, they will only retrieve the first 50 logs that match, assuming there are as many logs on the server. That's because the default configuration for farmOS servers, at the time of writing this, sets a hard limit of 50 results per page, which can only be changed at the server; clients cannot override it remotely.
 
 It's also important to note that this limit will apply separately for each entity bundle (aka, `type`) being requested. So the example query from above,
@@ -190,7 +189,7 @@ const request = farm.log.fetch({ filter, limit: Infinity })
 
 It's especially important, when using a `limit` of `Infinity`, to combine it with a reasonable filter query, to keep the duration of the request cycle as short as possible, or to otherwise be prepared to accommodate long cycles without degrading performance or user experience.
 
-### Sending and deleting entities
+## Sending and deleting entities
 Sending entities to a remote server is much more straightforward in comparison:
 
 ```js

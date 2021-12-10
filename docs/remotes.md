@@ -45,7 +45,7 @@ At this time, Password Grant is the only available method for authorization, but
 ## General information and other requests
 In addition to providing methods for configuring the host and authorizing, the `farm.remote` namespace other general methods for interacting with a farmOS server.
 
-The `request` method is a pre-configured axios client that only provides access and refresh tokens to authorized farm instances, but otherwise just accepts an endpoint (with or without URL search parameters) as its first parameter, and an optional [request config] object as the second parameter (defaults to `GET` method):
+The `request` method is a pre-configured axios client that only provides access and refresh tokens to authorized farm instances, but otherwise just accepts an endpoint (with or without URL search parameters) as its first parameter, and an optional [request config](https://axios-http.com/docs/req_config) object as the second parameter (defaults to `GET` method):
 
 ```js
 const url = 'https://farm.example.com/api/asset_type/asset_type';
