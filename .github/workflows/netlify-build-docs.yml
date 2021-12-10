@@ -11,11 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TOKEN: ${{ secrets.NETLIFY_BUILD_HOOK }}
-      REPO: ${{ github.repository.name }}
     steps:
       - name: Set trigger_title environment variable
         run: |
-          echo "TRIGGER_TITLE=Triggered+by+$REPO+source+repo" >> $GITHUB_ENV
+          echo "TRIGGER_TITLE=Triggered+by+$GITHUB_REPOSITORY+source+repo" >> $GITHUB_ENV
       - name: Set trigger_branch env.var for main production build
         run: |
           echo "TRIGGER_BRANCH=main" >> $GITHUB_ENV
