@@ -8,7 +8,7 @@ The two primary entities are [Assets](https://docs.farmos.org/model/type/asset/)
 In farmOS.js, there are broadly two types of methods for handling entities: write methods, which return a new entity or modified copy of a previously existing entity; and remote methods, which transport entities between the local and a remote system, using an asynchronous request/response pattern.
 
 ## Write methods
-When you wish to generate new entities or modify existing ones, you should always use a write method, rather than mutating it in place. Write methods will provide a degree of immutability by returning a deep clone of the original entity. Although it will still be possible to reassign properties of that clone, it is not recommended. Largely this is because write methods will also track and update the entity's [metadata](/docs/metadata.md), which will significantly simplify how remote operations can be performed.
+When you wish to generate new entities or modify existing ones, you should always use a write method, rather than mutating it in place. Write methods will provide a degree of immutability by returning a deep clone of the original entity. Although it will still be possible to reassign properties of that clone, it is not recommended. Largely this is because write methods will also track and update the entity's [metadata](metadata.md), which will significantly simplify how remote operations can be performed.
 
 Each entity has corresponding write methods on its corresponding namespace of the `farm` instance. For example, `farm.log.create` can be used to generate a new farmOS log:
 
