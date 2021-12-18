@@ -1,4 +1,4 @@
-site_name: farmOS.js Docs
+source_name: farmOS.js
 nav:
   - Getting started: index.md
   - Schemata: schemata.md
