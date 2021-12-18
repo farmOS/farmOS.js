@@ -5,7 +5,7 @@ farmOS.js is a JavaScript library for working with farmOS data structures and in
 
 The need for farmOS.js arose out of development of the farmOS Field Kit app, which required the ability to work offline and to work with farmOS servers in varying configurations that could only be determined at runtime. To solve this, farmOS.js retrieves and stores [JSON Schema](https://json-schema.org/) documents from the servers it connects to. It then uses these schemata to generate farmOS data structures according to each server's particular configuration to ensure they will be validated by that server. To resolve the conflicts that inevitably arise from storing and modifying concurrent data while offline, farmOS.js implements a ["last-write-wins" merging strategy](metadata.md#last-write-wins-lww), so synchronization can be handled more fluidly and intuitively.
 
-Altogether, this has shaped farmOS.js into a system with robust support both __modularity__ and __concurrency__, opening up the potential for the development of a wider array of interoperable applications.
+Altogether, this has shaped farmOS.js into a system with robust support for both __modularity__ and __concurrency__, opening up the potential for the development of a wider array of interoperable applications.
 
 ## Requirements & browser support
 farmOS.js supports the [farmOS 2.x Data Model](https://docs.farmos.org/model/), compatible with farmOS 2.x servers. Previous versions will no longer be supported.
