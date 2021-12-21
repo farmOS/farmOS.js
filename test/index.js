@@ -45,4 +45,16 @@ describe('farmOS', function () {
       })
       .catch(reportError);
   });
+  it('resets the host using remote.add, then authorizes again.', () => {
+    const newHost = 'http://127.0.0.1';
+    farm.remote.add({ host: newHost, clientId });
+    return farm.remote.authorize(username, password)
+      .then((t) => {
+        expect(t).to.have.property('token_type', 'Bearer');
+        expect(t).to.have.property('access_token').that.is.a('string');
+        expect(t).to.have.property('refresh_token').that.is.a('string');
+        expect(t).to.have.property('expires').that.is.a('number');
+      })
+      .catch(reportError);
+  });
 });

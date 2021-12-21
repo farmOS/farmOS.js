@@ -73,9 +73,9 @@ assets, logs, etc, and for transmitting those entities to a farmOS server.
 | create | <code>createEntity</code> | 
 | update | <code>updateEntity</code> | 
 | merge | <code>mergeEntity</code> | 
-| fetch | <code>fetchEntity</code> | 
-| send | <code>sendEntity</code> | 
-| delete | <code>deleteEntity</code> | 
+| [fetch] | <code>fetchEntity</code> | 
+| [send] | <code>sendEntity</code> | 
+| [delete] | <code>deleteEntity</code> | 
 
 <a name="FarmObject"></a>
 
@@ -92,13 +92,13 @@ associated metadata and schemata, and for interacting with farmOS servers.
 | schema.get | <code>function</code> | 
 | schema.set | <code>function</code> | 
 | schema.on | <code>function</code> | 
+| [schema.fetch] | <code>function</code> | 
 | meta | <code>Object</code> | 
 | meta.isUnsynced | <code>function</code> | 
-| remote | <code>Object</code> | 
+| [remote] | <code>Object</code> | 
 | remote.request | <code>module:axios~AxiosInstance</code> | 
 | remote.info | <code>function</code> | 
 | remote.authorize | <code>function</code> | 
-| remote.setHost | <code>function</code> | 
 | remote.getToken | <code>function</code> | 
 | asset | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | log | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
@@ -116,7 +116,7 @@ The main farmOS factory function for creating a new farm object.
 
 | Param | Type |
 | --- | --- |
-| config | <code>Object</code> | 
+| farmConfig | <code>Object</code> | 
 
 **Properties**
 
@@ -125,6 +125,7 @@ The main farmOS factory function for creating a new farm object.
 | [config.schemata] | [<code>EntitySchemata</code>](#EntitySchemata) | 
 | [config.remote] | <code>Object</code> | 
 | [config.remote.adapter] | [<code>FarmClient</code>](#FarmClient) | 
+| [config.entities] | [<code>Array.&lt;EntityConfig&gt;</code>](#EntityConfig) | 
 
 <a name="JsonSchema"></a>
 
@@ -268,7 +269,6 @@ from a farmOS Drupal 9 server using JSON:API.
 | Name | Type |
 | --- | --- |
 | authorize | <code>function</code> | 
-| setHost | <code>function</code> | 
 | getToken | <code>function</code> | 
 | request | <code>module:axios~AxiosInstance</code> | 
 | info | <code>function</code> | 

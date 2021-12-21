@@ -116,7 +116,7 @@ export default function model(options = {}) {
     }
   }
 
-  setSchemata(options.schemata);
+  if (options.schemata) setSchemata(options.schemata);
 
   const addListeners = namespace => (name, callback) => {
     if (name in observers[namespace]) {

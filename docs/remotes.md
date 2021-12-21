@@ -9,26 +9,27 @@ At the very least, you will need to provide the host address of the server you a
 ```js
 import farmOS from 'farmos';
 
-const remote = {
+const remoteConfig = {
   host: 'https://farm.example.com',
   clientId: 'farm_client',
   getToken: () => JSON.parse(localStorage.getItem('token')),
   setToken: token => localStorage.setItem('token', JSON.stringify(token)),
 };
-const farm = farmOS({ remote });
+const options = { remote: remoteConfig };
+const farm = farmOS(options);
 ```
 
 Although the `host` is the only required option, in the strictest sense, you will most likely need to provide a `clientId` as well. Details of this `clientId` (aka, `client_id`) will vary with the implementation, but more details can be found in the [farmOS OAuth docs](https://docs.farmos.org/development/api/authentication/#clients).
 
 In addition, you can provide optional functions for synchronously getting and setting the tokens in your local environment, as with `window.localStorage` above. If these options are not provided, the tokens will only be stored in memory, so will be lost when your program terminates or your farm instance is garbage collected.
 
-It is also possible to set the `host` after creating your farm instance has been created, using the `setHost` method on the `remote` namespace:
+It is also possible to add a remote after creating your farm instance has been created, using the `remote.add` method, which takes the same type of remote configuration object as above:
 
 ```js
-farm.remote.setHost('https://farm.example.com');
+farm.remote.add(remoteConfig);
 ```
 
-This can be useful when you may still be awaiting user input to provide the host at the time you create the farm instance.
+This can be useful when you may still be awaiting user input to provide the host or other remote configuration at the time you create the farm instance.
 
 ## Authorizing a user
 Once a farm instance has been created and the host has been set, you can use a [Password Grant](https://docs.farmos.org/development/api/authentication/#password-credentials-grant):

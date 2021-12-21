@@ -8,11 +8,8 @@ export default function oAuth(request, opts) {
     getToken = () => memToken,
     setToken = (t) => { memToken = t; },
   } = opts;
+  const accessTokenUri = `${host}/oauth/token`;
 
-  let accessTokenUri = `${host}/oauth/token`;
-  const setHost = (newHost) => {
-    accessTokenUri = `${newHost}/oauth/token`;
-  };
   /*
    * SUBSCRIBE TO TOKEN REFRESH
    * Based on https://gist.github.com/mkjiau/650013a99c341c9f23ca00ccb213db1c
@@ -153,7 +150,5 @@ export default function oAuth(request, opts) {
       data: `grant_type=password&username=${user}&password=${password}&client_id=${clientId}`,
     }).then(res => parseToken(res.data))
       .catch((error) => { throw error; }),
-    setHost,
-    getToken,
   };
 }

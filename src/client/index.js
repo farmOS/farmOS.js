@@ -18,7 +18,6 @@ import fetchSchema from './schema.js';
  * from a farmOS Drupal 9 server using JSON:API.
  * @typedef {Object} FarmClient
  * @property {Function} authorize
- * @property {Function} setHost
  * @property {Function} getToken
  * @property {import('axios').AxiosInstance} request
  * @property {Function} info
@@ -45,7 +44,7 @@ import fetchSchema from './schema.js';
 export default function client(host, options) {
   const {
     clientId,
-    getToken: getTokenOpt,
+    getToken,
     setToken,
   } = options;
 
@@ -63,16 +62,13 @@ export default function client(host, options) {
   const oAuthOpts = {
     host,
     clientId,
-    getToken: getTokenOpt,
+    getToken,
     setToken,
   };
-  const {
-    authorize, setHost, getToken,
-  } = oauth(request, oAuthOpts);
+  const { authorize } = oauth(request, oAuthOpts);
 
   const farm = {
     authorize,
-    setHost,
     getToken,
     request,
     info() {
