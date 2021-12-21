@@ -3,8 +3,8 @@ import axios from 'axios';
 export default function oAuth(request, opts) {
   let memToken = {};
   const {
-    host,
-    clientId = 'farm_client',
+    host = '',
+    clientId = '',
     getToken = () => memToken,
     setToken = (t) => { memToken = t; },
   } = opts;

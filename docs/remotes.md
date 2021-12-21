@@ -11,7 +11,7 @@ import farmOS from 'farmos';
 
 const remoteConfig = {
   host: 'https://farm.example.com',
-  clientId: 'farm_client',
+  clientId: 'farm',
   getToken: () => JSON.parse(localStorage.getItem('token')),
   setToken: token => localStorage.setItem('token', JSON.stringify(token)),
 };
@@ -19,9 +19,9 @@ const options = { remote: remoteConfig };
 const farm = farmOS(options);
 ```
 
-Although the `host` is the only required option, in the strictest sense, you will most likely need to provide a `clientId` as well. Details of this `clientId` (aka, `client_id`) will vary with the implementation, but more details can be found in the [farmOS OAuth docs](https://docs.farmos.org/development/api/authentication/#clients).
+The only required options are `host` and `clientId`, although both will default to the empty string (`''`). Therefore instantiation should not throw an exception if those options are not provided, but attempts to connect most likely will. Leaving the `host` as `undefined` or `''` can sometimes be useful in local development, when you wish requests to be sent to relative path. The value of `clientId` (aka, `client_id`) will vary with the implementation, but more details can be found in the [farmOS OAuth docs](https://docs.farmos.org/development/api/authentication/#clients).
 
-In addition, you can provide optional functions for synchronously getting and setting the tokens in your local environment, as with `window.localStorage` above. If these options are not provided, the tokens will only be stored in memory, so will be lost when your program terminates or your farm instance is garbage collected.
+In addition to those options, you can also provide functions for synchronously getting and setting the tokens in your local environment, as with `window.localStorage` above. If these options are not provided, the tokens will only be stored in memory, so will be lost when your program terminates or your farm instance is garbage collected.
 
 It is also possible to add a remote after creating your farm instance has been created, using the `remote.add` method, which takes the same type of remote configuration object as above:
 

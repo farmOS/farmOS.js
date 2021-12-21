@@ -26,13 +26,10 @@ $ npm install farmos
 ```js
 import farmOS from 'farmos';
 
-let token;
 const options = {
   remote: {
     host: 'https://farm.example.com',
-    clientId: 'farm_client',
-    getToken: () => token,
-    setToken: (t) => { token = t; },
+    clientId: 'farm',
   },
 };
 const farm = farmOS(options);

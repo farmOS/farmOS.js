@@ -2,7 +2,7 @@
 // tests and scripts in both the development and CI environments.
 export default {
   host: 'http://localhost',
-  clientId: 'farm_client',
+  clientId: 'fieldkit',
   username: 'admin',
   password: 'admin',
 };
