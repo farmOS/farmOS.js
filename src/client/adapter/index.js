@@ -90,14 +90,15 @@ export default function adapter(model, opts) {
   // For chaining consecutive requests for the next page of resources until the
   // provided limit is reached, or there are no further resources to fetch.
   const chainRequests = (req, limit, prev = [], total = 0) => req.then((res) => {
-    const next = path(['data', 'links', 'next', 'href'], res);
+    let next = path(['data', 'links', 'next', 'href'], res);
     const resLength = path(['data', 'data', 'length'], res);
     const newTotal = total + resLength;
     const all = prev.concat(res);
     if (!next || newTotal >= limit) return all;
     const remainder = limit - newTotal;
-    const url = remainder < maxPageLimit ? `${next}&page[limit]=${remainder}` : next;
-    const nextReq = connection.request(url);
+    if (remainder < maxPageLimit) next = `${next}&page[limit]=${remainder}`;
+    const url = new URL(next);
+    const nextReq = connection.request(url.pathname + url.search);
     return chainRequests(nextReq, limit, all, newTotal);
   });
 
