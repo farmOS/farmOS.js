@@ -1,7 +1,7 @@
-import chai from 'chai';
-import { validate } from 'uuid';
-import model from '../../src/model/index.js';
-import { readSchema } from '../../core_schemata/fs-utils.js';
+const chai = require('chai');
+const { validate } = require('uuid');
+const model = require('../../dist/cjs/model').default;
+const { readSchema } = require('../../core_schemata/fs-utils');
 
 const { expect } = chai;
 const activitySchema = readSchema('log', 'activity');

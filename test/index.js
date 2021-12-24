@@ -1,7 +1,7 @@
-import chai from 'chai';
-import farmOS from '../src/index.js';
-import localServerConfig from '../local-server-config.js';
-import { reportError } from './report.js';
+const chai = require('chai');
+const farmOS = require('../dist/cjs/farmOS').default;
+const localServerConfig = require('../local-server-config');
+const { reportError } = require('./report');
 
 const { expect } = chai;
 

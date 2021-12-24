@@ -1,4 +1,4 @@
-import parseFilter from './parseFilter.js';
+import parseFilter from './parse-filter.js';
 
 /**
  * farmOS client method for fetching entities from a Drupal JSON:API server

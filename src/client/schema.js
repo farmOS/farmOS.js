@@ -1,6 +1,6 @@
 import map from 'ramda/src/map.js';
 import prop from 'ramda/src/prop.js';
-import typeToBundle from './typeToBundle.js';
+import typeToBundle from './type-to-bundle.js';
 import entities from '../entities.js';
 
 /**

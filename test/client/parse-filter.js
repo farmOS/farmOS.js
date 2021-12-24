@@ -1,6 +1,6 @@
-import chai from 'chai';
-import string from 'chai-string';
-import parseFilter from '../../src/client/parseFilter.js';
+const chai = require('chai');
+const string = require('chai-string');
+const parseFilter = require('../../dist/cjs/parse-filter').default;
 
 chai.use(string);
 const { expect } = chai;

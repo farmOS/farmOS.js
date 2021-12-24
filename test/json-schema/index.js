@@ -1,9 +1,9 @@
-import chai from 'chai';
-import { readFileSync } from 'fs';
-import {
+const chai = require('chai');
+const { readFileSync } = require('fs');
+const {
   getDefinition, getReference, dereference, getProperties, getProperty, getPath,
   listProperties, getDefault,
-} from '../../src/json-schema/index.js';
+} = require('../../dist/cjs/json-schema');
 
 const { expect } = chai;
 const json = readFileSync('test/json-schema/log--activity.json');

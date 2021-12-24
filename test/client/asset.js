@@ -1,7 +1,7 @@
-import chai from 'chai';
-import { v4 as uuidv4 } from 'uuid';
-import { reportError } from '../report.js';
-import { farm, session } from './client.js';
+const chai = require('chai');
+const { v4: uuidv4 } = require('uuid');
+const { reportError } = require('../report');
+const { farm, session } = require('./client');
 
 const { expect } = chai;
 

@@ -1,7 +1,7 @@
-import chai from 'chai';
-import { farm, session } from './client.js';
-import localServerConfig from '../../local-server-config.js';
-import { reportError } from '../report.js';
+const chai = require('chai');
+const localServerConfig = require('../../local-server-config');
+const { reportError } = require('../report');
+const { farm, session } = require('./client');
 
 const { expect } = chai;
 const { username } = localServerConfig;

@@ -11,7 +11,7 @@ import prop from 'ramda/src/prop.js';
 import path from 'ramda/src/path.js';
 import replace from 'ramda/src/replace.js';
 import unless from 'ramda/src/unless.js';
-import typeToBundle from '../typeToBundle.js';
+import typeToBundle from '../type-to-bundle.js';
 import { getPath } from '../../json-schema/index.js';
 import { isObject } from '../../utils.js';
 

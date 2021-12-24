@@ -1,6 +1,6 @@
-import chai from 'chai';
-import { reportError } from '../report.js';
-import { farm, session } from './client.js';
+const chai = require('chai');
+const { reportError } = require('../report');
+const { farm, session } = require('./client');
 
 const { expect } = chai;
 

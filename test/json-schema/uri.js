@@ -1,5 +1,5 @@
-import chai from 'chai';
-import parseURI from '../../src/json-schema/uri.js';
+const chai = require('chai');
+const { parseURI } = require('../../dist/cjs/json-schema');
 
 const { expect } = chai;
 

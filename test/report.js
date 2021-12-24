@@ -1,4 +1,4 @@
-import fs from 'fs';
+const fs = require('fs');
 
 // Based on: https://stackoverflow.com/a/11616993/1549703.
 const safeStringify = (obj, space = 2) => {
@@ -19,11 +19,11 @@ const safeStringify = (obj, space = 2) => {
   return string;
 };
 
-export default function report(data, filename = 'report.json') {
+function report(data, filename = 'report.json') {
   fs.writeFileSync(filename, safeStringify(data));
 }
 
-export function reportError(error, options = {}) {
+function reportError(error, options = {}) {
   const { filename = 'errors.json', message } = options;
   let errors = [];
   if (fs.existsSync(filename)) {
@@ -44,3 +44,5 @@ export function reportError(error, options = {}) {
     throw new Error(msg, { cause: error });
   }
 }
+
+module.exports = { report, reportError };

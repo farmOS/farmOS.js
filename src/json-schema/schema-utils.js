@@ -1,4 +1,9 @@
-import { hasAny } from '../utils.js';
+import anyPass from 'ramda/src/anyPass.js';
+import compose from 'ramda/src/compose.js';
+import has from 'ramda/src/has.js';
+import map from 'ramda/src/map.js';
+
+const hasAny = compose(anyPass, map(has));
 
 /**
  * @typedef {import('./reference').JsonSchema} JsonSchema

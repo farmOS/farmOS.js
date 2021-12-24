@@ -1,6 +1,6 @@
-import farmOS from '../src/index.js';
-import localServerConfig from '../local-server-config.js';
-import { writeSchema } from './fs-utils.js';
+const farmOS = require('../dist/cjs/farmOS').default;
+const localServerConfig = require('../local-server-config.js');
+const { writeSchema } = require('./fs-utils.js');
 
 const $idURI = (entity, bundle) =>
   // Eventually, this should point to a location on farmos.org or docs.farmos.org

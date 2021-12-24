@@ -1,5 +1,5 @@
-import client from '../../src/client/index.js';
-import localServerConfig from '../../local-server-config.js';
+const client = require('../../dist/cjs/client').default;
+const localServerConfig = require('../../local-server-config');
 
 const {
   host, clientId, username, password,
@@ -9,10 +9,12 @@ let token;
 const getToken = () => token;
 const setToken = (t) => { token = t; };
 
-export const farm = client(host, {
+const farm = client(host, {
   clientId,
   getToken,
   setToken,
 });
 
-export const session = () => farm.authorize(username, password);
+const session = () => farm.authorize(username, password);
+
+module.exports = { farm, session };
