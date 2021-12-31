@@ -21,7 +21,12 @@ const safeIso = t => t && new Date(t).toISOString();
 // These functions provide transformations that are ultimately passed to
 // parseFilter, so it can compare values of the same format.
 const filterTransformsByFormat = {
-  'date-time': t => Math.floor(new Date(t).valueOf() / 1000),
+  'date-time': safeUnix,
+};
+const filterTransformsByMetafield = {
+  created: safeUnix,
+  changed: safeUnix,
+  revision_created: safeUnix,
 };
 // The transforms need to be regenerated whenever the schemata are set, so the
 // format transforms can be mapped to every field with that format.
@@ -32,7 +37,7 @@ export const generateFilterTransforms = (schemata) => {
   entities.forEach((entity) => {
     filterTransforms[entity] = {};
     Object.entries(schemata[entity]).forEach(([bundle, schema]) => {
-      filterTransforms[entity][bundle] = {};
+      filterTransforms[entity][bundle] = { ...filterTransformsByMetafield };
       const attributes = getPath(schema, 'attributes');
       const relationships = getPath(schema, 'relationships');
       const fieldSchemata = { ...attributes.properties, ...relationships.properties };
