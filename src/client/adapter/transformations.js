@@ -35,7 +35,8 @@ export const generateFilterTransforms = (schemata) => {
       filterTransforms[entity][bundle] = {};
       const attributes = getPath(schema, 'attributes');
       const relationships = getPath(schema, 'relationships');
-      Object.entries({ ...attributes, ...relationships }).forEach(([field, sub]) => {
+      const fieldSchemata = { ...attributes.properties, ...relationships.properties };
+      Object.entries(fieldSchemata).forEach(([field, sub]) => {
         if (isObject(sub) && 'format' in sub && sub.format in formats) {
           const { [sub.format]: transform } = formats;
           filterTransforms[entity][bundle][field] = transform;
