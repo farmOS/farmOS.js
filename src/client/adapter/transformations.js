@@ -17,6 +17,7 @@ import { isObject } from '../../utils.js';
 
 const dropMilliseconds = replace(/\.\d\d\d/, '');
 const safeIso = t => t && new Date(t).toISOString();
+const safeUnix = t => t && Math.floor(new Date(t).valueOf() / 1000);
 
 // These functions provide transformations that are ultimately passed to
 // parseFilter, so it can compare values of the same format.
@@ -193,6 +194,7 @@ const transformRemoteEntity = (entName, setLastSync = false) => ({
     created: safeIso(attributes.created),
     changed: safeIso(attributes.changed),
     fieldChanges: makeFieldChanges(attributes, relationships),
+    conflicts: [],
     remote: {
       lastSync: setLastSync ? new Date().toISOString() : null,
       url: `/${entName}/${attributes.drupal_internal__id}`,
