@@ -130,7 +130,11 @@ export default function adapter(model, opts) {
         const validTypes = Object.keys(model.schema.get(name));
         const bundles = parseBundles(filter, validTypes);
         const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) => {
-          const fetchOptions = { filter: bundleFilter, filterTransforms, limit };
+          const fetchOptions = {
+            filter: bundleFilter,
+            filterTransforms: filterTransforms[name][bundle],
+            limit,
+          };
           const req = connection[shortName].fetch(bundle, fetchOptions);
           return chainRequests(req, limit);
         });
