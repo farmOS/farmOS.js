@@ -1,4 +1,5 @@
 import clone from 'ramda/src/clone.js';
+import dropLast from 'ramda/src/dropLast.js';
 import map from 'ramda/src/map.js';
 import createEntity from './create.js';
 import mergeEntity from './merge.js';
@@ -112,7 +113,6 @@ export default function model(options = {}) {
     if (args.length > 2) {
       const [entName, type, schema] = args;
       schemata[entName][type] = dereference(schema);
-      observers.schema.set.next(getSchemata());
     }
   }
 
@@ -128,7 +128,12 @@ export default function model(options = {}) {
   return {
     schema: {
       get: getSchemata,
-      set: setSchemata,
+      /** @param {...String|EntitySchemata|BundleSchemata|JsonSchema} args */
+      set(...args) {
+        setSchemata(...args);
+        const getterArgs = dropLast(1, args);
+        observers.schema.set.next(getSchemata(...getterArgs));
+      },
       on: addListeners('schema'),
     },
     meta: {
