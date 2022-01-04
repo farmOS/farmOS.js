@@ -10,7 +10,7 @@ const {
 } = localServerConfig;
 const remote = { host, clientId };
 
-describe('farmOS', function () {
+describe.only('farmOS', function () {
   this.timeout(10000);
   const farm = farmOS({ remote });
   const session = farm.remote.authorize(username, password);
@@ -54,6 +54,10 @@ describe('farmOS', function () {
         expect(t).to.have.property('access_token').that.is.a('string');
         expect(t).to.have.property('refresh_token').that.is.a('string');
         expect(t).to.have.property('expires').that.is.a('number');
+        return farm.remote.request('/api');
+      })
+      .then(({ data: { meta } }) => {
+        expect(meta).to.have.nested.property('farm.url', newHost);
       })
       .catch(reportError);
   });
