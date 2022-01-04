@@ -132,9 +132,11 @@ export default function adapter(model, opts) {
         const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) => {
           const fetchOptions = {
             filter: bundleFilter,
-            filterTransforms: filterTransforms[name][bundle],
             limit,
           };
+          if (name in filterTransforms && bundle in filterTransforms[name]) {
+            fetchOptions.filterTransforms = filterTransforms[name][bundle];
+          }
           const req = connection[shortName].fetch(bundle, fetchOptions);
           return chainRequests(req, limit);
         });
