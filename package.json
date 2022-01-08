@@ -5,6 +5,7 @@
   "main": "dist/cjs/farmOS.js",
   "module": "dist/esm/farmOS.js",
   "browser": "dist/umd/farmOS.js",
+  "files": ["dist/**"],
   "scripts": {
     "test": "mocha --recursive",
     "pretest": "npm run build",
