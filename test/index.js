@@ -10,7 +10,7 @@ const {
 } = localServerConfig;
 const remote = { host, clientId };
 
-describe.only('farmOS', function () {
+describe('farmOS', function () {
   this.timeout(10000);
   const farm = farmOS({ remote });
   const session = farm.remote.authorize(username, password);
