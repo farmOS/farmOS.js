@@ -28,11 +28,11 @@ export { default as model } from './model/index.js';
  * @property {Function} [schema.fetch]
  * @property {Object} meta
  * @property {Function} meta.isUnsynced
- * @property {Object} [remote]
+ * @property {Object} remote
  * @property {import('axios').AxiosInstance} remote.request
- * @property {Function} remote.info
- * @property {Function} remote.authorize
- * @property {Function} remote.getToken
+ * @property {Function} [remote.info]
+ * @property {Function} [remote.authorize]
+ * @property {Function} [remote.getToken]
  * @property {FarmEntityMethods} asset
  * @property {FarmEntityMethods} log
  * @property {FarmEntityMethods} plan
@@ -46,7 +46,7 @@ export { default as model } from './model/index.js';
  * @param {Object} farmConfig
  * @property {import('./model/index.js').EntitySchemata} [config.schemata]
  * @property {Object} [config.remote]
- * @property {import('./client/index.js').FarmClient} [config.remote.adapter]
+ * @property {import('./client/index.js').client} [config.remote.adapter=d9JsonApiAdapter]
  * @property {Array<import('./entities.js').EntityConfig>} [config.entities]
  * @returns {FarmObject}
  */

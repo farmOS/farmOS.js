@@ -44,6 +44,8 @@ associated metadata and schemata.</p>
 <dd><p>The methods for transmitting farmOS data structures, such as assets, logs,
 etc, to a farmOS server.</p>
 </dd>
+<dt><a href="#AuthorizationMixin">AuthorizationMixin</a> ⇒ <code>Object</code></dt>
+<dd></dd>
 <dt><a href="#FarmClient">FarmClient</a> : <code>Object</code></dt>
 <dd><p>A collection of functions for transmitting farmOS data structures to and
 from a farmOS Drupal 9 server using JSON:API.</p>
@@ -257,6 +259,22 @@ etc, to a farmOS server.
 | send | <code>sendEntity</code> | 
 | delete | <code>deleteEntity</code> | 
 
+<a name="AuthorizationMixin"></a>
+
+## AuthorizationMixin ⇒ <code>Object</code>
+**Kind**: global typedef  
+
+| Param | Type |
+| --- | --- |
+| request | <code>module:axios~AxiosInstance</code> | 
+| authOptions | <code>Object</code> | 
+
+**Properties**
+
+| Name | Type |
+| --- | --- |
+| authOptions.host | <code>String</code> | 
+
 <a name="FarmClient"></a>
 
 ## FarmClient : <code>Object</code>
@@ -297,6 +315,7 @@ Create a farm client for interacting with farmOS servers.
 
 | Name | Type |
 | --- | --- |
+| options.auth | [<code>AuthorizationMixin</code>](#AuthorizationMixin) | 
 | options.clientId | <code>String</code> | 
 | options.getToken | <code>function</code> | 
 | options.setToken | <code>function</code> | 

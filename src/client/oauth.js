@@ -1,13 +1,29 @@
 import axios from 'axios';
 
-export default function oAuth(request, opts) {
+/**
+ * @typedef {Object} OAuthMethods
+ * @property {Function} authorize
+ * @property {Function} getToken
+ */
+
+/**
+ * @typedef {Function} OAuthMixin
+ * @param {import('axios').AxiosInstance} request
+ * @param {Object} authOptions
+ * @property {String} authOptions.host
+ * @property {String} authOptions.clientId
+ * @property {Function} [authOptions.getToken]
+ * @property {Function} [authOptions.setToken]
+ * @returns {Object}
+ */
+export default function oAuth(request, authOptions) {
   let memToken = {};
   const {
     host = '',
     clientId = '',
     getToken = () => memToken,
     setToken = (t) => { memToken = t; },
-  } = opts;
+  } = authOptions;
   const accessTokenUri = `${host}/oauth/token`;
 
   /*
@@ -148,7 +164,7 @@ export default function oAuth(request, opts) {
         Accept: 'json',
       },
       data: `grant_type=password&username=${user}&password=${password}&client_id=${clientId}`,
-    }).then(res => parseToken(res.data))
-      .catch((error) => { throw error; }),
+    }).then(res => parseToken(res.data)).catch((error) => { throw error; }),
+    getToken,
   };
 }

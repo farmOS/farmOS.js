@@ -14,12 +14,20 @@ import fetchSchema from './schema.js';
  * @property {import('./delete.js').deleteEntity} delete
  */
 
+/**
+ * @typedef {Function} AuthMixin
+ * @param {import('axios').AxiosInstance} request
+ * @param {Object} authOptions
+ * @property {String} authOptions.host
+ * @returns {Object<string,function>}
+ */
+
 /** A collection of functions for transmitting farmOS data structures to and
  * from a farmOS Drupal 9 server using JSON:API.
  * @typedef {Object} FarmClient
- * @property {Function} authorize
- * @property {Function} getToken
  * @property {import('axios').AxiosInstance} request
+ * @property {Function} [authorize]
+ * @property {Function} [getToken]
  * @property {Function} info
  * @property {Object} schema
  * @property {Function} schema.fetch
@@ -35,17 +43,17 @@ import fetchSchema from './schema.js';
  * Create a farm client for interacting with farmOS servers.
  * @typedef {Function} client
  * @param {String} host
- * @param {Object} options
- * @property {String} options.clientId
- * @property {Function} options.getToken
- * @property {Function} options.setToken
+ * @param {Object} [options]
+ * @property {AuthMixin=OAuthMixin} [options.auth=oauth]
+ * @property {String} [options.clientId]
+ * @property {Function} [options.getToken]
+ * @property {Function} [options.setToken]
  * @returns {FarmClient}
  */
 export default function client(host, options) {
   const {
-    clientId,
-    getToken,
-    setToken,
+    auth = oauth,
+    ...authOptions
   } = options;
 
   // Instantiate axios client.
@@ -58,18 +66,10 @@ export default function client(host, options) {
   };
   const request = axios.create(clientOptions);
 
-  // Create oAuth & request helpers.
-  const oAuthOpts = {
-    host,
-    clientId,
-    getToken,
-    setToken,
-  };
-  const { authorize } = oauth(request, oAuthOpts);
+  const authMethods = auth(request, { ...authOptions }) || {};
 
   const farm = {
-    authorize,
-    getToken,
+    ...authMethods,
     request,
     info() {
       return request('/api');
