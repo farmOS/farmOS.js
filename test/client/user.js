@@ -6,7 +6,8 @@ const { farm, session } = require('./client');
 const { expect } = chai;
 const { username } = localServerConfig;
 
-describe('user', () => {
+describe('user', function () {
+  this.timeout(10000);
   it('can look up all users by uuid.', () => session()
     .then(() => farm.user.fetch('user', { filter: {} }))
     .then((response) => {

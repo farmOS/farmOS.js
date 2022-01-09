@@ -4,7 +4,8 @@ const { farm, session } = require('./client');
 
 const { expect } = chai;
 
-describe('schema', () => {
+describe('schema', function () {
+  this.timeout(10000);
   it('gets a schema for a specified bundle of a specified entity.', () => session()
     .then(() => farm.schema.fetch('log', 'activity'))
     .then((res) => {
