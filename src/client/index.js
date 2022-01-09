@@ -66,7 +66,7 @@ export default function client(host, options) {
   };
   const request = axios.create(clientOptions);
 
-  const authMethods = auth(request, { ...authOptions }) || {};
+  const authMethods = auth(request, { host, ...authOptions }) || {};
 
   const farm = {
     ...authMethods,

@@ -1,8 +1,10 @@
 const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 const farmOS = require('../dist/cjs/farmOS').default;
 const localServerConfig = require('../local-server-config');
 const { reportError } = require('./report');
 
+chai.use(chaiAsPromised);
 const { expect } = chai;
 
 const {
@@ -60,5 +62,11 @@ describe('farmOS', function () {
         expect(meta).to.have.nested.property('farm.url', newHost);
       })
       .catch(reportError);
+  });
+  it('fails to authorize when given an invalid host', () => {
+    const invalidHost = 'http://localhost:123SesameStreet';
+    farm.remote.add({ host: invalidHost, clientId });
+    const invalidAuthRequest = farm.remote.authorize(username, password);
+    return expect(invalidAuthRequest).to.be.rejected;
   });
 });

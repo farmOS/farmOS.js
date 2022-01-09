@@ -5,7 +5,9 @@
   "main": "dist/cjs/farmOS.js",
   "module": "dist/esm/farmOS.js",
   "browser": "dist/umd/farmOS.js",
-  "files": ["dist/**"],
+  "files": [
+    "dist/**"
+  ],
   "scripts": {
     "test": "mocha --recursive",
     "pretest": "npm run build",
@@ -39,6 +41,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.1.1",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "chai-string": "^1.5.0",
     "eslint": "^8.2.0",
     "eslint-config-airbnb-base": "^13.2.0",
