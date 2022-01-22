@@ -40,9 +40,9 @@ const schemata = {
   },
   // etc...
 };
-farm.schemata.set(schemata);
+farm.schema.set(schemata);
 // Or...
-farm.schemata.set('log', schemata.log);
+farm.schema.set('log', schemata.log);
 ```
 
 One caveat to be aware of, however, is that calls to `farm.schema.set` will overwrite the existing schemata to whatever depth you call the parameters. So if you previously had schemata for harvest logs and equipment assets, but then called:
