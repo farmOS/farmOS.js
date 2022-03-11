@@ -6,6 +6,10 @@ function mergeParams(p1, p2) {
   return params.toString();
 }
 
+// Helper for determining if a value is a primitive data structure
+const isPrim = val =>
+  ['string', 'number', 'boolean'].includes(typeof val) || val === null;
+
 const logical = {
   $and: 'AND',
   $or: 'OR',
@@ -62,15 +66,16 @@ export default function parseFilter(filter, options = {}) {
   }
 
   function parseField(path, val, fieldGroup, fieldDepth) {
-    if (['string', 'number', 'boolean'].includes(typeof val) || val === null) {
+    if (isPrim(val)) {
       return parseComparison(path, { $eq: val }, fieldGroup);
     }
     if (Array.isArray(val) || '$or' in val) {
-      const filters = Array.isArray(val) ? val : val.$or;
-      if (!Array.isArray(filters)) {
+      const arr = Array.isArray(val) ? val : val.$or;
+      if (!Array.isArray(arr)) {
         throw new Error(`The value of \`${path}.$or\` must be an array. `
-        + `Invalid constructor: ${filters.constructor.name}`);
+        + `Invalid constructor: ${arr.constructor.name}`);
       }
+      const filters = arr.map(v => (isPrim(v) ? { [path]: v } : v));
       return parseLogic('$or', filters, fieldGroup, fieldDepth + 1);
     }
     if ('$and' in val) {
