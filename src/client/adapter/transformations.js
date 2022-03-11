@@ -180,8 +180,8 @@ const transformRemoteRelationships = compose(
   omit(drupalMetaFields.attributes),
 );
 const makeFieldChanges = (attrs, rels) => ({
-  ...map(() => attrs.changed, omit(drupalMetaFields.attributes, attrs)),
-  ...map(() => attrs.changed, omit(drupalMetaFields.relationships, rels)),
+  ...map(() => safeIso(attrs.changed), omit(drupalMetaFields.attributes, attrs)),
+  ...map(() => safeIso(rels.changed), omit(drupalMetaFields.relationships, rels)),
 });
 
 const emptyAttrs = { created: null, changed: null, drupal_internal__id: null };
