@@ -32,7 +32,7 @@ const sendEntity = (entityName, request) => (bundle, entity) => {
     const patchOptions = { method: 'PATCH', data };
     const patchRequest = request(patchURL, patchOptions);
     const intercept404 = error =>
-      (error.response.status === 404 ? post(data) : Promise.reject(error));
+      (error.response && error.response.status === 404 ? post(data) : Promise.reject(error));
     return patchRequest.catch(intercept404);
   }
   return post(data);
