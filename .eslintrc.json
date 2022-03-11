@@ -16,6 +16,7 @@
   },
   "rules": {
     "implicit-arrow-linebreak": "off",
+    "arrow-parens": "off",
     "no-underscore-dangle": "off",
     "import/extensions": "off",
     "no-warning-comments": "warn"
