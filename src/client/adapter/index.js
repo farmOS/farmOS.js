@@ -22,7 +22,7 @@ import {
 
 const DRUPAL_PAGE_LIMIT = 50;
 
-function parseBundles(filter, validTypes) {
+export function parseBundles(filter, validTypes) {
   const bundles = [];
   // The filter must either be an object (logical $and) or an array (logical $or).
   if (Array.isArray(filter) || Array.isArray(filter.$or)) {
@@ -39,16 +39,17 @@ function parseBundles(filter, validTypes) {
     });
     return bundles;
   }
-  if (typeof filter !== 'object') throw new Error(`Invalid filter: ${filter}`);
+  if (typeof filter !== 'object') return bundles;
   const { type, ...rest } = typeof filter.$and === 'object' ? filter.$and : filter;
   if (typeof type === 'string') {
-    if (!validTypes.includes(type)) throw new Error(`Invalid type filter: ${type}`);
+    if (!validTypes.includes(type)) return bundles;
     bundles.push({ name: type, filter: rest });
   }
   if (Array.isArray(type)) {
     type.forEach((t) => {
-      if (!validTypes.includes(t)) throw new Error(`Invalid type filter: ${t}`);
-      bundles.push({ name: t, filter: rest });
+      if (validTypes.includes(t)) {
+        bundles.push({ name: t, filter: rest });
+      }
     });
   }
   if ([undefined, null].includes(type)) {
