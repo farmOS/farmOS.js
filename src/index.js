@@ -42,20 +42,25 @@ export { default as model } from './model/index.js';
  * @property {FarmEntityMethods} user
  */
 
+/**
+ * To enable support for each entity type, its config object must be provided.
+ * @typedef {import('./entities.js').EntityConfig} EntityConfig
+ */
+
 /** The main farmOS factory function for creating a new farm object.
  * @typedef {Function} farmOS
  * @param {Object} farmConfig
  * @property {import('./model/index.js').EntitySchemata} [config.schemata]
  * @property {Object} [config.remote]
  * @property {import('./client/index.js').client} [config.remote.adapter=d9JsonApiAdapter]
- * @property {Array<import('./entities.js').EntityConfig>} [config.entities]
+ * @property {Object.<String, EntityConfig>} [config.entities=defaultEntities]
  * @returns {FarmObject}
  */
 export default function farmOS(farmConfig) {
   const { schemata, remote, entities = defaultEntities } = farmConfig;
   const shortNames = Object.values(entities).map(e => e.nomenclature.shortName);
 
-  const farm = /** @type {FarmObject} */ (model({ schemata }));
+  const farm = /** @type {FarmObject} */ (model({ schemata, entities }));
 
   const addRemote = (remoteConfig = {}) => {
     const { adapter = d9JsonApiAdapter, ...options } = remoteConfig;
@@ -68,7 +73,7 @@ export default function farmOS(farmConfig) {
     });
     farm.remote = { ...omit(shortNames, connection), add: addRemote };
   };
-  addRemote(remote);
+  addRemote({ ...remote, entities });
 
   return farm;
 }

@@ -4,7 +4,7 @@ import map from 'ramda/src/map.js';
 import createEntity from './create.js';
 import mergeEntity from './merge.js';
 import updateEntity from './update.js';
-import entities, { entityMethods } from '../entities.js';
+import defaultEntities, { entityMethods } from '../entities.js';
 import { dereference } from '../json-schema/reference.js';
 import { createObserver } from '../utils.js';
 
@@ -53,16 +53,20 @@ import { createObserver } from '../utils.js';
  * @property {ModelEntityMethods} user
  */
 
-const entityNames = Object.keys(entities);
-
+/**
+ * @typedef {import('../entities.js').EntityConfig} EntityConfig
+ */
 /**
  * Create a farm model for generating and manipulating farmOS data structures.
  * @typedef {Function} model
  * @param {Object} options
  * @property {EntitySchemata} [options.schemata]
+ * @property {Object<String, EntityConfig>} [options.entities=defaultEntities]
  * @returns {FarmModel}
  */
 export default function model(options = {}) {
+  const { entities = defaultEntities } = options;
+  const entityNames = Object.keys(entities);
   const schemata = map(() => ({}), entities);
 
   const observers = {
@@ -142,8 +146,8 @@ export default function model(options = {}) {
         return lastSync === null || changed > lastSync;
       },
     },
-    ...entityMethods(({ nomenclature: { name } }) => ({
-      create: createEntity(name, schemata),
+    ...entityMethods(({ nomenclature: { name }, defaultOptions }) => ({
+      create: createEntity(name, schemata, defaultOptions),
       merge: mergeEntity(name, schemata),
       update: updateEntity(name, schemata),
     }), entities),

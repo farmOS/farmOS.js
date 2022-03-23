@@ -52,6 +52,15 @@ export const defaultOptions = { byType, byFormat };
  */
 
 /** @type {Object.<String, EntityConfig>} */
+/**
+ * @typedef {Object.<String, EntityConfig>} DefaultEntities
+ * @property {EntityConfig} asset
+ * @property {EntityConfig} log
+ * @property {EntityConfig} plan
+ * @property {EntityConfig} quantity
+ * @property {EntityConfig} taxonomy_term
+ * @property {EntityConfig} user
+ */
 export default {
   asset: {
     nomenclature: {

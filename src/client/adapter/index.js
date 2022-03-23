@@ -8,7 +8,7 @@ import map from 'ramda/src/map.js';
 import path from 'ramda/src/path.js';
 import reduce from 'ramda/src/reduce.js';
 import client from '../index.js';
-import entities, { entityMethods } from '../../entities.js';
+import defaultEntities, { entityMethods } from '../../entities.js';
 import {
   generateFilterTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
@@ -75,13 +75,19 @@ const aggregateBundles = reduce((aggregate, result) => {
 }, { data: [], fulfilled: [], rejected: [] });
 
 /**
+ * @typedef {import('../../entities.js').EntityConfig} EntityConfig
+ */
+/**
  * @param {import('../../model/index').FarmModel} model
  * @param {Object} opts
+ * @property {Object<String, EntityConfig>} [opts.entities=defaultEntities]
  * @returns {import('../index.js').FarmClient}
  */
 export default function adapter(model, opts) {
-  const { host, maxPageLimit = DRUPAL_PAGE_LIMIT, ...rest } = opts;
-  const connection = client(host, rest);
+  const {
+    host, maxPageLimit = DRUPAL_PAGE_LIMIT, entities = defaultEntities, ...rest
+  } = opts;
+  const connection = client(host, { ...rest, entities });
   const initSchemata = model.schema.get();
   let filterTransforms = generateFilterTransforms(initSchemata);
   model.schema.on('set', (schemata) => {

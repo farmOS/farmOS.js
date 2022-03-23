@@ -1,7 +1,6 @@
 import { validate, v4 as uuidv4 } from 'uuid';
 import clone from 'ramda/src/clone.js';
 import { getDefault, listProperties } from '../json-schema/index.js';
-import entities from '../entities.js';
 
 /**
  * @typedef {import('../entities.js').Entity} Entity
@@ -20,7 +19,7 @@ import entities from '../entities.js';
  * @param {import('./index.js').BundleSchemata} schemata
  * @returns {createEntity}
  */
-const createEntity = (entName, schemata) => (props) => {
+const createEntity = (entName, schemata, defaultOptions) => (props) => {
   const { id = uuidv4(), type } = props;
   if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
   const schema = schemata[entName][type];
@@ -41,7 +40,6 @@ const createEntity = (entName, schemata) => (props) => {
     } = {},
   } = meta;
   const fieldChanges = {};
-  const { [entName]: { defaultOptions } } = entities;
   const initFields = (fieldType) => {
     const fields = {};
     listProperties(schema, fieldType).forEach((name) => {

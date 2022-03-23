@@ -3,7 +3,7 @@ import deleteEntity from './delete.js';
 import fetchEntity from './fetch.js';
 import sendEntity from './send.js';
 import oauth from './oauth.js';
-import entities, { entityMethods } from '../entities.js';
+import defaultEntities, { entityMethods } from '../entities.js';
 import fetchSchema from './schema.js';
 
 /** The methods for transmitting farmOS data structures, such as assets, logs,
@@ -40,11 +40,16 @@ import fetchSchema from './schema.js';
  */
 
 /**
+ * @typedef {import('../entities.js').EntityConfig} EntityConfig
+ */
+
+/**
  * Create a farm client for interacting with farmOS servers.
  * @typedef {Function} client
  * @param {String} host
  * @param {Object} [options]
  * @property {AuthMixin=OAuthMixin} [options.auth=oauth]
+ * @property {Object<String, EntityConfig>} [options.entities=defaultEntities]
  * @property {String} [options.clientId]
  * @property {Function} [options.getToken]
  * @property {Function} [options.setToken]
@@ -53,6 +58,7 @@ import fetchSchema from './schema.js';
 export default function client(host, options) {
   const {
     auth = oauth,
+    entities = defaultEntities,
     ...authOptions
   } = options;
 
@@ -75,7 +81,7 @@ export default function client(host, options) {
       return request('/api');
     },
     schema: {
-      fetch: fetchSchema(request),
+      fetch: fetchSchema(request, entities),
     },
     ...entityMethods(({ nomenclature: { name } }) => ({
       delete: deleteEntity(name, request),
