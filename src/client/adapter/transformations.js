@@ -1,16 +1,14 @@
-import assoc from 'ramda/src/assoc.js';
 import compose from 'ramda/src/compose.js';
 import dissoc from 'ramda/src/dissoc.js';
 import evolve from 'ramda/src/evolve.js';
-import has from 'ramda/src/has.js';
 import filter from 'ramda/src/filter.js';
 import map from 'ramda/src/map.js';
+import mapObjIndexed from 'ramda/src/mapObjIndexed';
 import omit from 'ramda/src/omit.js';
 import pick from 'ramda/src/pick.js';
 import prop from 'ramda/src/prop.js';
 import path from 'ramda/src/path.js';
 import replace from 'ramda/src/replace.js';
-import unless from 'ramda/src/unless.js';
 import typeToBundle from '../type-to-bundle.js';
 import { getPath } from '../../json-schema/index.js';
 import { isObject } from '../../utils.js';
@@ -86,19 +84,10 @@ const attributeDefaults = {
   plan: {
     status: 'active',
   },
-  quantity: {},
-  taxonomy_term: {},
   user: {
     langcode: 'en',
   },
 };
-const addSchemaDefaults = compose(
-  evolve,
-  map(defaultValue => unless(
-    has('default'),
-    assoc('default', defaultValue),
-  )),
-);
 
 // Relationships are comprised of either one resource identifier objects, or an
 // array of resource identifier objects. For now, we'll just use the same schema
@@ -133,7 +122,13 @@ export const transformD9Schema = entName => (d9Schema) => {
   const defaultTitle = `${bundle} ${entName}`;
 
   const transformAttributeFields = evolve({
-    properties: addSchemaDefaults(attributeDefaults[entName]),
+    properties: mapObjIndexed((subschema, propName) => {
+      const hasOwnDefault = isObject(subschema) && 'default' in subschema;
+      if (hasOwnDefault) return subschema;
+      const standardDefault = path([entName, propName], attributeDefaults);
+      if (!standardDefault) return subschema;
+      return { ...subschema, default: standardDefault };
+    }),
   });
   const transformRelationshipFields = evolve({
     properties: map(transformResourceSchema),
