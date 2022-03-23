@@ -9,6 +9,7 @@ const byType = {
 const byFormat = {
   'date-time': () => new Date().toISOString(),
 };
+export const defaultOptions = { byType, byFormat };
 
 /**
  * @typedef {Object} EntityReference
@@ -61,10 +62,7 @@ export default {
       display: 'Asset',
       displayPlural: 'Assets',
     },
-    defaultOptions: {
-      byType,
-      byFormat,
-    },
+    defaultOptions,
   },
   log: {
     nomenclature: {
@@ -75,10 +73,7 @@ export default {
       display: 'Log',
       displayPlural: 'Logs',
     },
-    defaultOptions: {
-      byType,
-      byFormat,
-    },
+    defaultOptions,
   },
   plan: {
     nomenclature: {
@@ -89,10 +84,7 @@ export default {
       display: 'Plan',
       displayPlural: 'Plans',
     },
-    defaultOptions: {
-      byType,
-      byFormat,
-    },
+    defaultOptions,
   },
   quantity: {
     nomenclature: {
@@ -103,10 +95,7 @@ export default {
       display: 'Quantity',
       displayPlural: 'Quantities',
     },
-    defaultOptions: {
-      byType,
-      byFormat,
-    },
+    defaultOptions,
   },
   taxonomy_term: {
     nomenclature: {
@@ -117,10 +106,7 @@ export default {
       display: 'Taxonomy Term',
       displayPlural: 'Taxonomy Terms',
     },
-    defaultOptions: {
-      byType,
-      byFormat,
-    },
+    defaultOptions,
   },
   user: {
     nomenclature: {
@@ -131,10 +117,7 @@ export default {
       display: 'User',
       displayPlural: 'Users',
     },
-    defaultOptions: {
-      byType,
-      byFormat,
-    },
+    defaultOptions,
   },
 };
 
