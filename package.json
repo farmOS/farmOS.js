@@ -1,6 +1,6 @@
 {
   "name": "farmos",
-  "version": "2.0.0-beta.9",
+  "version": "2.0.0-beta.10",
   "description": "A JavaScript library for working with farmOS data structures and interacting with farmOS servers.",
   "main": "dist/cjs/farmOS.js",
   "module": "dist/esm/farmOS.js",
