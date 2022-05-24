@@ -5,7 +5,10 @@ import defaultEntities from './entities.js';
 
 export { default as entities } from './entities.js';
 export { default as client } from './client/index.js';
+export { default as parseFilter } from './client/parse-filter.js';
 export { parseBundles } from './client/adapter/index.js';
+export { generateFieldTransforms } from './client/adapter/transformations.js';
+export { transformLocalEntity } from './client/adapter/transformations.js';
 export { default as model } from './model/index.js';
 
 /** The methods for writing to local copies of farmOS data structures, such as
