@@ -10,7 +10,7 @@ import reduce from 'ramda/src/reduce.js';
 import client from '../index.js';
 import defaultEntities, { entityMethods } from '../../entities.js';
 import {
-  generateFilterTransforms, transformD9Schema, transformLocalEntity,
+  generateFieldTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
 
@@ -89,9 +89,9 @@ export default function adapter(model, opts) {
   } = opts;
   const connection = client(host, { ...rest, entities });
   const initSchemata = model.schema.get();
-  let filterTransforms = generateFilterTransforms(initSchemata);
+  let fieldTransforms = generateFieldTransforms(initSchemata);
   model.schema.on('set', (schemata) => {
-    filterTransforms = generateFilterTransforms(schemata);
+    fieldTransforms = generateFieldTransforms(schemata);
   });
 
   // For chaining consecutive requests for the next page of resources until the
@@ -141,8 +141,8 @@ export default function adapter(model, opts) {
             filter: bundleFilter,
             limit,
           };
-          if (name in filterTransforms && bundle in filterTransforms[name]) {
-            fetchOptions.filterTransforms = filterTransforms[name][bundle];
+          if (name in fieldTransforms && bundle in fieldTransforms[name]) {
+            fetchOptions.filterTransforms = fieldTransforms[name][bundle];
           }
           const req = connection[shortName].fetch(bundle, fetchOptions);
           return chainRequests(req, limit);
@@ -156,7 +156,7 @@ export default function adapter(model, opts) {
       },
       send: data => connection[shortName].send(
         data.type,
-        transformLocalEntity(name, data),
+        transformLocalEntity(name, data, fieldTransforms),
       ).then(transformSendResponse(name)),
     }), entities),
   };

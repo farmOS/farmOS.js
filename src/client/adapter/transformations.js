@@ -17,38 +17,42 @@ const dropMilliseconds = replace(/\.\d\d\d/, '');
 const safeIso = t => t && new Date(t).toISOString();
 const safeUnix = t => t && Math.floor(new Date(t).valueOf() / 1000);
 
-// These functions provide transformations that are ultimately passed to
-// parseFilter, so it can compare values of the same format.
-const filterTransformsByFormat = {
+// These functions correspond to string formats in the JSON Schema for an entity
+// and are used to convert between local formats and server-supported formats.
+const transformsByFormat = {
   'date-time': safeUnix,
 };
-const filterTransformsByMetafield = {
+const transformsByMetafield = {
   created: safeUnix,
   changed: safeUnix,
   revision_created: safeUnix,
 };
-// The transforms need to be regenerated whenever the schemata are set, so the
-// format transforms can be mapped to every field with that format.
-export const generateFilterTransforms = (schemata) => {
-  const formats = filterTransformsByFormat;
-  const filterTransforms = {};
+/**
+ * The transforms need to be regenerated whenever the schemata are set, so the
+ * format transforms can be mapped to every field with that format.
+ * @param {import('../../model/index').EntitySchemata} schemata
+ * @returns {FieldTransforms}
+ */
+export const generateFieldTransforms = (schemata) => {
+  const formats = transformsByFormat;
+  const transforms = {};
   const entities = Object.keys(schemata);
   entities.forEach((entity) => {
-    filterTransforms[entity] = {};
+    transforms[entity] = {};
     Object.entries(schemata[entity]).forEach(([bundle, schema]) => {
-      filterTransforms[entity][bundle] = { ...filterTransformsByMetafield };
+      transforms[entity][bundle] = { ...transformsByMetafield };
       const attributes = getPath(schema, 'attributes');
       const relationships = getPath(schema, 'relationships');
       const fieldSchemata = { ...attributes.properties, ...relationships.properties };
       Object.entries(fieldSchemata).forEach(([field, sub]) => {
         if (isObject(sub) && 'format' in sub && sub.format in formats) {
           const { [sub.format]: transform } = formats;
-          filterTransforms[entity][bundle][field] = transform;
+          transforms[entity][bundle][field] = transform;
         }
       });
     });
   });
-  return filterTransforms;
+  return transforms;
 };
 
 export const drupalMetaFields = {
@@ -157,11 +161,34 @@ export const transformD9Schema = entName => (d9Schema) => {
   };
 };
 
-export const transformLocalEntity = (entName, data) => compose(
+/**
+ * @typedef {Object<String, Function>} BundleTransforms
+ * @typedef {Object<String, BundleTransforms>} EntityTransforms
+ * @typedef {Object<String, EntityTransforms>} FieldTransforms
+ */
+/**
+ * @param {String} ent Entity name
+ * @param {String} type Bundle name
+ * @param {FieldTransforms} fns Collection of tranform functions
+ * @returns {Object<string, object>}
+ */
+const safeTransforms = (ent, type, fns = { [ent]: { [type]: {} } }) => fns[ent][type];
+
+/**
+ * For transforming local entities into acceptable format for D9 JSON:API farmOS.
+ * @param {String} entName Entity name
+ * @param {import('../../entities').Entity} data The actual data of such an entity
+ * @param {FieldTransforms} transforms Collection of transforms
+ * @returns {Object}
+ */
+export const transformLocalEntity = (entName, data, transforms) => compose(
   dissoc('meta'),
   evolve({
     type: t => `${entName}--${t}`,
-    attributes: { timestamp: dropMilliseconds },
+    attributes: {
+      timestamp: dropMilliseconds,
+      ...safeTransforms(entName, data.type, transforms),
+    },
     relationships: map(r => ({ data: r })),
   }),
 )(data);
