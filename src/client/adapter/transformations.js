@@ -153,7 +153,7 @@ export const transformD9Schema = entName => (d9Schema) => {
     type: 'object',
     properties: {
       id: { type: 'string', format: 'uuid' },
-      type: { const: bundle },
+      type,
       meta: { type: 'object' },
       attributes: transformAttributesSchema(attributes),
       relationships: transformRelationshipsSchema(relationships),
@@ -168,11 +168,11 @@ export const transformD9Schema = entName => (d9Schema) => {
  */
 /**
  * @param {String} ent Entity name
- * @param {String} type Bundle name
+ * @param {String} b Bundle name
  * @param {FieldTransforms} fns Collection of tranform functions
  * @returns {Object<string, object>}
  */
-const safeTransforms = (ent, type, fns = { [ent]: { [type]: {} } }) => fns[ent][type];
+const safeTransforms = (ent, b, fns = { [ent]: { [b]: {} } }) => fns[ent][b];
 
 /**
  * For transforming local entities into acceptable format for D9 JSON:API farmOS.
@@ -184,10 +184,9 @@ const safeTransforms = (ent, type, fns = { [ent]: { [type]: {} } }) => fns[ent][
 export const transformLocalEntity = (entName, data, transforms) => compose(
   dissoc('meta'),
   evolve({
-    type: t => `${entName}--${t}`,
     attributes: {
       timestamp: dropMilliseconds,
-      ...safeTransforms(entName, data.type, transforms),
+      ...safeTransforms(entName, typeToBundle(data.type), transforms),
     },
     relationships: map(r => ({ data: r })),
   }),
@@ -211,7 +210,7 @@ const transformRemoteEntity = (entName, setLastSync = false) => ({
   id, type, attributes = emptyAttrs, relationships = {},
 }) => ({
   id,
-  type: typeToBundle(entName, type),
+  type,
   meta: {
     created: safeIso(attributes.created),
     changed: safeIso(attributes.changed),

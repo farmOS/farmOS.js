@@ -13,6 +13,7 @@ import {
   generateFieldTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
+import { parseEntityType } from '../type-to-bundle.js';
 
 /**
  * @typedef {import('../../json-schema/reference').JsonSchema} JsonSchema
@@ -22,7 +23,7 @@ import {
 
 const DRUPAL_PAGE_LIMIT = 50;
 
-export function parseBundles(filter, validTypes) {
+export function parseBundles(filter, validBundles) {
   const bundles = [];
   // The filter must either be an object (logical $and) or an array (logical $or).
   if (Array.isArray(filter) || Array.isArray(filter.$or)) {
@@ -42,19 +43,21 @@ export function parseBundles(filter, validTypes) {
   if (typeof filter !== 'object') return bundles;
   const { type, ...rest } = typeof filter.$and === 'object' ? filter.$and : filter;
   if (typeof type === 'string') {
-    if (!validTypes.includes(type)) return bundles;
-    bundles.push({ name: type, filter: rest });
+    const { bundle } = parseEntityType(type);
+    if (!validBundles.includes(bundle)) return bundles;
+    bundles.push({ name: bundle, filter: rest });
   }
   if (Array.isArray(type)) {
     type.forEach((t) => {
-      if (validTypes.includes(t)) {
-        bundles.push({ name: t, filter: rest });
+      const { bundle } = parseEntityType(t);
+      if (validBundles.includes(bundle)) {
+        bundles.push({ name: bundle, filter: rest });
       }
     });
   }
   if ([undefined, null].includes(type)) {
-    validTypes.forEach((t) => {
-      bundles.push({ name: t, filter: rest });
+    validBundles.forEach((b) => {
+      bundles.push({ name: b, filter: rest });
     });
   }
   return bundles;
@@ -112,8 +115,8 @@ export default function adapter(model, opts) {
   return {
     ...connection,
     schema: {
-      fetch(entName, type) {
-        return connection.schema.fetch(entName, type)
+      fetch(entName, bundle) {
+        return connection.schema.fetch(entName, bundle)
           .then((schemata) => {
             if (!entName) {
               return mapObjIndexed(
@@ -124,7 +127,7 @@ export default function adapter(model, opts) {
                 schemata,
               );
             }
-            if (!type) {
+            if (!bundle) {
               return map(transformD9Schema(entName), schemata);
             }
             return transformD9Schema(entName)(schemata);

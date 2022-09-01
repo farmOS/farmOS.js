@@ -20,7 +20,7 @@ export const defaultOptions = { byType, byFormat };
 /**
  * @typedef {Object} Entity
  * @property {String} id A v4 UUID as specified by RFC 4122.
- * @property {String} type Corresponding to the entity bundle (eg, 'activity').
+ * @property {String} type The combined form of entity & bundle (eg, 'log--activity').
  * @property {Object} attributes Values directly attributable to this entity.
  * @property {Object.<String, EntityReference|Array.<EntityReference>>} relationships
  * References to other entities that define a one-to-one or one-to-many relationship.
