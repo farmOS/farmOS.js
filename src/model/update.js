@@ -1,6 +1,7 @@
 import { validate } from 'uuid';
 import clone from 'ramda/src/clone.js';
 import { listProperties } from '../json-schema/index.js';
+import { parseTypeFromFields } from '../client/type-to-bundle.js';
 
 /**
  * @typedef {import('../entities.js').Entity} Entity
@@ -13,14 +14,14 @@ import { listProperties } from '../json-schema/index.js';
  * @returns {Entity}
  */
 /**
- * @param {string} entName
  * @param {import('./index.js').BundleSchemata} schemata
  * @returns {updateEntity}
  */
-const updateEntity = (entName, schemata) => (entity, props) => {
-  const { id, type } = entity;
+const updateEntity = (schemata) => (entity, props) => {
+  const { id } = entity;
+  const { entity: entName, bundle, type } = parseTypeFromFields(entity);
   if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
-  const schema = schemata[entName][type];
+  const schema = schemata[entName] && schemata[entName][bundle];
   if (!schema) { throw new Error(`Cannot find a schema for the ${entName} type: ${type}.`); }
 
   const now = new Date().toISOString();

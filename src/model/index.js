@@ -6,7 +6,8 @@ import mergeEntity from './merge.js';
 import updateEntity from './update.js';
 import defaultEntities, { entityMethods } from '../entities.js';
 import { dereference } from '../json-schema/reference.js';
-import { createObserver } from '../utils.js';
+import { createObserver, isObject } from '../utils.js';
+import { parseEntityType } from '../client/type-to-bundle.js';
 
 /**
  * JSON Schema for defining the entities supported by a farmOS instance.
@@ -66,7 +67,6 @@ import { createObserver } from '../utils.js';
  */
 export default function model(options = {}) {
   const { entities = defaultEntities } = options;
-  const entityNames = Object.keys(entities);
   const schemata = map(() => ({}), entities);
 
   const observers = {
@@ -79,45 +79,68 @@ export default function model(options = {}) {
    * Retrieve all schemata that have been previously set, or the schemata of a
    * particular entity, or one bundle's schema, if specified.
    * @param {String} [entity] The name of a farmOS entity (eg, 'asset', 'log', etc).
-   * @param {String} [type] The entity's type (aka, bundle).
+   * @param {String} [bundle] The entity's bundle (eg, 'activity' for type 'log--activity').
    * @returns {EntitySchemata|BundleSchemata|JsonSchemaDereferenced}
    */
-  function getSchemata(entity, type) {
-    if (!entity) {
-      return clone(schemata);
+  function getSchemata(entity, bundle) {
+    if (schemata[entity] && schemata[entity][bundle]) {
+      return clone(schemata[entity][bundle]);
     }
-    if (!type) {
+    if (schemata[entity]) {
       return clone(schemata[entity]);
     }
-    return clone(schemata[entity][type]);
+    return clone(schemata);
   }
 
   /**
    * Load all schemata, the schemata of a particular entity, or one bundle's
-   * schema, if spcified.
+   * schema, if specified.
    * @param {...String|EntitySchemata|BundleSchemata|JsonSchema} args
    * @void
    */
   function setSchemata(...args) {
-    if (args.length === 1) {
-      entityNames.forEach((entName) => {
-        if (entName in args[0]) {
-          setSchemata(entName, args[0][entName]);
+    if (args.length === 0) {
+      throw new Error('At least one valid argument is required for setting '
+        + 'farm schemata but none was provided.');
+    }
+    if (args.length === 1 && isObject(args[0])) {
+      const [entitySchemata] = args;
+      Object.entries(entitySchemata).forEach(([entity, bundleSchemata]) => {
+        if (entity in schemata) {
+          setSchemata(entity, bundleSchemata);
         }
       });
+      return clone(schemata);
     }
-    if (args.length === 2) {
-      const [entName, newSchemata] = args;
-      if (entityNames.includes(entName)) {
-        Object.entries(newSchemata).forEach(([type, schema]) => {
-          setSchemata(entName, type, schema);
-        });
+    if (args.length === 2 && isObject(args[1])) {
+      const type0 = parseEntityType(args[0]);
+      if (type0.entity in schemata && type0.bundle) {
+        const { entity, bundle } = type0;
+        const [, schema] = args;
+        setSchemata(entity, bundle, schema);
+        return clone(schemata)[entity][bundle];
       }
+      const [entity, bundleSchemata] = args;
+      Object.entries(bundleSchemata).forEach(([type1, schema]) => {
+        const { bundle = type1 } = parseEntityType(type1);
+        setSchemata(entity, bundle, schema);
+      });
+      Object.keys(schemata[entity]).forEach((bundle) => {
+        if (!(bundle in bundleSchemata)) delete schemata[bundle];
+      });
+      return clone(schemata)[entity];
     }
-    if (args.length > 2) {
-      const [entName, type, schema] = args;
-      schemata[entName][type] = dereference(schema);
+    if (args.length === 3
+      && args[0] in schemata
+      && typeof args[1] === 'string'
+      && isObject(args[2])) {
+      const [entity, type, schema] = args;
+      const { bundle = type } = parseEntityType(type);
+      schemata[entity][bundle] = dereference(schema);
+      return clone(schemata)[entity][bundle];
     }
+    const description = 'One or more invalid arguments for setting farm schemata';
+    throw new Error(`${description}: ${args.join(', ')}.`);
   }
 
   if (options.schemata) setSchemata(options.schemata);
@@ -146,10 +169,10 @@ export default function model(options = {}) {
         return lastSync === null || changed > lastSync;
       },
     },
-    ...entityMethods(({ nomenclature: { name }, defaultOptions }) => ({
-      create: createEntity(name, schemata, defaultOptions),
-      merge: mergeEntity(name, schemata),
-      update: updateEntity(name, schemata),
+    ...entityMethods(({ defaultOptions }) => ({
+      create: createEntity(schemata, defaultOptions),
+      merge: mergeEntity(schemata),
+      update: updateEntity(schemata),
     }), entities),
   };
 }

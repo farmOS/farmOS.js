@@ -1,6 +1,7 @@
 import { validate, v4 as uuidv4 } from 'uuid';
 import clone from 'ramda/src/clone.js';
 import { getDefault, listProperties } from '../json-schema/index.js';
+import { parseTypeFromFields } from '../client/type-to-bundle.js';
 
 /**
  * @typedef {import('../entities.js').Entity} Entity
@@ -15,15 +16,15 @@ import { getDefault, listProperties } from '../json-schema/index.js';
  * @returns {Entity}
  */
 /**
- * @param {string} entName
  * @param {import('./index.js').BundleSchemata} schemata
  * @returns {createEntity}
  */
-const createEntity = (entName, schemata, defaultOptions) => (props) => {
-  const { id = uuidv4(), type } = props;
-  if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
-  const schema = schemata[entName][type];
-  if (!schema) { throw new Error(`Cannot find a schema for the ${entName} type: ${type}.`); }
+const createEntity = (schemata, defaultOptions) => (props) => {
+  const { id = uuidv4() } = props;
+  const { entity, bundle, type } = parseTypeFromFields(props);
+  if (!validate(id)) { throw new Error(`Invalid ${entity} id: ${id}`); }
+  const schema = schemata[entity] && schemata[entity][bundle];
+  if (!schema) { throw new Error(`Cannot find a schema for the ${entity} type: ${type}.`); }
   const {
     attributes = {}, relationships = {}, meta = {}, ...rest
   } = clone(props);

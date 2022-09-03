@@ -12,6 +12,7 @@ import map from 'ramda/src/map.js';
 import prop from 'ramda/src/prop.js';
 import createEntity from './create.js';
 import { listProperties } from '../json-schema/index.js';
+import { parseTypeFromFields } from '../client/type-to-bundle.js';
 
 // Helpers for determining if a set of fields are equivalent. Attributes are
 // fairly straightforward, but relationships need to be compared strictly by
@@ -42,36 +43,36 @@ const eqFields = fieldType =>
  * @returns {Entity}
  */
 /**
- * @param {string} entName
  * @param {import('./index.js').BundleSchemata} schemata
  * @returns {mergeEntity}
  */
-const mergeEntity = (entName, schemata) => (local, remote) => {
+const mergeEntity = (schemata) => (local, remote) => {
   if (!remote) return clone(local);
   const now = new Date().toISOString();
   if (!local) {
     // A nullish local value represents the first time a remotely generated
     // entity was fetched, so all changes are considered synced with the remote.
     const resetLastSync = evolve({ meta: { remote: { lastSync: () => now } } });
-    return createEntity(entName, schemata)(resetLastSync(remote));
+    return createEntity(schemata)(resetLastSync(remote));
   }
-  const { id, type } = local;
-  if (!validate(id)) { throw new Error(`Invalid ${entName} id: ${id}`); }
-  const schema = schemata[entName][type];
+  const { id } = local;
+  const { entity, bundle, type } = parseTypeFromFields(local);
+  if (!validate(id)) { throw new Error(`Invalid ${entity} id: ${id}`); }
+  const schema = schemata[entity] && schemata[entity][bundle];
   if (!schema) {
-    throw new Error(`Cannot find a schema for the ${entName} type: ${type}.`);
+    throw new Error(`Cannot find a schema for the ${entity} type: ${type}.`);
   }
   const localName = local.attributes && `"${local.attributes.name || ''}" `;
   if (id !== remote.id) {
-    throw new Error(`Cannot merge remote ${entName} with UUID ${remote.id} `
-      + `and local ${entName} ${localName}with UUID ${id}.`);
+    throw new Error(`Cannot merge remote ${entity} with UUID ${remote.id} `
+      + `and local ${entity} ${localName}with UUID ${id}.`);
   }
   if (local.type !== remote.type) {
-    throw new Error(`Cannot merge remote ${entName} of type ${remote.type} `
-      + `and local ${entName} ${localName}of type ${local.type}.`);
+    throw new Error(`Cannot merge remote ${entity} of type ${remote.type} `
+      + `and local ${entity} ${localName}of type ${local.type}.`);
   }
   if (local.meta.conflicts.length > 0) {
-    throw new Error(`Cannot merge local ${entName} ${localName}`
+    throw new Error(`Cannot merge local ${entity} ${localName}`
       + 'while it still has unresolved conflicts.');
   }
 

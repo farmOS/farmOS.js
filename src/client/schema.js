@@ -1,6 +1,8 @@
+import compose from 'ramda/src/compose.js';
+import filter from 'ramda/src/filter.js';
 import map from 'ramda/src/map.js';
-import prop from 'ramda/src/prop.js';
-import typeToBundle from './type-to-bundle.js';
+import path from 'ramda/src/path.js';
+import { parseEntityType } from './type-to-bundle.js';
 
 /**
  * Fetch JSON Schema documents for farmOS data structures.
@@ -20,32 +22,25 @@ import typeToBundle from './type-to-bundle.js';
  * @returns {FetchSchema}
  */
 const fetchSchema = (request, entities) => (entity, bundle) => {
-  if (!entity) {
-    const schemata = map(() => ({}), entities);
-    return request('/api/')
-      .then(res => Promise.all(Object.keys(res.data.links)
-        .filter(type => Object.keys(entities)
-          .some(name => type.startsWith(`${name}--`)))
-        .map((type) => {
-          const [entName, b] = type.split('--');
-          return request(`/api/${entName}/${b}/resource/schema`)
-            .then(({ data: schema }) => { schemata[entName][b] = schema; });
-        })))
-      .then(() => schemata);
+  const schemata = map(() => ({}), entities);
+  const toSchemaRequest = ({ entity: e, bundle: b }) =>
+    request(`/api/${e}/${b}/resource/schema`).then(({ data: schema }) => {
+      schemata[e][b] = schema;
+      return schema;
+    });
+  if (entity in entities && bundle) {
+    return toSchemaRequest({ entity, bundle }).then(({ data }) => data);
   }
-  if (!bundle) {
-    return request('/api/')
-      .then(res => Promise.all(Object.keys(res.data.links)
-        .filter(type => type.startsWith(`${entity}--`))
-        .map((type) => {
-          const b = typeToBundle(entity, type);
-          return request(`/api/${entity}/${b}/resource/schema`)
-            .then(({ data: schema }) => [b, schema]);
-        }))
-        .then(Object.fromEntries));
-  }
-  return request(`/api/${entity}/${bundle}/resource/schema`)
-    .then(prop('data'));
+  const mapToSchemaRequests = compose(
+    map(toSchemaRequest),
+    !entity ? filter(o => o.entity in entities) : filter(o => o.entity === entity),
+    map(parseEntityType),
+    Object.keys,
+    path(['data', 'links']),
+  );
+  return request('/api/')
+    .then(response => Promise.all(mapToSchemaRequests(response)))
+    .then(() => schemata);
 };
 
 export default fetchSchema;
