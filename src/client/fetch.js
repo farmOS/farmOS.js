@@ -14,14 +14,7 @@ import parseFilter from './parse-filter.js';
 /** @type {(limit: Number?) => String} */
 const parseLimit = limit =>
   (Number.isInteger(limit) && limit > 0 ? `&page[limit]=${limit}` : '');
-/**
- * @param {Object} [options]
- * @property {Object} [options.filter]
- * @property {Object} [options.filterTransforms]
- * @property {Object} [options.limit]
- * @returns {String}
- */
-const parseFetchParams = ({ filter = {}, filterTransforms, limit } = {}) =>
+const parseFetchParams = ({ filter, filterTransforms, limit }) =>
   parseFilter(filter, { filterTransforms }) + parseLimit(limit);
 
 /**

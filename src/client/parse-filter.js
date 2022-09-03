@@ -25,7 +25,7 @@ const comparison = {
   $nin: 'NOT%20IN',
 };
 
-export default function parseFilter(filter, options = {}) {
+export default function parseFilter(filter = {}, options = {}) {
   const { filterTransforms = {} } = options;
 
   function parseComparison(path, expr, comGroup = null, index = 0) {
