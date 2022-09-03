@@ -12,7 +12,7 @@ import map from 'ramda/src/map.js';
 import prop from 'ramda/src/prop.js';
 import createEntity from './create.js';
 import { listProperties } from '../json-schema/index.js';
-import { parseTypeFromFields } from '../client/type-to-bundle.js';
+import { parseTypeFromFields } from '../utils.js';
 
 // Helpers for determining if a set of fields are equivalent. Attributes are
 // fairly straightforward, but relationships need to be compared strictly by

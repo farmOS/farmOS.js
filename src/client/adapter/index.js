@@ -12,7 +12,7 @@ import {
   generateFieldTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
-import { parseEntityType } from '../type-to-bundle.js';
+import { parseEntityType } from '../../utils.js';
 
 /**
  * @typedef {import('../../json-schema/reference').JsonSchema} JsonSchema

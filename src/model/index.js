@@ -6,8 +6,7 @@ import mergeEntity from './merge.js';
 import updateEntity from './update.js';
 import defaultEntities, { entityMethods } from '../entities.js';
 import { dereference } from '../json-schema/reference.js';
-import { createObserver, isObject } from '../utils.js';
-import { parseEntityType } from '../client/type-to-bundle.js';
+import { createObserver, isObject, parseEntityType } from '../utils.js';
 
 /**
  * JSON Schema for defining the entities supported by a farmOS instance.

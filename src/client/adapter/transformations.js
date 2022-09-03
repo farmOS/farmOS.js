@@ -10,8 +10,7 @@ import prop from 'ramda/src/prop.js';
 import path from 'ramda/src/path.js';
 import replace from 'ramda/src/replace.js';
 import { getPath } from '../../json-schema/index.js';
-import { isObject } from '../../utils.js';
-import { parseEntityType } from '../type-to-bundle.js';
+import { isObject, parseEntityType } from '../../utils.js';
 
 const dropMilliseconds = replace(/\.\d\d\d/, '');
 const safeIso = t => t && new Date(t).toISOString();
