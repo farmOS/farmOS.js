@@ -87,7 +87,7 @@ const typeOfRelationship = (schema, field) => path([
 ], schema);
 
 // Wrapper merely provides an instance of FarmObject via dependency injection.
-export default function makeSendWithSubrequest(farm) {
+export default function useSubrequests(farm) {
   // Called before any requests have been sent, unlike resolveDependencies. This
   // is mutually recursive with parseSubrequests, and is how each subrequest and
   // its child subrequests are assigned their priority number, which accordingly
@@ -293,19 +293,23 @@ export default function makeSendWithSubrequest(farm) {
     return parseSubrequest(Object.fromEntries(rest), opts, prefix);
   }
 
-  function chainRequests(prior, requests, priority = 0) {
+  function chainSubrequests(requests, prior = {}, priority = 0) {
     const [ready, waiting] = partition(r => r.priority === priority, requests);
     const resolveBlueprint = ({ blueprint }) => blueprint(ready, prior, waiting);
     const data = chain(resolveBlueprint, Object.values(ready));
     const promise = farm.remote.request(SUB_URL, { method: 'POST', data })
       .then(concatSubresponses(prior, ready));
     if (Object.keys(waiting).length === 0) return promise;
-    return promise.then(done => chainRequests(done, waiting, priority + 1));
+    return promise.then(done => chainSubrequests(waiting, done, priority + 1));
   }
 
-  return function sendWithSubrequest(data, subrequest = {}) {
-    const prior = { 'ROOT-DATA': { data } };
-    const requests = parseSubrequest(subrequest);
-    return chainRequests(prior, requests);
+  return {
+    parse: parseSubrequest,
+    chain: chainSubrequests,
+    send(subrequest = {}, data = null) {
+      const prior = { 'ROOT-DATA': { data } };
+      const requests = parseSubrequest(subrequest);
+      return chainSubrequests(requests, prior);
+    },
   };
 }
