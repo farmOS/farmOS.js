@@ -9,9 +9,9 @@ import pick from 'ramda/src/pick.js';
 import prop from 'ramda/src/prop.js';
 import path from 'ramda/src/path.js';
 import replace from 'ramda/src/replace.js';
-import typeToBundle from '../type-to-bundle.js';
 import { getPath } from '../../json-schema/index.js';
 import { isObject } from '../../utils.js';
+import { parseEntityType } from '../type-to-bundle.js';
 
 const dropMilliseconds = replace(/\.\d\d\d/, '');
 const safeIso = t => t && new Date(t).toISOString();
@@ -118,18 +118,18 @@ const transformResourceSchema = (subschema) => {
   return { type, title, items: resourceSchema };
 };
 
-export const transformD9Schema = entName => (d9Schema) => {
+export const transformD9Schema = (d9Schema) => {
   const {
     $id, $schema, title, definitions: { type, attributes, relationships },
   } = d9Schema;
-  const bundle = typeToBundle(entName, type.const);
-  const defaultTitle = `${bundle} ${entName}`;
+  const { entity, bundle } = parseEntityType(type.const);
+  const defaultTitle = `${bundle} ${entity}`;
 
   const transformAttributeFields = evolve({
     properties: mapObjIndexed((subschema, propName) => {
       const hasOwnDefault = isObject(subschema) && 'default' in subschema;
       if (hasOwnDefault) return subschema;
-      const standardDefault = path([entName, propName], attributeDefaults);
+      const standardDefault = path([entity, propName], attributeDefaults);
       if (!standardDefault) return subschema;
       return { ...subschema, default: standardDefault };
     }),
@@ -143,7 +143,7 @@ export const transformD9Schema = entName => (d9Schema) => {
   );
   const transformRelationshipsSchema = compose(
     transformRelationshipFields,
-    removeDrupalMetaSchemas(drupalMetaFields.relationships.concat(`${entName}_type`)),
+    removeDrupalMetaSchemas(drupalMetaFields.relationships.concat(`${entity}_type`)),
   );
 
   return {
@@ -167,26 +167,28 @@ export const transformD9Schema = entName => (d9Schema) => {
  * @typedef {Object<String, EntityTransforms>} FieldTransforms
  */
 /**
- * @param {String} ent Entity name
- * @param {String} b Bundle name
+ * @param {String} type Entity type (eg, 'log--activity')
  * @param {FieldTransforms} fns Collection of tranform functions
  * @returns {Object<string, object>}
  */
-const safeTransforms = (ent, b, fns = { [ent]: { [b]: {} } }) => fns[ent][b];
+const safeTransforms = (type, fns = {}) => {
+  const { entity, bundle } = parseEntityType(type);
+  const transforms = fns[entity] && fns[entity][bundle];
+  return transforms || {};
+};
 
 /**
  * For transforming local entities into acceptable format for D9 JSON:API farmOS.
- * @param {String} entName Entity name
  * @param {import('../../entities').Entity} data The actual data of such an entity
  * @param {FieldTransforms} transforms Collection of transforms
  * @returns {Object}
  */
-export const transformLocalEntity = (entName, data, transforms) => compose(
+export const transformLocalEntity = (data, transforms) => compose(
   dissoc('meta'),
   evolve({
     attributes: {
       timestamp: dropMilliseconds,
-      ...safeTransforms(entName, typeToBundle(data.type), transforms),
+      ...safeTransforms(data.type, transforms),
     },
     relationships: map(r => ({ data: r })),
   }),

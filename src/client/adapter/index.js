@@ -3,7 +3,6 @@ import chain from 'ramda/src/chain.js';
 import compose from 'ramda/src/compose.js';
 import concat from 'ramda/src/concat.js';
 import evolve from 'ramda/src/evolve.js';
-import mapObjIndexed from 'ramda/src/mapObjIndexed.js';
 import map from 'ramda/src/map.js';
 import path from 'ramda/src/path.js';
 import reduce from 'ramda/src/reduce.js';
@@ -119,26 +118,20 @@ export default function adapter(model, opts) {
         return connection.schema.fetch(entName, bundle)
           .then((schemata) => {
             if (!entName) {
-              return mapObjIndexed(
-                (entitySchemata, entityName) => map(
-                  transformD9Schema(entityName),
-                  entitySchemata,
-                ),
-                schemata,
-              );
+              return map((s) => map(transformD9Schema, s), schemata);
             }
             if (!bundle) {
-              return map(transformD9Schema(entName), schemata);
+              return map(transformD9Schema, schemata);
             }
-            return transformD9Schema(entName)(schemata);
+            return transformD9Schema(schemata);
           });
       },
     },
     ...entityMethods(({ nomenclature: { name, shortName } }) => ({
       ...connection[shortName],
       fetch: ({ filter, limit }) => {
-        const validTypes = Object.keys(model.schema.get(name));
-        const bundles = parseBundles(filter, validTypes);
+        const validBundles = Object.keys(model.schema.get(name));
+        const bundles = parseBundles(filter, validBundles);
         const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) => {
           const fetchOptions = {
             filter: bundleFilter,
@@ -158,8 +151,8 @@ export default function adapter(model, opts) {
           .then(handleBundleResponse);
       },
       send: data => connection[shortName].send(
-        data.type,
-        transformLocalEntity(name, data, fieldTransforms),
+        parseEntityType(data.type).bundle,
+        transformLocalEntity(data, fieldTransforms),
       ).then(transformSendResponse(name)),
     }), entities),
   };

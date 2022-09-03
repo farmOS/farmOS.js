@@ -1,6 +1,5 @@
 import compose from 'ramda/src/compose';
 import match from 'ramda/src/match';
-import replace from 'ramda/src/replace.js';
 
 // Normalize the entity type.
 const entityTypeRegEx = /(\w+)--(\w+)/;
@@ -14,6 +13,3 @@ export function parseTypeFromFields(fields = {}) {
   if (!type && entity && bundle) type = `${entity}--${bundle}`;
   return { entity, bundle, type };
 }
-
-export default (entity, type) =>
-  replace(`${entity}--`, '', type);
