@@ -129,13 +129,14 @@ export default function adapter(model, opts) {
     },
     ...entityMethods(({ nomenclature: { name, shortName } }) => ({
       ...connection[shortName],
-      fetch: ({ filter, limit }) => {
+      fetch: ({ filter, limit, sort }) => {
         const validBundles = Object.keys(model.schema.get(name));
         const bundles = parseBundles(filter, validBundles);
         const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) => {
           const fetchOptions = {
             filter: bundleFilter,
             limit,
+            sort,
           };
           if (name in fieldTransforms && bundle in fieldTransforms[name]) {
             fetchOptions.filterTransforms = fieldTransforms[name][bundle];
