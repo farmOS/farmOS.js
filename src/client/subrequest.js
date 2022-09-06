@@ -3,7 +3,6 @@
 import any from 'ramda/src/any';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
-import drop from 'ramda/src/drop';
 import evolve from 'ramda/src/evolve';
 import filter from 'ramda/src/filter';
 import map from 'ramda/src/map';
@@ -17,6 +16,7 @@ import prop from 'ramda/src/prop';
 import sort from 'ramda/src/sort';
 import startsWith from 'ramda/src/startsWith';
 import uniqBy from 'ramda/src/uniqBy';
+import { parseTypeFromFields } from '../utils';
 import { generateFieldTransforms, transformLocalEntity } from './adapter/transformations';
 
 // Constants for sending requests via Drupal's JSON:API module.
@@ -32,15 +32,6 @@ const headers = {
 const isKeyword = startsWith('$');
 const isSubrequest = o => any(isKeyword, Object.keys(o));
 const splitFields = partition(isSubrequest);
-
-// Normalize the entity type.
-const entityTypeRegEx = /([a-z]+)--([a-z]+)/;
-const parseType = compose(drop(1), match(entityTypeRegEx));
-function parseEntityType(fields) {
-  const { type } = fields;
-  const [entity, bundle] = parseType(type);
-  return { entity, bundle, type };
-}
 
 // Subrequests that contain a JSONPath wildcard may have multiple subresponses,
 // which are each given Content-Ids comprised of the original requestId appended
@@ -94,8 +85,8 @@ export default function useSubrequests(farm) {
   // determines the batch of subrequests in which it will be sent to the server.
   function parseDependentFields(fields, action, prefix) {
     const [dependentFields, constants] = splitFields(fields);
-    const { bundle, entity, type } = parseEntityType(constants);
-    const requestId = `${prefix}/$${action}:${type}`;
+    const { bundle, entity, type } = parseTypeFromFields(constants);
+    const requestId = `${prefix}/${action}:${type}`;
     const dependencies = {}; let priority = 0; const subrequests = {};
     Object.entries(dependentFields).forEach(([field, sub]) => {
       const nextPrefix = `${requestId}.${field}`;
