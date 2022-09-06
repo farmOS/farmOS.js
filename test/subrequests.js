@@ -103,7 +103,7 @@ describe('subrequest', function () {
           action: 'create',
           headers,
           body: JSON.stringify({
-            data: transformLocalEntity('taxonomy_term', unit, transforms),
+            data: transformLocalEntity(unit, transforms),
           }),
         });
         quantityDependencies.push('unit-create');
@@ -122,7 +122,7 @@ describe('subrequest', function () {
         headers,
         waitFor: quantityDependencies,
         body: JSON.stringify({
-          data: transformLocalEntity('quantity', quantity, transforms),
+          data: transformLocalEntity(quantity, transforms),
         }),
       };
 
@@ -136,7 +136,7 @@ describe('subrequest', function () {
           action: 'create',
           headers,
           body: JSON.stringify({
-            data: transformLocalEntity('taxonomy_term', cat, transforms),
+            data: transformLocalEntity(cat, transforms),
           }),
         });
         logDependencies.push('cat-create');
@@ -149,7 +149,7 @@ describe('subrequest', function () {
           land_type: 'bed',
           is_location: true,
         });
-        const data = transformLocalEntity('asset', land, transforms);
+        const data = transformLocalEntity(land, transforms);
         subrequests.push({
           requestId: 'land-create',
           uri: '/api/asset/land',
@@ -170,7 +170,7 @@ describe('subrequest', function () {
           action: 'create',
           headers,
           body: JSON.stringify({
-            data: transformLocalEntity('user', user, transforms),
+            data: transformLocalEntity(user, transforms),
           }),
         });
         logDependencies.push('user-create');
@@ -190,7 +190,7 @@ describe('subrequest', function () {
         action: 'create',
         headers,
         waitFor: logDependencies,
-        body: JSON.stringify({ data: transformLocalEntity('log', log, transforms) }),
+        body: JSON.stringify({ data: transformLocalEntity(log, transforms) }),
       };
 
       return farm.remote.request('/subrequests?_format=json', {

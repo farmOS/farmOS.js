@@ -227,10 +227,11 @@ export default function useSubrequests(farm) {
   }
 
   // Convert an entity or array of entities into Drupal format, then stringify.
-  function fmtLocalData(entity, raw) {
+  function fmtLocalData(raw) {
     const transforms = generateFieldTransforms(farm.schema.get());
-    const t = d => transformLocalEntity(entity, d, transforms);
-    const data = Array.isArray(raw) ? raw.map(t) : t(raw);
+    const data = Array.isArray(raw)
+      ? raw.map(d => transformLocalEntity(d, transforms))
+      : transformLocalEntity(raw, transforms);
     return JSON.stringify({ data });
   }
 
@@ -252,7 +253,7 @@ export default function useSubrequests(farm) {
         });
         const props = { ...resolved, ...constants };
         const data = farm[entity].create(props);
-        const body = fmtLocalData(entity, data);
+        const body = fmtLocalData(data);
         const uri = `${BASE_URI}/${entity}/${bundle}`;
         const current = {
           action, body, headers, requestId, uri, waitFor,
