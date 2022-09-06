@@ -83,10 +83,10 @@ export default function useSubrequests(farm) {
   // is mutually recursive with parseSubrequests, and is how each subrequest and
   // its child subrequests are assigned their priority number, which accordingly
   // determines the batch of subrequests in which it will be sent to the server.
-  function parseDependentFields(fields, action, prefix) {
+  function parseDependentFields(fields, command, prefix) {
     const [dependentFields, constants] = splitFields(fields);
     const { bundle, entity, type } = parseTypeFromFields(constants);
-    const requestId = `${prefix}/${action}:${type}`;
+    const requestId = `${prefix}/${command}:${type}`;
     const dependencies = {}; let priority = 0; const subrequests = {};
     Object.entries(dependentFields).forEach(([field, sub]) => {
       const nextPrefix = `${requestId}.${field}`;
@@ -127,7 +127,7 @@ export default function useSubrequests(farm) {
     // resource identifier w/o a separate subrequest.
     const posthoc = [];
     // Only concurrent reqIds are added to waitFor, which is why it is done here
-    // and is not the sole responsibility of the actions.
+    // and is not the sole responsibility of the commands.
     const waitFor = [];
 
     // The contentId is included in each response object, so just use the array.
@@ -226,10 +226,9 @@ export default function useSubrequests(farm) {
     return JSON.stringify({ data });
   }
 
-  const actions = {
+  const commands = {
     $create(fields, prefix) {
-      const action = 'create';
-      const fieldData = parseDependentFields(fields, action, prefix);
+      const fieldData = parseDependentFields(fields, '$create', prefix);
       const {
         bundle, constants, entity, priority, subrequests, requestId, type,
       } = fieldData;
@@ -243,6 +242,7 @@ export default function useSubrequests(farm) {
           console.warn(msg);
         });
         const props = { ...resolved, ...constants };
+        const action = 'create';
         const data = farm[entity].create(props);
         const body = fmtLocalData(data);
         const uri = `${BASE_URI}/${entity}/${bundle}`;
@@ -272,13 +272,13 @@ export default function useSubrequests(farm) {
   function parseSubrequest(subrequest, options = {}, prefix = 'root') {
     const [[k, v], ...rest] = Object.entries(subrequest);
     let opts = { ...options, ...Object.fromEntries(rest) };
-    if (k in actions) return actions[k](v, prefix, opts);
+    if (k in commands) return commands[k](v, prefix, opts);
     if (rest.length === 0) {
       const joinedOpts = Object.keys(options).join(', ');
-      const joinedActs = Object.keys(actions).join(', ');
-      const msg = `Missing or invalid action operator in subrequest at ${prefix}. `
+      const joinedActs = Object.keys(commands).join(', ');
+      const msg = `Missing or invalid command in subrequest at ${prefix}. `
       + `Only the following options or keys were included: ${joinedOpts}. `
-      + `Include one of the following valid actions instead: ${joinedActs}.`;
+      + `Include one of the following valid commands instead: ${joinedActs}.`;
       throw new Error(msg);
     }
     if (isKeyword(k)) opts = { ...opts, [k]: v };
