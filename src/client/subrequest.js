@@ -4,7 +4,6 @@ import any from 'ramda/src/any';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
 import evolve from 'ramda/src/evolve';
-import filter from 'ramda/src/filter';
 import map from 'ramda/src/map';
 import mapObjIndexed from 'ramda/src/mapObjIndexed';
 import match from 'ramda/src/match';
@@ -130,10 +129,10 @@ export default function useSubrequests(farm) {
     // and is not the sole responsibility of the commands.
     const waitFor = [];
 
-    // The contentId is included in each response object, so just use the array.
-    const responses = Object.values(prior);
     // Match a requestId with its corresponding prior responses, if any exist.
-    const matchWithResponses = reqId => filter(sub => reqId === sub.requestId, responses);
+    // The contentId is included in each response object, so just use the values.
+    const matchWithResponses = reqId => Object.values(prior)
+      .filter(sub => reqId === sub.requestId);
     // Field dependencies, as an array of raw requestIds, are mapped to an array
     // of corresponding resource identifiers from prior responses.
     const mapDependenciesToResources = compose(
