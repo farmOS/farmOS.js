@@ -1,5 +1,3 @@
-/* eslint no-use-before-define: ["error", { "functions": false }] */
-/* eslint no-console: ["warn", { "allow": ["warn"] }] */
 import any from 'ramda/src/any';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
