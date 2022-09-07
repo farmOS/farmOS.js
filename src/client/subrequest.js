@@ -11,12 +11,14 @@ import mergeRight from 'ramda/src/mergeRight';
 import partition from 'ramda/src/partition';
 import path from 'ramda/src/path';
 import pick from 'ramda/src/pick';
+import pickBy from 'ramda/src/pickBy';
 import prop from 'ramda/src/prop';
 import sort from 'ramda/src/sort';
 import startsWith from 'ramda/src/startsWith';
 import uniqBy from 'ramda/src/uniqBy';
 import { parseTypeFromFields } from '../utils';
 import { generateFieldTransforms, transformLocalEntity } from './adapter/transformations';
+import { parseFetchParams } from './fetch';
 
 // Constants for sending requests via Drupal's JSON:API module.
 const BASE_URI = '/api';
@@ -31,6 +33,10 @@ const headers = {
 const isKeyword = startsWith('$');
 const isSubrequest = o => any(isKeyword, Object.keys(o));
 const splitFields = partition(isSubrequest);
+
+// For use with filters, to keep only their constant fields and drop any
+// operators such as `'$lt'`, `'$or'`, etc.
+const dropKeywords = pickBy((v, k) => !isKeyword(k));
 
 // Subrequests that contain a JSONPath wildcard may have multiple subresponses,
 // which are each given Content-Ids comprised of the original requestId appended
@@ -257,15 +263,57 @@ export default function useSubrequests(farm) {
         },
       };
     },
-    // $find(filter, prefix, opts) {
-    //   const action = 'view';
-    //   const { $createIfNotFound, $limit, $sort } = opts;
-    // },
-    // $update(fields, prefix, opts) {
-    //   const action = 'update';
-    //   const { $limit, $sort } = opts;
-    //   const dependencies = [];
-    // },
+    $find(filter, prefix, opts) {
+      const { $createIfNotFound, $limit, $sort } = opts;
+      const params = parseFetchParams({
+        filter,
+        filterTransforms: generateFieldTransforms(farm.schema.get()),
+        limit: $limit,
+        sort: $sort,
+      });
+      const { entity, bundle, type } = parseTypeFromFields(filter);
+      // Nested subrequests are disallowed in $find commands, meaning they have
+      // no dependencies, and so should always be included in the first batch of
+      // subrequests; hence, they will always have a priority of 0.
+      const priority = 0;
+      const requestId = `${prefix}/$find:${type}`;
+      const blueprint = () => [{
+        action: 'view',
+        headers,
+        requestId,
+        uri: `${BASE_URI}/${entity}/${bundle}?${params}`,
+      }];
+      const findRequest = {
+        blueprint, bundle, entity, priority, type,
+      };
+      const subrequests = { [requestId]: findRequest };
+      if ($createIfNotFound) {
+        const createRequestId = `${requestId}/$createIfNotFound:${type}`;
+        const createBlueprint = (_, prior) => {
+          const findResults = Object.values(prior).find(sub => sub.requestId === requestId);
+          if (findResults && findResults.data > 0) return [];
+          const props = dropKeywords(filter);
+          if (!props.type) return [];
+          const data = farm[entity].create(props);
+          return [{
+            action: 'create',
+            body: fmtLocalData(data),
+            headers,
+            requestId: createRequestId,
+            uri: `${BASE_URI}/${entity}/${bundle}`,
+            waitFor: [requestId],
+          }];
+        };
+        const createRequest = {
+          ...findRequest,
+          // Because $find commands are always priority 0, these are always 1.
+          priority: 1,
+          blueprint: createBlueprint,
+        };
+        subrequests[createRequestId] = createRequest;
+      }
+      return subrequests;
+    },
   };
 
   function parseSubrequest(subrequest, options = {}, prefix = 'root') {
