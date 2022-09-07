@@ -11,6 +11,9 @@ assets, logs, etc, and for transmitting those entities to a farmOS server.</p>
 <dd><p>A collection of functions for working with farmOS data structures, their
 associated metadata and schemata, and for interacting with farmOS servers.</p>
 </dd>
+<dt><a href="#EntityConfig">EntityConfig</a> : <code><a href="#EntityConfig">EntityConfig</a></code></dt>
+<dd><p>To enable support for each entity type, its config object must be provided.</p>
+</dd>
 <dt><a href="#farmOS">farmOS</a> ⇒ <code><a href="#FarmObject">FarmObject</a></code></dt>
 <dd><p>The main farmOS factory function for creating a new farm object.</p>
 </dd>
@@ -37,6 +40,8 @@ assets, logs, etc.</p>
 <dd><p>A collection of functions for working with farmOS data structures, their
 associated metadata and schemata.</p>
 </dd>
+<dt><a href="#EntityConfig">EntityConfig</a> : <code><a href="#EntityConfig">EntityConfig</a></code></dt>
+<dd></dd>
 <dt><a href="#model">model</a> ⇒ <code><a href="#FarmModel">FarmModel</a></code></dt>
 <dd><p>Create a farm model for generating and manipulating farmOS data structures.</p>
 </dd>
@@ -44,12 +49,14 @@ associated metadata and schemata.</p>
 <dd><p>The methods for transmitting farmOS data structures, such as assets, logs,
 etc, to a farmOS server.</p>
 </dd>
-<dt><a href="#AuthorizationMixin">AuthorizationMixin</a> ⇒ <code>Object</code></dt>
+<dt><a href="#AuthMixin">AuthMixin</a> ⇒ <code>Object.&lt;string, function()&gt;</code></dt>
 <dd></dd>
 <dt><a href="#FarmClient">FarmClient</a> : <code>Object</code></dt>
 <dd><p>A collection of functions for transmitting farmOS data structures to and
 from a farmOS Drupal 9 server using JSON:API.</p>
 </dd>
+<dt><a href="#EntityConfig">EntityConfig</a> : <code><a href="#EntityConfig">EntityConfig</a></code></dt>
+<dd></dd>
 <dt><a href="#client">client</a> ⇒ <code><a href="#FarmClient">FarmClient</a></code></dt>
 <dd><p>Create a farm client for interacting with farmOS servers.</p>
 </dd>
@@ -58,6 +65,8 @@ from a farmOS Drupal 9 server using JSON:API.</p>
 <dt><a href="#Entity">Entity</a> : <code>Object</code></dt>
 <dd></dd>
 <dt><a href="#EntityConfig">EntityConfig</a> : <code>Object</code></dt>
+<dd></dd>
+<dt><a href="#DefaultEntities">DefaultEntities</a> : <code>Object.&lt;String, EntityConfig&gt;</code></dt>
 <dd></dd>
 </dl>
 
@@ -97,11 +106,11 @@ associated metadata and schemata, and for interacting with farmOS servers.
 | [schema.fetch] | <code>function</code> | 
 | meta | <code>Object</code> | 
 | meta.isUnsynced | <code>function</code> | 
-| [remote] | <code>Object</code> | 
+| remote | <code>Object</code> | 
 | remote.request | <code>module:axios~AxiosInstance</code> | 
-| remote.info | <code>function</code> | 
-| remote.authorize | <code>function</code> | 
-| remote.getToken | <code>function</code> | 
+| [remote.info] | <code>function</code> | 
+| [remote.authorize] | <code>function</code> | 
+| [remote.getToken] | <code>function</code> | 
 | asset | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | log | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | plan | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
@@ -109,6 +118,12 @@ associated metadata and schemata, and for interacting with farmOS servers.
 | term | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | user | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 
+<a name="EntityConfig"></a>
+
+## EntityConfig : [<code>EntityConfig</code>](#EntityConfig)
+To enable support for each entity type, its config object must be provided.
+
+**Kind**: global typedef  
 <a name="farmOS"></a>
 
 ## farmOS ⇒ [<code>FarmObject</code>](#FarmObject)
@@ -122,12 +137,12 @@ The main farmOS factory function for creating a new farm object.
 
 **Properties**
 
-| Name | Type |
-| --- | --- |
-| [config.schemata] | [<code>EntitySchemata</code>](#EntitySchemata) | 
-| [config.remote] | <code>Object</code> | 
-| [config.remote.adapter] | [<code>FarmClient</code>](#FarmClient) | 
-| [config.entities] | [<code>Array.&lt;EntityConfig&gt;</code>](#EntityConfig) | 
+| Name | Type | Default |
+| --- | --- | --- |
+| [config.schemata] | [<code>EntitySchemata</code>](#EntitySchemata) |  | 
+| [config.remote] | <code>Object</code> |  | 
+| [config.remote.adapter] | [<code>client</code>](#client) | <code>d9JsonApiAdapter</code> | 
+| [config.entities] | <code>Object.&lt;String, EntityConfig&gt;</code> | <code>defaultEntities</code> | 
 
 <a name="JsonSchema"></a>
 
@@ -196,6 +211,10 @@ associated metadata and schemata.
 | term | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
 | user | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
 
+<a name="EntityConfig"></a>
+
+## EntityConfig : [<code>EntityConfig</code>](#EntityConfig)
+**Kind**: global typedef  
 <a name="model"></a>
 
 ## model ⇒ [<code>FarmModel</code>](#FarmModel)
@@ -209,9 +228,10 @@ Create a farm model for generating and manipulating farmOS data structures.
 
 **Properties**
 
-| Name | Type |
-| --- | --- |
-| [options.schemata] | [<code>EntitySchemata</code>](#EntitySchemata) | 
+| Name | Type | Default |
+| --- | --- | --- |
+| [options.schemata] | [<code>EntitySchemata</code>](#EntitySchemata) |  | 
+| [options.entities] | <code>Object.&lt;String, EntityConfig&gt;</code> | <code>defaultEntities</code> | 
 
 
 * [model](#model) ⇒ [<code>FarmModel</code>](#FarmModel)
@@ -259,9 +279,9 @@ etc, to a farmOS server.
 | send | <code>sendEntity</code> | 
 | delete | <code>deleteEntity</code> | 
 
-<a name="AuthorizationMixin"></a>
+<a name="AuthMixin"></a>
 
-## AuthorizationMixin ⇒ <code>Object</code>
+## AuthMixin ⇒ <code>Object.&lt;string, function()&gt;</code>
 **Kind**: global typedef  
 
 | Param | Type |
@@ -286,9 +306,9 @@ from a farmOS Drupal 9 server using JSON:API.
 
 | Name | Type |
 | --- | --- |
-| authorize | <code>function</code> | 
-| getToken | <code>function</code> | 
 | request | <code>module:axios~AxiosInstance</code> | 
+| [authorize] | <code>function</code> | 
+| [getToken] | <code>function</code> | 
 | info | <code>function</code> | 
 | schema | <code>Object</code> | 
 | schema.fetch | <code>function</code> | 
@@ -299,6 +319,10 @@ from a farmOS Drupal 9 server using JSON:API.
 | term | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 | user | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 
+<a name="EntityConfig"></a>
+
+## EntityConfig : [<code>EntityConfig</code>](#EntityConfig)
+**Kind**: global typedef  
 <a name="client"></a>
 
 ## client ⇒ [<code>FarmClient</code>](#FarmClient)
@@ -309,16 +333,17 @@ Create a farm client for interacting with farmOS servers.
 | Param | Type |
 | --- | --- |
 | host | <code>String</code> | 
-| options | <code>Object</code> | 
+| [options] | <code>Object</code> | 
 
 **Properties**
 
-| Name | Type |
-| --- | --- |
-| options.auth | [<code>AuthorizationMixin</code>](#AuthorizationMixin) | 
-| options.clientId | <code>String</code> | 
-| options.getToken | <code>function</code> | 
-| options.setToken | <code>function</code> | 
+| Name | Type | Default |
+| --- | --- | --- |
+| [options.auth] | [<code>AuthMixin</code>](#AuthMixin) | <code>oauth</code> | 
+| [options.entities] | <code>Object.&lt;String, EntityConfig&gt;</code> | <code>defaultEntities</code> | 
+| [options.clientId] | <code>String</code> |  | 
+| [options.getToken] | <code>function</code> |  | 
+| [options.setToken] | <code>function</code> |  | 
 
 <a name="EntityReference"></a>
 
@@ -368,4 +393,19 @@ Create a farm client for interacting with farmOS servers.
 | defaultOptions | <code>Object</code> | 
 | defaultOptions.byType | <code>Object</code> | 
 | defaultOptions.byFormat | <code>Object</code> | 
+
+<a name="DefaultEntities"></a>
+
+## DefaultEntities : <code>Object.&lt;String, EntityConfig&gt;</code>
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type |
+| --- | --- |
+| asset | [<code>EntityConfig</code>](#EntityConfig) | 
+| log | [<code>EntityConfig</code>](#EntityConfig) | 
+| plan | [<code>EntityConfig</code>](#EntityConfig) | 
+| quantity | [<code>EntityConfig</code>](#EntityConfig) | 
+| taxonomy_term | [<code>EntityConfig</code>](#EntityConfig) | 
+| user | [<code>EntityConfig</code>](#EntityConfig) | 
 

@@ -48,7 +48,7 @@ import fetchSchema from './schema.js';
  * @typedef {Function} client
  * @param {String} host
  * @param {Object} [options]
- * @property {AuthMixin=OAuthMixin} [options.auth=oauth]
+ * @property {AuthMixin} [options.auth=oauth]
  * @property {Object<String, EntityConfig>} [options.entities=defaultEntities]
  * @property {String} [options.clientId]
  * @property {Function} [options.getToken]
