@@ -263,18 +263,20 @@ export default function useSubrequests(farm) {
     },
     $find(filter, prefix, opts) {
       const { $createIfNotFound, $limit, $sort } = opts;
+      const { entity, bundle, type } = parseTypeFromFields(filter);
+
+      // The initial fetch request with filter & other search parameters.
+      const requestId = `${prefix}/$find:${type}`;
+      // Nested subrequests are disallowed in $find commands, meaning they have
+      // no dependencies, and so should always be included in the first batch of
+      // subrequests; hence, they will always have a priority of 0.
+      const priority = 0;
       const params = parseFetchParams({
         filter,
         filterTransforms: generateFieldTransforms(farm.schema.get()),
         limit: $limit,
         sort: $sort,
       });
-      const { entity, bundle, type } = parseTypeFromFields(filter);
-      // Nested subrequests are disallowed in $find commands, meaning they have
-      // no dependencies, and so should always be included in the first batch of
-      // subrequests; hence, they will always have a priority of 0.
-      const priority = 0;
-      const requestId = `${prefix}/$find:${type}`;
       const blueprint = () => [{
         action: 'view',
         headers,
@@ -284,33 +286,37 @@ export default function useSubrequests(farm) {
       const findRequest = {
         blueprint, bundle, entity, priority, type,
       };
-      const subrequests = { [requestId]: findRequest };
-      if ($createIfNotFound) {
-        const createRequestId = `${requestId}/$createIfNotFound:${type}`;
-        const createBlueprint = (_, prior) => {
-          const findResults = Object.values(prior).find(sub => sub.requestId === requestId);
-          if (findResults && findResults.data > 0) return [];
-          const props = dropKeywords(filter);
-          if (!props.type) return [];
-          const data = farm[entity].create(props);
-          return [{
-            action: 'create',
-            body: fmtLocalData(data),
-            headers,
-            requestId: createRequestId,
-            uri: `${BASE_URI}/${entity}/${bundle}`,
-            waitFor: [requestId],
-          }];
-        };
-        const createRequest = {
-          ...findRequest,
-          // Because $find commands are always priority 0, these are always 1.
-          priority: 1,
-          blueprint: createBlueprint,
-        };
-        subrequests[createRequestId] = createRequest;
-      }
-      return subrequests;
+
+      if (!$createIfNotFound) return { [requestId]: findRequest };
+
+      // A separate create request is only added when $createIfNotFound is true,
+      // and its blueprint remains empty unless the find request comes back empty.
+      const createIfNotFoundRequestId = `${requestId}/$createIfNotFound:${type}`;
+      const createIfNotFoundBlueprint = (_, prior) => {
+        const findResults = Object.values(prior).find(sub => sub.requestId === requestId);
+        if (findResults && findResults.data > 0) return [];
+        const props = dropKeywords(filter);
+        if (!props.type) return [];
+        const data = farm[entity].create(props);
+        return [{
+          action: 'create',
+          body: fmtLocalData(data),
+          headers,
+          requestId: createIfNotFoundRequestId,
+          uri: `${BASE_URI}/${entity}/${bundle}`,
+          waitFor: [requestId],
+        }];
+      };
+      const createIfNotFoundRequest = {
+        ...findRequest,
+        // Because $find commands are always priority 0, these are always 1.
+        priority: 1,
+        blueprint: createIfNotFoundBlueprint,
+      };
+      return {
+        [requestId]: findRequest,
+        [createIfNotFoundRequestId]: createIfNotFoundRequest,
+      };
     },
   };
 
