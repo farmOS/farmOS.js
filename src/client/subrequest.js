@@ -20,7 +20,7 @@ import { parseFetchParams } from './fetch';
 
 // Constants for sending requests via Drupal's JSON:API module.
 const BASE_URI = '/api';
-const SUB_URL = `${BASE_URI}/subrequests?_format=json`;
+const SUB_URL = '/subrequests?_format=json';
 const headers = {
   Accept: 'application/vnd.api+json',
   'Content-Type': 'application/vnd.api+json',
