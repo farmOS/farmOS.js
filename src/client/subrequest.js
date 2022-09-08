@@ -320,7 +320,7 @@ export default function useSubrequests(farm) {
     },
   };
 
-  function parseSubrequest(subrequest, options = {}, prefix = 'root') {
+  function parseSubrequest(subrequest, options = {}, prefix = '$ROOT') {
     const [[k, v], ...rest] = Object.entries(subrequest);
     let opts = { ...options, ...Object.fromEntries(rest) };
     if (k in commands) return commands[k](v, prefix, opts);
