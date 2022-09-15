@@ -25,6 +25,21 @@ const comparison = {
   $nin: 'NOT%20IN',
 };
 
+const truthyForms = [true, 1, 'true', 'TRUE', 'T'];
+const falseyForms = [false, 0, 'false', 'FALSE', 'F'];
+const booleanForms = [...truthyForms, ...falseyForms];
+const booleanTransform = bool => (truthyForms.includes(bool) ? 1 : 0);
+function transformRawValue(transform, raw) {
+  let value = raw;
+  if (typeof transform === 'function') {
+    value = transform(value);
+  }
+  if (booleanForms.includes(value)) {
+    value = booleanTransform(value);
+  }
+  return value;
+}
+
 export default function parseFilter(filter = {}, options = {}) {
   const { filterTransforms = {} } = options;
 
@@ -33,9 +48,7 @@ export default function parseFilter(filter = {}, options = {}) {
     const pre = `filter[${path}-${index}-filter][condition]`;
     const membership = comGroup ? `&${pre}[memberOf]=${comGroup}` : '';
     const [[op, rawValue], ...tail] = Object.entries(expr);
-    const val = typeof filterTransforms[path] === 'function'
-      ? filterTransforms[path](rawValue)
-      : rawValue;
+    const val = transformRawValue(filterTransforms[path], rawValue);
     if (val === null) {
       const pathStr = `${amp}filter[${path}-filter][condition][path]=${path}`;
       const opStr = `&filter[${path}-filter][condition][operator]=IS%20NULL`;
