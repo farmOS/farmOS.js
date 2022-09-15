@@ -22,44 +22,71 @@ import { parseEntityType } from '../../utils.js';
 
 const DRUPAL_PAGE_LIMIT = 50;
 
-export function parseBundles(filter, validBundles) {
-  const bundles = [];
-  // The filter must either be an object (logical $and) or an array (logical $or).
-  if (Array.isArray(filter) || Array.isArray(filter.$or)) {
-    (Array.isArray(filter) ? filter : filter.$or).forEach((f) => {
-      parseBundles(f).forEach(({ name, filter: bundleFilter }) => {
-        const i = bundles.findIndex(b => b.name === name);
-        if (i > -1) {
-          // Concat on an empty array to flatten either bundle or both.
-          bundles[i].filter = [].concat(bundles[i].filter, bundleFilter);
+/**
+ * @typedef {Array<{ type: String, filter: Object|Array }>} FiltersByType
+ */
+/**
+ * @param {Object|Array|Undefined} filter
+ * @param {Array<String>} validTypes
+ * @returns {FiltersByType}
+ */
+export function splitFilterByType(filter, validTypes) {
+  /** @type {FiltersByType} */
+  const filtersByType = [];
+
+  // A plain array is equivalent to an object w/ an array as the `$or` property.
+  // In both cases, the array must itself contain valid filters, which can be
+  // evaluated recursively.
+  if (Array.isArray(filter.$or) || Array.isArray(filter)) {
+    (filter.$or || filter).forEach((f) => {
+      splitFilterByType(f, validTypes).forEach((tFilter) => {
+        // Instead of just adding every tFilter to tiltersByType, look for a
+        // matching filter that's already been added.
+        const match = filtersByType.find(fbt => fbt.type === tFilter.type);
+        // If so, combine them into a single object w/ an array of filters.
+        if (match) {
+          // The matching filter, the current filter, or both can be arrays,
+          // so concat onto an empty array to flatten them and reassign it.
+          match.filter = [].concat(match.filter, tFilter);
         } else {
-          bundles.push({ name, filter: bundleFilter });
+          // Otherwise, add the whole object as-is.
+          filtersByType.push(tFilter);
         }
       });
     });
-    return bundles;
+    return filtersByType;
   }
-  if (typeof filter !== 'object') return bundles;
+
+  // The filter must either be an object (logical $and) or an array (logical $or).
+  // If it's neither, then it's not a valid filter, so return the empty array.
+  if (typeof filter !== 'object') return filtersByType;
+
+  // Technically any object is equivalent to an object w/ an `$and` property,
+  // which is itself an object. Also, one type filter is not permitted to be
+  // nested under another, so we can safely pluck the type and ignore the rest.
   const { type, ...rest } = typeof filter.$and === 'object' ? filter.$and : filter;
+
+  // The case of filtering by a single type.
   if (typeof type === 'string') {
-    const { bundle } = parseEntityType(type);
-    if (!validBundles.includes(bundle)) return bundles;
-    bundles.push({ name: bundle, filter: rest });
+    if (!validTypes.includes(type)) return filtersByType;
+    filtersByType.push({ type, filter: rest });
   }
+  // The case of filtering by multiple types.
   if (Array.isArray(type)) {
     type.forEach((t) => {
-      const { bundle } = parseEntityType(t);
-      if (validBundles.includes(bundle)) {
-        bundles.push({ name: bundle, filter: rest });
+      if (validTypes.includes(t)) {
+        filtersByType.push({ type: t, filter: rest });
       }
     });
   }
+  // An undefined or null type is interpreted as ALL types, so push the rest of
+  // the filter properties onto the array for each and every valid type.
   if ([undefined, null].includes(type)) {
-    validBundles.forEach((b) => {
-      bundles.push({ name: b, filter: rest });
+    validTypes.forEach((t) => {
+      filtersByType.push({ type: t, filter: rest });
     });
   }
-  return bundles;
+  return filtersByType;
 }
 
 const aggregateBundles = reduce((aggregate, result) => {
@@ -129,15 +156,15 @@ export default function adapter(model, opts) {
     },
     ...entityMethods(({ nomenclature: { name, shortName } }) => ({
       ...connection[shortName],
-      fetch: ({ filter, limit, sort }) => {
-        const validBundles = Object.keys(model.schema.get(name));
-        const bundles = parseBundles(filter, validBundles);
-        const bundleRequests = bundles.map(({ name: bundle, filter: bundleFilter }) => {
-          const fetchOptions = {
-            filter: bundleFilter,
-            limit,
-            sort,
-          };
+      /** @type {(options: import('../fetch.js').FetchOptions) => Promise} */
+      fetch: (options) => {
+        const { filter, limit, sort } = options;
+        const validTypes = Object.keys(model.schema.get(name)).map(b => `${name}--${b}`);
+        const bundleRequests = splitFilterByType(filter, validTypes).map((f) => {
+          const { type, ...tFilter } = f;
+          /** @type {import('../fetch.js').FetchOptions} */
+          const fetchOptions = { ...tFilter, limit, sort };
+          const { bundle } = parseEntityType(type);
           if (name in fieldTransforms && bundle in fieldTransforms[name]) {
             fetchOptions.filterTransforms = fieldTransforms[name][bundle];
           }
