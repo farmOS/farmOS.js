@@ -15,8 +15,7 @@ import sort from 'ramda/src/sort';
 import startsWith from 'ramda/src/startsWith';
 import uniqBy from 'ramda/src/uniqBy';
 import entities from '../entities';
-import { parseEntityType, parseTypeFromFields } from '../utils';
-import { splitFilterByType } from './adapter/index';
+import { parseEntityType, parseTypeFromFields, splitFilterByType } from '../types';
 import { generateFieldTransforms, transformLocalEntity } from './adapter/transformations';
 import { parseFetchParams } from './fetch';
 

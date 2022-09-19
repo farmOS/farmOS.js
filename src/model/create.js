@@ -1,7 +1,7 @@
 import { validate, v4 as uuidv4 } from 'uuid';
 import clone from 'ramda/src/clone.js';
 import { getDefault, listProperties } from '../json-schema/index.js';
-import { parseTypeFromFields } from '../utils.js';
+import { parseTypeFromFields } from '../types.js';
 
 /**
  * @typedef {import('../entities.js').Entity} Entity

@@ -1,7 +1,7 @@
 import { validate } from 'uuid';
 import clone from 'ramda/src/clone.js';
 import { listProperties } from '../json-schema/index.js';
-import { parseTypeFromFields } from '../utils.js';
+import { parseTypeFromFields } from '../types.js';
 
 /**
  * @typedef {import('../entities.js').Entity} Entity

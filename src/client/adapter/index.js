@@ -8,11 +8,11 @@ import path from 'ramda/src/path.js';
 import reduce from 'ramda/src/reduce.js';
 import client from '../index.js';
 import defaultEntities, { entityMethods } from '../../entities.js';
+import { parseEntityType, splitFilterByType } from '../../types.js';
 import {
   generateFieldTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
-import { parseEntityType } from '../../utils.js';
 
 /**
  * @typedef {import('../../json-schema/reference').JsonSchema} JsonSchema
@@ -21,73 +21,6 @@ import { parseEntityType } from '../../utils.js';
  */
 
 const DRUPAL_PAGE_LIMIT = 50;
-
-/**
- * @typedef {Array<{ type: String, filter: Object|Array }>} FiltersByType
- */
-/**
- * @param {Object|Array|Undefined} filter
- * @param {Array<String>} validTypes
- * @returns {FiltersByType}
- */
-export function splitFilterByType(filter, validTypes) {
-  /** @type {FiltersByType} */
-  const filtersByType = [];
-
-  // A plain array is equivalent to an object w/ an array as the `$or` property.
-  // In both cases, the array must itself contain valid filters, which can be
-  // evaluated recursively.
-  if (Array.isArray(filter.$or) || Array.isArray(filter)) {
-    (filter.$or || filter).forEach((f) => {
-      splitFilterByType(f, validTypes).forEach((tFilter) => {
-        // Instead of just adding every tFilter to tiltersByType, look for a
-        // matching filter that's already been added.
-        const match = filtersByType.find(fbt => fbt.type === tFilter.type);
-        // If so, combine them into a single object w/ an array of filters.
-        if (match) {
-          // The matching filter, the current filter, or both can be arrays,
-          // so concat onto an empty array to flatten them and reassign it.
-          match.filter = [].concat(match.filter, tFilter);
-        } else {
-          // Otherwise, add the whole object as-is.
-          filtersByType.push(tFilter);
-        }
-      });
-    });
-    return filtersByType;
-  }
-
-  // The filter must either be an object (logical $and) or an array (logical $or).
-  // If it's neither, then it's not a valid filter, so return the empty array.
-  if (typeof filter !== 'object') return filtersByType;
-
-  // Technically any object is equivalent to an object w/ an `$and` property,
-  // which is itself an object. Also, one type filter is not permitted to be
-  // nested under another, so we can safely pluck the type and ignore the rest.
-  const { type, ...rest } = typeof filter.$and === 'object' ? filter.$and : filter;
-
-  // The case of filtering by a single type.
-  if (typeof type === 'string') {
-    if (!validTypes.includes(type)) return filtersByType;
-    filtersByType.push({ type, filter: rest });
-  }
-  // The case of filtering by multiple types.
-  if (Array.isArray(type)) {
-    type.forEach((t) => {
-      if (validTypes.includes(t)) {
-        filtersByType.push({ type: t, filter: rest });
-      }
-    });
-  }
-  // An undefined or null type is interpreted as ALL types, so push the rest of
-  // the filter properties onto the array for each and every valid type.
-  if ([undefined, null].includes(type)) {
-    validTypes.forEach((t) => {
-      filtersByType.push({ type: t, filter: rest });
-    });
-  }
-  return filtersByType;
-}
 
 const aggregateBundles = reduce((aggregate, result) => {
   const { reason, value, status } = result;

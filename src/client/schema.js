@@ -2,7 +2,7 @@ import compose from 'ramda/src/compose.js';
 import filter from 'ramda/src/filter.js';
 import map from 'ramda/src/map.js';
 import path from 'ramda/src/path.js';
-import { parseEntityType } from '../utils.js';
+import { parseEntityType } from '../types.js';
 
 /**
  * Fetch JSON Schema documents for farmOS data structures.
