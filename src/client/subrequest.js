@@ -127,7 +127,7 @@ export default function useSubrequests(farm) {
   function parseDependentFields(fields, command, prefix) {
     const [dependentFields, constants] = splitFields(fields);
     const { bundle, entity, type } = parseTypeFromFields(constants);
-    const requestId = `${prefix}/${command}:${type}`;
+    const requestId = `${prefix}::${command}:${type}`;
     const dependencies = {}; let priority = 0; const subrequests = {};
     Object.entries(dependentFields).forEach(([field, sub]) => {
       const nextPrefix = `${requestId}.${field}`;
@@ -323,7 +323,7 @@ export default function useSubrequests(farm) {
       filtersByType.forEach(({ type, filter: typeFilter }) => {
         const { entity, bundle } = parseEntityType(type);
         // The initial fetch request with filter & other search parameters.
-        const requestId = `${prefix}/$find:${type}`;
+        const requestId = `${prefix}::$find:${type}`;
         // Nested subrequests are disallowed in $find commands, meaning they have
         // no dependencies, and so should always be included in the first batch of
         // subrequests; hence, they will always have a priority of 0.
@@ -347,7 +347,7 @@ export default function useSubrequests(farm) {
       // Arbitrarily pop the first type.
       const [{ type, filter: typeFilter }] = filtersByType;
       const { entity, bundle } = parseEntityType(type);
-      const requestId = `${prefix}/$createIfNotFound:${type}`;
+      const requestId = `${prefix}::$createIfNotFound:${type}`;
       // A separate create request is only added when $createIfNotFound is true;
       // Even then, its blueprint returns the empty array (ie, no-op),
       // unless all prior find requests come back empty.
