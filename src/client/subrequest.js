@@ -2,6 +2,7 @@ import any from 'ramda/src/any';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
 import evolve from 'ramda/src/evolve';
+import rFilter from 'ramda/src/filter';
 import map from 'ramda/src/map';
 import mapObjIndexed from 'ramda/src/mapObjIndexed';
 import match from 'ramda/src/match';
@@ -146,6 +147,7 @@ export default function useSubrequests(farm) {
       uniqBy(prop('id')),
       // Strip it down to the resource identifier alone.
       map(pick(['id', 'type'])),
+      rFilter((data) => data && 'id' in data && 'type' in data),
       // Flatten the array of nested data objects/arrays.
       chain(prop('data')),
       // Responses are sorted by highest priority, which corresponds to the most recent.
