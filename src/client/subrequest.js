@@ -1,4 +1,5 @@
 import any from 'ramda/src/any';
+import assoc from 'ramda/src/assoc';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
 import evolve from 'ramda/src/evolve';
@@ -12,6 +13,7 @@ import path from 'ramda/src/path';
 import pick from 'ramda/src/pick';
 import pickBy from 'ramda/src/pickBy';
 import prop from 'ramda/src/prop';
+import reduce from 'ramda/src/reduce';
 import sort from 'ramda/src/sort';
 import startsWith from 'ramda/src/startsWith';
 import uniqBy from 'ramda/src/uniqBy';
@@ -75,6 +77,40 @@ const concatSubresponses = (prior, requests) => compose(
   // each keyed to their contentId.
   prop('data'),
 );
+
+// Even once they've been partitioned from other pending requests, ready requests
+// (ie, would-be concurrent requests) must first be sorted based on which are
+// dependent upon others, as will ultimately determine their waitFor properties.
+const isDependent = (req, id) => {
+  const { dependencies = {} } = req;
+  const allDeps = Object.values(dependencies).flat();
+  return allDeps.includes(id);
+};
+const sortConcurrentRequests = requests => sort(([idA, reqA], [idB, reqB]) => {
+  const aDependsOnB = isDependent(reqA, idB);
+  const bDependsOnA = isDependent(reqB, idA);
+  if (aDependsOnB && bDependsOnA) {
+    throw new Error('Circular Dependency!');
+  }
+  if (aDependsOnB) return -1;
+  if (bDependsOnA) return 1;
+  return 0;
+}, Object.entries(requests));
+// Once they've been sorted, the blueprints of ready requests must be evaluated
+// sequentially, and if their blueprint is empty (ie, a 'noop'), they must be
+// removed from the final list of concurrent requests. Leaving them in can
+// result in server errors, if it encounters a requestId it has no knowledge of.
+const concatConcurrentRequests = (prior, next) => reduce((ready, [reqId, req]) => {
+  const resolved = evolve({
+    blueprint: bp => bp(ready, prior, next),
+  }, req);
+  if (resolved.blueprint.length < 1) return ready;
+  return assoc(reqId, resolved, ready);
+}, {});
+const resolveBlueprints = (prior, ready, next) => compose(
+  concatConcurrentRequests(prior, next),
+  sortConcurrentRequests,
+)(ready);
 
 // Determine if a relationship for a given schema is one-to-one (ie, 'object')
 // or one-to-many (ie, 'array').
@@ -246,7 +282,7 @@ export default function useSubrequests(farm) {
     $create(fields, prefix) {
       const fieldData = parseDependentFields(fields, '$create', prefix);
       const {
-        bundle, constants, entity, priority, subrequests, requestId, type,
+        bundle, constants, dependencies, entity, priority, subrequests, requestId, type,
       } = fieldData;
       const blueprint = (ready, prior) => {
         const {
@@ -271,7 +307,7 @@ export default function useSubrequests(farm) {
       return {
         ...subrequests,
         [requestId]: {
-          blueprint, bundle, entity, priority, type,
+          blueprint, bundle, dependencies, entity, priority, type,
         },
       };
     },
@@ -357,13 +393,13 @@ export default function useSubrequests(farm) {
   }
 
   function chainSubrequests(requests, prior = {}, priority = 0) {
-    const [ready, waiting] = partition(r => r.priority === priority, requests);
-    const resolveBlueprint = ({ blueprint }) => blueprint(ready, prior, waiting);
-    const data = chain(resolveBlueprint, Object.values(ready));
+    const [ready, next] = partition(r => r.priority === priority, requests);
+    const concurrent = resolveBlueprints(prior, ready, next);
+    const data = Object.values(concurrent).flatMap(({ blueprint }) => blueprint);
     const promise = farm.remote.request(SUB_URL, { method: 'POST', data })
       .then(concatSubresponses(prior, ready));
-    if (Object.keys(waiting).length === 0) return promise;
-    return promise.then(done => chainSubrequests(waiting, done, priority + 1));
+    if (Object.keys(next).length === 0) return promise;
+    return promise.then(done => chainSubrequests(next, done, priority + 1));
   }
 
   return {
