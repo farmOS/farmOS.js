@@ -59,70 +59,6 @@ function parseContentId(string) {
   };
 }
 
-// Merge incoming subresponses w/ their original request data.
-const mergeResponseWithRequest = requests => evolve({
-  // The data property on the main response object contains the subresponses,
-  // each keyed to their contentId. Map over each subresponse and match it with
-  // its corresponding request, merge them into one object, and parse the body.
-  data: mapObjIndexed(compose(
-    // Parse the body of each subresponse.
-    evolve({ body: JSON.parse }),
-    // Merge the request data with the response data.
-    sub => mergeRight(requests[sub.requestId], sub),
-    // Parse the contentId to get the original requestId, key and index, then
-    // merge those properties with the rest of the subresponse.
-    (sub, contentId) => mergeRight(parseContentId(contentId), sub),
-  )),
-});
-const concatSubresponses = (responses, requests) => compose(
-  response => responses.concat(response),
-  mergeResponseWithRequest(requests),
-);
-
-// Even once they've been partitioned from other pending requests, ready requests
-// (ie, would-be concurrent requests) must first be sorted based on which are
-// dependent upon others, as will ultimately determine their waitFor properties.
-const isDependent = (req, id) => {
-  const { dependencies = {} } = req;
-  const allDeps = Object.values(dependencies).flat();
-  return allDeps.includes(id);
-};
-const sortConcurrentRequests = requests => sort(([idA, reqA], [idB, reqB]) => {
-  const aDependsOnB = isDependent(reqA, idB);
-  const bDependsOnA = isDependent(reqB, idA);
-  if (aDependsOnB && bDependsOnA) {
-    throw new Error('Circular Dependency!');
-  }
-  if (aDependsOnB) return -1;
-  if (bDependsOnA) return 1;
-  return 0;
-}, Object.entries(requests));
-// Each response contains one "batch" (ie, the same priority) of subresponses
-// but blueprint functions expect one big object containing all priorities.
-const mergeResponses = compose(
-  // Using mergeRight as the reducer merges all batches of subresponses into a
-  // single object. Because they're keyed to contentId, they shouldn't collide.
-  reduce(mergeRight, {}),
-  // The data property on each response object contains the subresponses.
-  map(prop('data')),
-);
-// Once they've been sorted, the blueprints of ready requests must be evaluated
-// sequentially, and if their blueprint is empty (ie, a 'noop'), they must be
-// removed from the final list of concurrent requests, b/c leaving them in can
-// result in a server error if it encounters a requestId it doesn't recognize.
-const concatConcurrentRequests = responses => reduce((ready, [reqId, req]) => {
-  const prior = mergeResponses(responses);
-  const resolved = evolve({
-    blueprint: bp => bp(ready, prior),
-  }, req);
-  if (resolved.blueprint.length < 1) return ready;
-  return assoc(reqId, resolved, ready);
-}, {});
-const resolveBlueprints = (prior, ready) => compose(
-  concatConcurrentRequests(prior),
-  sortConcurrentRequests,
-)(ready);
-
 // Determine if a relationship for a given schema is one-to-one (ie, 'object')
 // or one-to-many (ie, 'array').
 const typeOfRelationship = (schema, field) => path([
@@ -404,11 +340,86 @@ export default function useSubrequests(farm) {
   }
 
   function chainSubrequests(requests, responses = [], priority = 0) {
+    // Separate requests with the current priority level from all later requests.
     const [ready, next] = partition(r => r.priority === priority, requests);
-    const concurrent = resolveBlueprints(responses, ready);
-    const data = Object.values(concurrent).flatMap(({ blueprint }) => blueprint);
+    // Each response contains one "batch" (ie, the same priority) of subresponses
+    // but blueprint functions expect one big object containing all priorities.
+    const mergeResponses = compose(
+      // Using mergeRight as the reducer merges all batches of subresponses into a
+      // single object. Because they're keyed to contentId, they shouldn't collide.
+      reduce(mergeRight, {}),
+      // The data property on each response object contains the subresponses.
+      map(prop('data')),
+    );
+    const prior = mergeResponses(responses);
+
+    // Determine if a request (req) depends upon another separate request,
+    // based on the former's dependencies and the latter's requestId (id).
+    const isDependent = (req, id) => {
+      const { dependencies = {} } = req;
+      const allDeps = Object.values(dependencies).flat();
+      return allDeps.includes(id);
+    };
+    // Even once ready requests have been partitioned from pending ones, they
+    // must still be sorted according to which ones depend upon each other.
+    const sortConcurrentRequests = sort(([idA, reqA], [idB, reqB]) => {
+      const aDependsOnB = isDependent(reqA, idB);
+      const bDependsOnA = isDependent(reqB, idA);
+      if (aDependsOnB && bDependsOnA) {
+        throw new Error('Circular Dependency!');
+      }
+      if (aDependsOnB) return -1;
+      if (bDependsOnA) return 1;
+      return 0;
+    });
+    // Once they've been sorted, the blueprints of ready requests must be evaluated
+    // sequentially, and if their blueprint is empty (ie, a 'noop'), they must be
+    // removed from the final list of concurrent requests, b/c leaving them in can
+    // result in a server error if it encounters a requestId it doesn't recognize.
+    const concatConcurrentRequests = reduce((concurrent, [reqId, req]) => {
+      const resolved = evolve({
+        blueprint: bp => bp(concurrent, prior),
+      }, req);
+      if (resolved.blueprint.length < 1) return concurrent;
+      return assoc(reqId, resolved, concurrent);
+    }, {});
+    // Combine all the above steps to take a batch of ready requests and return
+    // the final blueprint array to send to the server's subrequest endpoint.
+    const resolveBlueprints = compose(
+      chain(prop('blueprint')),
+      Object.values,
+      concatConcurrentRequests,
+      sortConcurrentRequests,
+      Object.entries,
+    );
+
+    // Merge a batch of subresponses w/ their original request data.
+    const mergeResponseWithRequest = evolve({
+      // The data property on the main response object contains the subresponses,
+      // each keyed to their contentId. Map over each subresponse and match it with
+      // its corresponding request, merge them into one object, and parse the body.
+      data: mapObjIndexed(compose(
+        // Parse the body of each subresponse.
+        evolve({ body: JSON.parse }),
+        // Merge the request data with the response data.
+        sub => mergeRight(requests[sub.requestId], sub),
+        // Parse the contentId to get the original requestId, key and index, then
+        // merge those properties with the rest of the subresponse.
+        (sub, contentId) => mergeRight(parseContentId(contentId), sub),
+      )),
+    });
+
+    // Add an incoming response, along w/ its request data, to the list of
+    // prior responses, so they can be returned to the caller, or passed to the
+    // next recursive call of chainSubrequst.
+    const concatSubresponses = (response) => {
+      const merged = mergeResponseWithRequest(response);
+      return responses.concat(merged);
+    };
+
+    const data = resolveBlueprints(ready);
     const promise = farm.remote.request(SUB_URL, { method: 'POST', data })
-      .then(concatSubresponses(responses, ready));
+      .then(concatSubresponses);
     if (Object.keys(next).length === 0) return promise;
     return promise.then(done => chainSubrequests(next, done, priority + 1));
   }
