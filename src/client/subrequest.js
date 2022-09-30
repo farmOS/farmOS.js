@@ -59,12 +59,12 @@ function parseContentId(string) {
   };
 }
 
-// Merge incoming subresponses w/ their original request data & prior subresponses.
-const concatSubresponses = (prior, requests) => compose(
-  // Merge right with prior, so the newest results replace any stale data.
-  mergeRight(prior),
-  // Map over subresponses, parsing & merging each with its request object.
-  mapObjIndexed(compose(
+// Merge incoming subresponses w/ their original request data.
+const mergeResponseWithRequest = requests => evolve({
+  // The data property on the main response object contains the subresponses,
+  // each keyed to their contentId. Map over each subresponse and match it with
+  // its corresponding request, merge them into one object, and parse the body.
+  data: mapObjIndexed(compose(
     // Parse the body of each subresponse.
     evolve({ body: JSON.parse }),
     // Merge the request data with the response data.
@@ -73,9 +73,10 @@ const concatSubresponses = (prior, requests) => compose(
     // merge those properties with the rest of the subresponse.
     (sub, contentId) => mergeRight(parseContentId(contentId), sub),
   )),
-  // The data object on the main response object contains the subresponses,
-  // each keyed to their contentId.
-  prop('data'),
+});
+const concatSubresponses = (responses, requests) => compose(
+  response => responses.concat(response),
+  mergeResponseWithRequest(requests),
 );
 
 // Even once they've been partitioned from other pending requests, ready requests
@@ -96,19 +97,29 @@ const sortConcurrentRequests = requests => sort(([idA, reqA], [idB, reqB]) => {
   if (bDependsOnA) return 1;
   return 0;
 }, Object.entries(requests));
+// Each response contains one "batch" (ie, the same priority) of subresponses
+// but blueprint functions expect one big object containing all priorities.
+const mergeResponses = compose(
+  // Using mergeRight as the reducer merges all batches of subresponses into a
+  // single object. Because they're keyed to contentId, they shouldn't collide.
+  reduce(mergeRight, {}),
+  // The data property on each response object contains the subresponses.
+  map(prop('data')),
+);
 // Once they've been sorted, the blueprints of ready requests must be evaluated
 // sequentially, and if their blueprint is empty (ie, a 'noop'), they must be
-// removed from the final list of concurrent requests. Leaving them in can
-// result in server errors, if it encounters a requestId it has no knowledge of.
-const concatConcurrentRequests = (prior, next) => reduce((ready, [reqId, req]) => {
+// removed from the final list of concurrent requests, b/c leaving them in can
+// result in a server error if it encounters a requestId it doesn't recognize.
+const concatConcurrentRequests = responses => reduce((ready, [reqId, req]) => {
+  const prior = mergeResponses(responses);
   const resolved = evolve({
-    blueprint: bp => bp(ready, prior, next),
+    blueprint: bp => bp(ready, prior),
   }, req);
   if (resolved.blueprint.length < 1) return ready;
   return assoc(reqId, resolved, ready);
 }, {});
-const resolveBlueprints = (prior, ready, next) => compose(
-  concatConcurrentRequests(prior, next),
+const resolveBlueprints = (prior, ready) => compose(
+  concatConcurrentRequests(prior),
   sortConcurrentRequests,
 )(ready);
 
@@ -392,12 +403,12 @@ export default function useSubrequests(farm) {
     return parseSubrequest(Object.fromEntries(rest), opts, prefix);
   }
 
-  function chainSubrequests(requests, prior = {}, priority = 0) {
+  function chainSubrequests(requests, responses = [], priority = 0) {
     const [ready, next] = partition(r => r.priority === priority, requests);
-    const concurrent = resolveBlueprints(prior, ready, next);
+    const concurrent = resolveBlueprints(responses, ready);
     const data = Object.values(concurrent).flatMap(({ blueprint }) => blueprint);
     const promise = farm.remote.request(SUB_URL, { method: 'POST', data })
-      .then(concatSubresponses(prior, ready));
+      .then(concatSubresponses(responses, ready));
     if (Object.keys(next).length === 0) return promise;
     return promise.then(done => chainSubrequests(next, done, priority + 1));
   }
@@ -406,9 +417,9 @@ export default function useSubrequests(farm) {
     parse: parseSubrequest,
     chain: chainSubrequests,
     send(subrequest = {}, data = null) {
-      const prior = { 'ROOT-DATA': { data } };
+      const responses = [{ data: { $ROOT: { data } } }];
       const requests = parseSubrequest(subrequest);
-      return chainSubrequests(requests, prior);
+      return chainSubrequests(requests, responses);
     },
   };
 }
