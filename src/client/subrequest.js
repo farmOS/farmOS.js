@@ -132,7 +132,7 @@ export default function useSubrequests(farm) {
       map(pick(['id', 'type'])),
       rFilter((data) => data && 'id' in data && 'type' in data),
       // Flatten the array of nested data objects/arrays.
-      chain(prop('data')),
+      chain(path(['body', 'data'])),
       // Responses are sorted by highest priority, which corresponds to the most recent.
       // In the future it may also be useful to parse the requestId as a tie-breaker.
       sort((a, b) => a.priority - b.priority),
