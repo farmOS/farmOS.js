@@ -36,7 +36,7 @@ const isKeyword = startsWith('$');
 const isSubrequest = o => any(isKeyword, Object.keys(o));
 const splitFields = partition(isSubrequest);
 
-// For use with filters, to keep only their constant fields and drop any
+// For use with fetch filters, to keep only their constant fields and drop any
 // operators such as `'$lt'`, `'$or'`, etc.
 const dropKeywords = pickBy((v, k) => !isKeyword(k));
 
@@ -365,6 +365,7 @@ export default function useSubrequests(farm) {
     const sortConcurrentRequests = sort(([idA, reqA], [idB, reqB]) => {
       const aDependsOnB = isDependent(reqA, idB);
       const bDependsOnA = isDependent(reqB, idA);
+      // Doubtful this scenario is even possible, but better safe than sorry.
       if (aDependsOnB && bDependsOnA) {
         throw new Error('Circular Dependency!');
       }
