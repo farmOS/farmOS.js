@@ -301,7 +301,7 @@ export default function useSubrequests(farm) {
       const blueprint = (_, prior) => {
         const results = Object.values(prior)
           .filter(sub => Object.keys(subrequests).includes(sub.requestId))
-          .flatMap((sub) => sub.data);
+          .flatMap((sub) => sub.body.data || []);
         if (results.length > 0) return [];
         const props = { ...dropKeywords(typeFilter), type };
         const data = callEntityMethod(entity, 'create', props);
