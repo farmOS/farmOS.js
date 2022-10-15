@@ -295,12 +295,15 @@ export default function useSubrequests(farm) {
       const [{ type, filter: typeFilter }] = filtersByType;
       const { entity, bundle } = parseEntityType(type);
       const requestId = `${prefix}::$createIfNotFound:${type}`;
+      // A list of request ids is created before the above requestId is added to
+      // the subrequests object, and before the blueprint is evaluated.
+      const findRequestIds = Object.keys(subrequests);
       // A separate create request is only added when $createIfNotFound is true;
       // Even then, its blueprint returns the empty array (ie, no-op),
       // unless all prior find requests come back empty.
       const blueprint = (_, prior) => {
         const results = Object.values(prior)
-          .filter(sub => Object.keys(subrequests).includes(sub.requestId))
+          .filter(sub => findRequestIds.includes(sub.requestId) && sub.body)
           .flatMap((sub) => sub.body.data || []);
         if (results.length > 0) return [];
         const props = { ...dropKeywords(typeFilter), type };
