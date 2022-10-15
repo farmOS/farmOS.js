@@ -400,6 +400,17 @@ export default function useSubrequests(farm) {
       sortConcurrentRequests,
       Object.entries,
     );
+    function pruneUnmetDependencies(blueprint) {
+      const requestIds = blueprint.map(b => b.requestId);
+      const pruned = blueprint.filter(({ waitFor = [] }) =>
+        waitFor.length < 1 || waitFor.every(id => requestIds.includes(id)));
+      if (pruned.length === blueprint.length || pruned.length === 0) return pruned;
+      return pruneUnmetDependencies(pruned);
+    }
+    const concatBlueprints = compose(
+      pruneUnmetDependencies,
+      resolveBlueprints,
+    );
 
     // Merge a batch of subresponses w/ their original request data.
     const mergeResponseWithRequest = evolve({
@@ -425,7 +436,7 @@ export default function useSubrequests(farm) {
       return responses.concat(merged);
     };
 
-    const data = resolveBlueprints(ready);
+    const data = concatBlueprints(ready);
     const promise = farm.remote.request(SUB_URL, { method: 'POST', data })
       .then(concatSubresponses);
     if (Object.keys(next).length === 0) return promise;
