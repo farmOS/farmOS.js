@@ -182,7 +182,7 @@ export default function useSubrequests(farm) {
             requestId: `${requestId}.${field}`,
             // Note the entity's relationship endpoint is used here.
             uri: `${BASE_URI}/${entity}/${bundle}/${uuid}/relationships/${field}`,
-            waitFor: [requestId],
+            waitFor: [reqId, requestId],
             action: 'create',
             headers,
             body: JSON.stringify({
