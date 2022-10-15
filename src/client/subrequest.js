@@ -146,8 +146,12 @@ export default function useSubrequests(farm) {
       // Based on JSON Schema types, a field has a relation type of 'object' for
       // ONE-TO-ONE relationships, or 'array' for ONE-TO-MANY relationships.
       const relation = typeOfRelationship(schema, field);
-      const concurrentIds = Object.keys(ready).filter(id => fieldDeps.includes(id));
-      const resources = mapDependenciesToResources(fieldDeps);
+      const depPrefix = `${requestId}.${field}::`;
+      const trimPrefix = d => d.replace(depPrefix, '');
+      const isDirect = d => !trimPrefix(d).includes('::');
+      const directDeps = fieldDeps.filter(isDirect);
+      const concurrentIds = Object.keys(ready).filter(id => directDeps.includes(id));
+      const resources = mapDependenciesToResources(directDeps);
       // ONE-TO-ONE RELATIONSHIPS
       if (relation === 'object') {
         // Concurrent dependencies are taken first b/c they will be the most recent.
