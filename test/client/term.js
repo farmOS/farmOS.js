@@ -13,7 +13,7 @@ describe('term', function () {
       .then(() => {
         const term = {
           id,
-          type: 'taxonomy_term--material',
+          type: 'taxonomy_term--material_type',
           attributes: {
             name: 'Node Test',
           },
@@ -24,7 +24,7 @@ describe('term', function () {
         expect(response).to.have.nested.property('data.data.id', id);
         const term = {
           id,
-          type: 'taxonomy_term--material',
+          type: 'taxonomy_term--material_type',
           attributes: {
             name: 'Node Test Revised',
           },

@@ -23,14 +23,14 @@ describe('farmOS', function () {
     .then((res) => {
       farm.schema.set(res);
       const season = farm.schema.get('taxonomy_term', 'season');
-      expect(season).to.have.nested.property('properties.type.const', 'season');
+      expect(season).to.have.nested.property('properties.type.const', 'taxonomy_term--season');
     })
     .catch(reportError));
   it('create an activity log, send it to the server and delete it', () => {
-    const activity = farm.log.create({ type: 'activity', name: 'did some stuff' });
+    const activity = farm.log.create({ type: 'log--activity', name: 'did some stuff' });
     const { id } = activity;
     return farm.log.send(activity)
-      .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
+      .then(() => farm.log.fetch({ filter: { type: 'log--activity', id } }))
       .then(({ data: [remoteActivity] }) => {
         const updatedActivity = farm.log.update(activity, { name: 'did some more stuff' });
         const mergedActivity = farm.log.merge(updatedActivity, remoteActivity);
@@ -41,7 +41,7 @@ describe('farmOS', function () {
         expect(nameChangedAfterStatus).to.be.true;
         return farm.log.delete('activity', id);
       })
-      .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
+      .then(() => farm.log.fetch({ filter: { type: 'log--activity', id } }))
       .then((results) => {
         expect(results.data).to.have.lengthOf(0);
       })

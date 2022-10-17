@@ -33,16 +33,16 @@ const keys = {
 describe('log', () => {
   describe('#create', () => {
     it('creates a valid activity log', () => {
-      const activity = farm.log.create({ type: 'activity', name: 'my first log' });
+      const activity = farm.log.create({ type: 'log--activity', name: 'my first log' });
       expect(validate(activity.id)).to.be.true;
-      expect(activity.type).to.equal('activity');
+      expect(activity.type).to.equal('log--activity');
       expect(activity.attributes).to.have.all.keys(keys.attributes);
       expect(activity.relationships).to.have.all.keys(keys.relationships);
       expect(Date.parse(activity.attributes.timestamp)).to.not.be.NaN;
     });
     it('throws if no valid type is provided', () => {
-      expect(() => farm.log.create({ name: 'bad log' })).to.throw('log type: undefined');
-      expect(() => farm.log.create({ type: 'foo', name: 'bad log' })).to.throw('log type: foo');
+      expect(() => farm.log.create({ name: 'bad log' })).to.throw();
+      expect(() => farm.log.create({ type: 'foo', name: 'bad log' })).to.throw();
     });
   });
 });

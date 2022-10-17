@@ -10,7 +10,7 @@ describe('log', () => {
   describe('#merge', () => {
     it('merges a remote log with no conflicts', (done) => {
       // Start with a log created locally.
-      const local = farm.log.create({ type: 'activity', name: 'local log' });
+      const local = farm.log.create({ type: 'log--activity', name: 'local log' });
       setTimeout(() => {
         // Simulate syncing it to a remote system, which then updates it.
         const remote = farm.log.merge(undefined, local);

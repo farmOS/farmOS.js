@@ -12,7 +12,7 @@ describe('log', () => {
       this.timeout(1500);
       const delay = 1000;
       const tolerance = 100;
-      const activity = farm.log.create({ type: 'activity', name: 'a log' });
+      const activity = farm.log.create({ type: 'log--activity', name: 'a log' });
       setTimeout(() => {
         const updatedActivity = farm.log.update(activity, { name: 'an updated log' });
         expect(updatedActivity.attributes.name).to.be.equal('an updated log');

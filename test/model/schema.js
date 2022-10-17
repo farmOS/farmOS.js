@@ -54,9 +54,9 @@ describe('schema', () => {
         'transplanting',
         'foo',
       );
-      const foo = farm.log.create({ type: 'foo', name: 'my foo log' });
+      const foo = farm.log.create({ type: 'log--foo', name: 'my foo log' });
       expect(foo.attributes.name).to.equal('my foo log');
-      expect(foo.type).to.equal('foo');
+      expect(foo.type).to.equal('log--foo');
     });
   });
 });
