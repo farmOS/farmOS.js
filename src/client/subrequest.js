@@ -330,7 +330,7 @@ export default function useSubrequests(farm) {
     },
   };
 
-  function parseSubrequest(subrequest, options = {}, prefix = '$ROOT') {
+  function parseSubrequest(subrequest = {}, options = {}, prefix = '$ROOT') {
     const [[k, v], ...rest] = Object.entries(subrequest);
     let opts = { ...options, ...Object.fromEntries(rest) };
     if (k in commands) return commands[k](v, prefix, opts);
@@ -446,8 +446,10 @@ export default function useSubrequests(farm) {
   return {
     parse: parseSubrequest,
     chain: chainSubrequests,
-    send(subrequest = {}, data = null) {
-      const responses = [{ data: { $ROOT: { data } } }];
+    send(subrequest, data) {
+      const root = { data: { $ROOT: { data } } };
+      const responses = [];
+      if (data) responses.push(root);
       const requests = parseSubrequest(subrequest);
       return chainSubrequests(requests, responses);
     },

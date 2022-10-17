@@ -88,7 +88,6 @@ describe('subrequest', function () {
   it('sends a request with multiple subrequests', () => subrequests.send(sub1)
     .then((responses) => {
       const requestIds = [
-        '$ROOT',
         '$ROOT::$create:log--input',
         '$ROOT::$create:log--input.quantity::$create:quantity--standard',
         '$ROOT::$create:log--input.category::$find:taxonomy_term--log_category',
@@ -100,7 +99,7 @@ describe('subrequest', function () {
       const subresponses = responses.map(sub => sub.data).reduce(mergeRight, {});
       expect(subresponses).to.have.all.keys(requestIds);
 
-      const [, inputRequestId, quantityRequestId] = requestIds;
+      const [inputRequestId, quantityRequestId] = requestIds;
 
       expect(subresponses).to.include.key(inputRequestId);
       const inputSubresponse = subresponses[inputRequestId];
