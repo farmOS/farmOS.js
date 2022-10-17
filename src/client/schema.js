@@ -21,15 +21,23 @@ import { parseEntityType } from '../utils.js';
  * @param {Object<String, EntityConfig>} entities
  * @returns {FetchSchema}
  */
-const fetchSchema = (request, entities) => (entity, bundle) => {
+const fetchSchema = (request, entities) => (...args) => {
   const schemata = map(() => ({}), entities);
+  let entity; let bundle;
+  const [arg1, arg2] = args;
+  if (arg1 && !arg2) {
+    ({ entity = arg1, bundle } = parseEntityType(arg1));
+  }
+  if (arg1 && arg2) {
+    ({ entity = arg1, bundle = arg2 } = parseEntityType(arg2));
+  }
   const toSchemaRequest = ({ entity: e, bundle: b }) =>
     request(`/api/${e}/${b}/resource/schema`).then(({ data: schema }) => {
       schemata[e][b] = schema;
       return schema;
     });
   if (entity in entities && bundle) {
-    return toSchemaRequest({ entity, bundle }).then(({ data }) => data);
+    return toSchemaRequest({ entity, bundle });
   }
   const mapToSchemaRequests = compose(
     map(toSchemaRequest),
@@ -40,7 +48,11 @@ const fetchSchema = (request, entities) => (entity, bundle) => {
   );
   return request('/api/')
     .then(response => Promise.all(mapToSchemaRequests(response)))
-    .then(() => schemata);
+    .then(() => {
+      if (entity in entities && bundle) return schemata[entity][bundle] || null;
+      if (entity in entities) return schemata[entity];
+      return schemata;
+    });
 };
 
 export default fetchSchema;
