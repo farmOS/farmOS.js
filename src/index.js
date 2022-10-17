@@ -6,8 +6,6 @@ import defaultEntities from './entities.js';
 export { default as entities } from './entities.js';
 export { default as client } from './client/index.js';
 export { default as parseFilter } from './client/parse-filter.js';
-export { generateFieldTransforms } from './client/adapter/transformations.js';
-export { transformLocalEntity } from './client/adapter/transformations.js';
 export { default as useSubrequests } from './client/subrequest.js';
 export { default as model } from './model/index.js';
 export { splitFilterByType } from './types.js';
