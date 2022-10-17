@@ -56,11 +56,11 @@ farm.schema.fetch()
 ### 5. CRUD operations with a farmOS log
 
 ```js
-const initProps = { type: 'activity', name: 'did some stuff' };
+const initProps = { type: 'log--activity', name: 'did some stuff' };
 const activity = farm.log.create(initProps);
 const { id } = activity; // `id` is a v4 UUID
 farm.log.send(activity)
-  .then(() => farm.log.fetch({ filter: { type: 'activity', id } }))
+  .then(() => farm.log.fetch({ filter: { type: 'log--activity', id } }))
   .then(({ data: [remoteActivity] }) => {
     const updateProps = { name: 'did some more stuff' };
     const updatedActivity = farm.log.update(activity, updateProps);

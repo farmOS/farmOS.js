@@ -74,7 +74,7 @@ So for example, to request completed activity logs, you could use the following 
 
 ```js
 const filter = {
-  type: { $eq: 'activity' },
+  type: { $eq: 'log--activity' },
   status: { $eq: 'done' },
 };
 const request = farm.log.fetch({ filter });
@@ -86,9 +86,9 @@ Generally speaking, it's a good idea to include the `type` in filter queries whe
 const filter = {
   type: {
     $or: [
-      { $eq: 'activity' },
-      { $eq: 'harvest' },
-      { $eq: 'input' },
+      { $eq: 'log--activity' },
+      { $eq: 'log--harvest' },
+      { $eq: 'log--input' },
     ],
   },
   status: { $eq: 'done' },
@@ -100,9 +100,9 @@ This can be abbreviated somewhat by omitting the `$or` operator, and simply assi
 ```js
 const filter = {
   type: [
-    { $eq: 'activity' },
-    { $eq: 'harvest' },
-    { $eq: 'input' },
+    { $eq: 'log--activity' },
+    { $eq: 'log--harvest' },
+    { $eq: 'log--input' },
   ],
   status: { $eq: 'done' },
 };
@@ -112,7 +112,7 @@ And of course, a even more common shorthand is to omit the `$eq` operators, mere
 
 ```js
 const filter = {
-  type: ['activity', 'harvest', 'input'],
+  type: ['log--activity', 'log--harvest', 'log--input'],
   status: 'done',
 };
 ```
@@ -122,7 +122,7 @@ As you can see, this works even for the elements of the array, which have been r
 ```js
 const filter = {
   $and: [
-    { type: ['activity', 'harvest', 'input'] },
+    { type: ['log--activity', 'log--harvest', 'log--input'] },
     { status: 'done' },
   ],
 };
@@ -167,7 +167,7 @@ It's also important to note that this limit will apply separately for each entit
 ```js
 const filter = {
   $and: [
-    { type: ['activity', 'harvest', 'input'] },
+    { type: ['log--activity', 'log--harvest', 'log--input'] },
     { status: 'done' },
   ],
 };
