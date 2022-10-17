@@ -62,3 +62,8 @@ farm.remote.info().then((res) => { /** etc */ });
 ```
 
 For farmOS based on Drupal 9 and JSON:API, this is essentially a shorthand for requesting the `/api` endpoint.
+
+## Subrequests ⚠️ __WARNING: EXPERIMENTAL!__ ⚠️
+To reduce the number of roundtrip requests, the [Drupal `subrequests` module](https://www.drupal.org/project/subrequests) is included in most farmOS instances. A special syntax is employed in farmOS.js, however, which allows for more concise and intuitive descriptions of the subrequest dependency graph.
+
+Because this is still experimental, it should not be used in production, as there are known issues with its implementation. Until it is considered stable, refer to the [`test/subrequest.js`](https://github.com/farmOS/farmOS.js/blob/main/test/subrequest.js) for the most up-to-date examples on its usage.

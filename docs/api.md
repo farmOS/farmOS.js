@@ -235,12 +235,12 @@ Create a farm model for generating and manipulating farmOS data structures.
 
 
 * [model](#model) ⇒ [<code>FarmModel</code>](#FarmModel)
-    * [~getSchemata([entity], [type])](#model..getSchemata) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
+    * [~getSchemata([entity], [bundle])](#model..getSchemata) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
     * [~setSchemata(...args)](#model..setSchemata)
 
 <a name="model..getSchemata"></a>
 
-### model~getSchemata([entity], [type]) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
+### model~getSchemata([entity], [bundle]) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
 Retrieve all schemata that have been previously set, or the schemata of a
 particular entity, or one bundle's schema, if specified.
 
@@ -249,13 +249,13 @@ particular entity, or one bundle's schema, if specified.
 | Param | Type | Description |
 | --- | --- | --- |
 | [entity] | <code>String</code> | The name of a farmOS entity (eg, 'asset', 'log', etc). |
-| [type] | <code>String</code> | The entity's type (aka, bundle). |
+| [bundle] | <code>String</code> | The entity's bundle (eg, 'activity' for type 'log--activity'). |
 
 <a name="model..setSchemata"></a>
 
 ### model~setSchemata(...args)
 Load all schemata, the schemata of a particular entity, or one bundle's
-schema, if spcified.
+schema, if specified.
 
 **Kind**: inner method of [<code>model</code>](#model)  
 **Void**:   
@@ -365,7 +365,7 @@ Create a farm client for interacting with farmOS servers.
 | Name | Type | Description |
 | --- | --- | --- |
 | id | <code>String</code> | A v4 UUID as specified by RFC 4122. |
-| type | <code>String</code> | Corresponding to the entity bundle (eg, 'activity'). |
+| type | <code>String</code> | The combined form of entity & bundle (eg, 'log--activity'). |
 | attributes | <code>Object</code> | Values directly attributable to this entity. |
 | relationships | <code>Object.&lt;String, (EntityReference\|Array.&lt;EntityReference&gt;)&gt;</code> | References to other entities that define a one-to-one or one-to-many relationship. |
 | meta | <code>Object</code> | Non-domain information associated with the creation, modification, storage and transmission of the entity. |
