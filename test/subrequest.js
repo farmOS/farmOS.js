@@ -99,23 +99,43 @@ describe('subrequest', function () {
       const subresponses = responses.map(sub => sub.data).reduce(mergeRight, {});
       expect(subresponses).to.have.all.keys(requestIds);
 
-      const [inputRequestId, quantityRequestId] = requestIds;
+      const [
+        inputRequestId, quantRequestId,, catRequestId,, landRequestId,,,, unitRequestId,
+      ] = requestIds;
 
       expect(subresponses).to.include.key(inputRequestId);
       const inputSubresponse = subresponses[inputRequestId];
       const { body: { data: input } = {} } = inputSubresponse;
       expect(input).to.have.property('type', 'log--input');
       expect(input).to.have.nested.property('attributes.name', 'west field bed 12');
-      const { relationships: { category } } = input;
-      expect(category.data).to.have.lengthOf(1);
       expect(input).to.have.nested.property('relationships.category.data')
         .that.has.lengthOf(1);
 
-      expect(subresponses).to.include.key(quantityRequestId);
-      const quantitySubresponse = subresponses[quantityRequestId];
-      const { body: { data: quantity } = {} } = quantitySubresponse;
+      expect(subresponses).to.include.key(quantRequestId);
+      const quantSubresponse = subresponses[quantRequestId];
+      const { body: { data: quantity } = {} } = quantSubresponse;
       expect(quantity).to.have.property('type', 'quantity--standard');
       expect(quantity).to.have.nested.property('attributes.label', 'hhh');
+
+      // The rest of these aren't for testing but for cleanup purposes.
+      const catSubresponse = subresponses[catRequestId];
+      const { body: { data: category } = {} } = catSubresponse;
+      const landSubresponse = subresponses[landRequestId];
+      const { body: { data: land } = {} } = landSubresponse;
+      const unitSubresponse = subresponses[unitRequestId];
+      const { body: { data: unit } = {} } = unitSubresponse;
+
+      const cleanupRound1 = Promise.all([
+        farm.log.delete('input', input.id),
+        farm.quantity.delete('standard', quantity.id),
+        farm.asset.delete('land', land.id),
+      ]);
+      // These terms can only be deleted AFTER the entities referencing them have been.
+      const cleanupRound2 = () => Promise.all([
+        farm.term.delete('log_category', category.id),
+        farm.term.delete('unit', unit.id),
+      ]);
+      return cleanupRound1.then(cleanupRound2);
     })
     .catch(reportError));
 });
