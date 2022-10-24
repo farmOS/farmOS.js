@@ -102,9 +102,7 @@ describe('subrequest', function () {
       const subresponses = responses.map(sub => sub.data).reduce(mergeRight, {});
       expect(subresponses).to.have.all.keys(requestIds);
 
-      const [
-        inputRequestId, quantRequestId,, catRequestId,, landRequestId,,,, unitRequestId,
-      ] = requestIds;
+      const [inputRequestId, quantRequestId] = requestIds;
 
       expect(subresponses).to.include.key(inputRequestId);
       const inputSubresponse = subresponses[inputRequestId];
@@ -125,26 +123,29 @@ describe('subrequest', function () {
       const { body: { data: quantity } = {} } = quantSubresponse;
       expect(quantity).to.have.property('type', 'quantity--standard');
       expect(quantity).to.have.nested.property('attributes.label', 'hhh');
-
-      // The rest of these aren't for testing but for cleanup purposes.
-      const catSubresponse = subresponses[catRequestId];
-      const { body: { data: category } = {} } = catSubresponse;
-      const landSubresponse = subresponses[landRequestId];
-      const { body: { data: land } = {} } = landSubresponse;
-      const unitSubresponse = subresponses[unitRequestId];
-      const { body: { data: unit } = {} } = unitSubresponse;
-
-      const cleanupRound1 = Promise.all([
-        farm.log.delete('input', input.id),
-        farm.quantity.delete('standard', quantity.id),
-        farm.asset.delete('land', land.id),
-      ]);
-      // These terms can only be deleted AFTER the entities referencing them have been.
-      const cleanupRound2 = () => Promise.all([
-        farm.term.delete('log_category', category.id),
-        farm.term.delete('unit', unit.id),
-      ]);
-      return cleanupRound1.then(cleanupRound2);
     })
     .catch(reportError));
+  this.afterAll(() => Promise.all([
+    farm.log.fetch({ filter: { type: 'log--input', name: 'west field bed 12' } }),
+    farm.quantity.fetch({ filter: { type: 'quantity--standard', label: 'hhh' } }),
+    farm.asset.fetch({ filter: { type: 'asset--land', name: 'west field bed 12' } }),
+    farm.term.fetch({ filter: { type: 'taxonomy_term--log_category', name: 'pest_disease_control' } }),
+    farm.term.fetch({ filter: { type: 'taxonomy_term--unit', name: 'US_gal_acre' } }),
+  ]).then(([logs, quantities, assets, categories, units]) => {
+    const cleanup = (shortName, bundle, response) => {
+      const ids = response.data.map(d => d.id);
+      return ids.map(id => farm[shortName].delete(bundle, id));
+    };
+    const round1 = Promise.all([
+      cleanup('log', 'input', logs),
+      cleanup('quantity', 'standard', quantities),
+      cleanup('asset', 'land', assets),
+    ].flat());
+    // These terms can only be deleted AFTER the entities referencing them have been.
+    const round2 = () => Promise.all([
+      cleanup('term', 'log_category', categories),
+      cleanup('term', 'unit', units),
+    ].flat());
+    return round1.then(round2);
+  }));
 });
