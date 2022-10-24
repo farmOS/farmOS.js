@@ -368,18 +368,32 @@ export default function useSubrequests(farm) {
       return allDeps.includes(id);
     };
     // Even once ready requests have been partitioned from pending ones, they
-    // must still be sorted according to which ones depend upon each other.
-    const sortConcurrentRequests = sort(([idA, reqA], [idB, reqB]) => {
-      const aDependsOnB = isDependent(reqA, idB);
-      const bDependsOnA = isDependent(reqB, idA);
-      // Doubtful this scenario is even possible, but better safe than sorry.
-      if (aDependsOnB && bDependsOnA) {
-        throw new Error('Circular Dependency!');
+    // must still be sorted according to which ones depend upon each other. This
+    // prevents subrequests from referencing dependencies that have resolved to
+    // a 'noop' will be removed from the collection of concurrent subrequests.
+    function sortByDependencies(unsorted, sorted = []) {
+      const [head, ...tail] = unsorted;
+      if (tail.length < 1) return [...sorted, head];
+      const [idA, reqA] = head;
+      const aDependsOn = []; const dependsOnA = []; const independent = [];
+      tail.forEach(([idB, reqB]) => {
+        if (isDependent(reqA, idB)) {
+          aDependsOn.push([idB, reqB]);
+        } else if (isDependent(reqB, idA)) {
+          dependsOnA.push([idB, reqB]);
+        } else {
+          independent.push([idB, reqB]);
+        }
+      });
+      const circularDependency = !aDependsOn.every(([i]) => dependsOnA.every(([j]) => i !== j));
+      if (circularDependency) throw new Error('Circular dependency detected!');
+      if (aDependsOn.length === 0) {
+        return sortByDependencies(tail, [...sorted, head]);
       }
-      if (aDependsOnB) return -1;
-      if (bDependsOnA) return 1;
-      return 0;
-    });
+      const resorted = [...independent, ...aDependsOn, head, ...dependsOnA];
+      return sortByDependencies(resorted, sorted);
+    }
+
     // Once they've been sorted, the blueprints of ready requests must be evaluated
     // sequentially, and if their blueprint is empty (ie, a 'noop'), they must be
     // removed from the final list of concurrent requests, b/c leaving them in can
@@ -397,7 +411,7 @@ export default function useSubrequests(farm) {
       chain(prop('blueprint')),
       Object.values,
       concatConcurrentRequests,
-      sortConcurrentRequests,
+      sortByDependencies,
       Object.entries,
     );
     function pruneUnmetDependencies(blueprint) {
