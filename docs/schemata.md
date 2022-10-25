@@ -115,25 +115,37 @@ Activity schema:
 ```
 
 ## Fetching remote schemata
-If your ultimate goal is to send data to a farmOS server, the best way to retrieve a schema is to fetch it from that server. This is facilitated by the `farm.schema.fetch` method, which accepts up to 2 arguments and returns a promise for the request:
+If your ultimate goal is to send data to a farmOS server, the best way to retrieve a schema is to fetch it from that server itself, so you can be assured entities created and update locally will be compatible with that server's configuration. 
+
+This is facilitated by the `farm.schema.fetch` method, which accepts up to 2 arguments and returns a promise for the request. As with [entity fetch methods](entities.md#fetching-entities), the object that resolves from the returned promise will include `data`, `fulfilled` and `rejected` properties. The `data` property will be the individual schema or a collection of schemata, while the `fulfilled` and `rejected` properties will contain all successful responses and unsuccessful error data, respectively. All schemata that are successfully fetched will be set on that `farm` instance automatically as well.
 
 ```js
-farm.schema.fetch('log', 'activity').then((schema) => {
-  farm.schema.set('log', 'activity', schema);
+farm.schema.fetch('log', 'activity').then((result) => {
+  result.data.properties.type.const === 'log--activity'; // => true
+  const schema = farm.schema.get('log', 'activity');
+  schema.properties.type.const === result.data.properties.type.const; // => true
 });
 ```
 
-As with the `set` and `get` methods, `fetch` can also take an optional first parameter of the entity, and an optional second parameter of the entity type:
-
+As with the `set` and `get` methods, both the first entity parameter and the second bundle parameter of the `fetch` method are optional.
 
 ```js
-farm.schema.fetch('log').then((logSchemata) => {
-  farm.schema.set('log', logSchemata);
+farm.schema.fetch('log').then((schemata) => {
+  schemata.activity.properties.type.const === 'log--activity';
 });
 // Or...
-farm.schema.fetch().then((allSchemata) => {
-  farm.schema.set(allSchemata);
+farm.schema.fetch().then((schemata) => {
+  schemata.log.activity.properties.type.const === 'log--activity';
 });
+```
+
+The first or second parameter can also be the full entity's type, (eg, `'log--activity'`), which will resolve to the individual schema for that bundle:
+
+```js
+// All three requests should resolve to the activity schema, if found.
+farm.schema.fetch('log', 'activity');
+farm.schema.fetch('log', 'log--activity');
+farm.schema.fetch('log--activity');
 ```
 
 ## Using core schemata
