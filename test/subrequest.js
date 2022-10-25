@@ -63,7 +63,7 @@ const sub1 = {
   },
 };
 
-describe('subrequest', function () {
+describe.skip('subrequest', function () {
   this.timeout(10000);
   const farm = farmOS({ remote });
   const session = farm.remote.authorize(username, password);
