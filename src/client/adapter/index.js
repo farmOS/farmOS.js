@@ -1,12 +1,7 @@
-import append from 'ramda/src/append.js';
-import chain from 'ramda/src/chain.js';
 import compose from 'ramda/src/compose.js';
-import concat from 'ramda/src/concat.js';
-import evolve from 'ramda/src/evolve.js';
 import rFilter from 'ramda/src/filter.js';
 import map from 'ramda/src/map.js';
 import path from 'ramda/src/path.js';
-import reduce from 'ramda/src/reduce.js';
 import client from '../index.js';
 import defaultEntities, { entityMethods } from '../../entities.js';
 import { parseEntityType, splitFilterByType } from '../../types.js';
@@ -32,20 +27,6 @@ import { altogether } from '../../utils.js';
  */
 
 const DRUPAL_PAGE_LIMIT = 50;
-
-const aggregateBundles = reduce((aggregate, result) => {
-  const { reason, value, status } = result;
-  if (status === 'fulfilled') {
-    const nextData = chain(path(['data', 'data']), value);
-    return evolve({
-      data: concat(nextData),
-      fulfilled: concat(value),
-    }, aggregate);
-  }
-  return evolve({
-    rejected: append(reason),
-  }, aggregate);
-}, { data: [], fulfilled: [], rejected: [] });
 
 /**
  * @typedef {import('../../entities.js').EntityConfig} EntityConfig
@@ -145,12 +126,12 @@ export default function adapter(model, opts) {
           const req = connection[shortName].fetch(bundle, fetchOptions);
           return chainRequests(req, limit);
         });
-        const handleBundleResponse = compose(
-          transformFetchResponse(name),
-          aggregateBundles,
-        );
-        return Promise.allSettled(bundleRequests)
-          .then(handleBundleResponse);
+        const concatBundle = (response, data) => {
+          const bundle = response.flatMap(path(['data', 'data']));
+          return data.concat(bundle);
+        };
+        return altogether(concatBundle, [], bundleRequests)
+          .then(transformFetchResponse(name));
       },
       send: data => connection[shortName].send(
         parseEntityType(data.type).bundle,
