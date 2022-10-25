@@ -3,6 +3,7 @@ import chain from 'ramda/src/chain.js';
 import compose from 'ramda/src/compose.js';
 import concat from 'ramda/src/concat.js';
 import evolve from 'ramda/src/evolve.js';
+import rFilter from 'ramda/src/filter.js';
 import map from 'ramda/src/map.js';
 import path from 'ramda/src/path.js';
 import reduce from 'ramda/src/reduce.js';
@@ -13,11 +14,21 @@ import {
   generateFieldTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
+import { altogether } from '../../utils.js';
 
 /**
+ * @typedef {import('../../utils').AltogetherResult} AltogetherResult
  * @typedef {import('../../json-schema/reference').JsonSchema} JsonSchema
  * @typedef {import('../../model/index').EntitySchemata} EntitySchemata
  * @typedef {import('../../model/index').BundleSchemata} BundleSchemata
+ */
+
+/**
+ * Fetch JSON Schema documents for farmOS data structures.
+ * @typedef {Function} FetchSchema
+ * @param {string} [entity] The farmOS entity for which you wish to retrieve schemata.
+ * @param {string} [bundle] The entity bundle for which you wish to retrieve schemata.
+ * @returns {Promise<AltogetherResult<JsonSchema|EntitySchemata|BundleSchemata>>}
  */
 
 const DRUPAL_PAGE_LIMIT = 50;
@@ -71,20 +82,50 @@ export default function adapter(model, opts) {
     return chainRequests(nextReq, limit, all, newTotal);
   });
 
+  const fetchAndSetSchemata = ({ entity, bundle }) =>
+    connection.schema.fetch(entity, bundle).then((response) => {
+      const { data: d9Schema } = response;
+      const schema = transformD9Schema(d9Schema);
+      model.schema.set(entity, bundle, schema);
+      return response;
+    });
+
   return {
     ...connection,
     schema: {
-      fetch(entName, bundle) {
-        return connection.schema.fetch(entName, bundle)
-          .then((schemata) => {
-            if (!entName) {
-              return map((s) => map(transformD9Schema, s), schemata);
-            }
-            if (!bundle) {
-              return map(transformD9Schema, schemata);
-            }
-            return transformD9Schema(schemata);
-          });
+      /** @type {FetchSchema} */
+      fetch(...args) {
+        let entity; let bundle;
+        const [arg1, arg2] = args;
+        if (arg1 && !arg2) {
+          ({ entity = arg1, bundle } = parseEntityType(arg1));
+        }
+        if (arg1 && arg2) {
+          ({ entity = arg1, bundle = arg2 } = parseEntityType(arg2));
+        }
+        if (entity in entities && bundle) {
+          return fetchAndSetSchemata({ entity, bundle }).then(response => ({
+            data: model.schema.get(entity, bundle),
+            fulfilled: [response],
+            rejected: [],
+          })).catch(response => ({
+            data: null,
+            fulfilled: [],
+            rejected: [response],
+          }));
+        }
+        const transformSchemaResults = (_, data) => (data === null
+          ? model.schema.get(entity, bundle)
+          : data);
+        const aggregateSchemaRequests = compose(
+          altogether(transformSchemaResults, null),
+          map(fetchAndSetSchemata),
+          !entity ? rFilter(o => o.entity in entities) : rFilter(o => o.entity === entity),
+          map(parseEntityType),
+          Object.keys,
+          path(['data', 'links']),
+        );
+        return connection.request('/api/').then(aggregateSchemaRequests);
       },
     },
     ...entityMethods(({ nomenclature: { name, shortName } }) => ({

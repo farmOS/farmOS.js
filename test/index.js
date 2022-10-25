@@ -18,14 +18,47 @@ describe('farmOS', function () {
   const session = farm.remote.authorize(username, password);
   it('can authenticate with the server', () => session
     .then((token) => { expect(token).to.have.property('access_token'); }));
-  it('fetches remote schemata and sets them locally', () => session
+  it('fetches all remote schemata and automatically sets them locally', () => session
     .then(() => farm.schema.fetch())
-    .then((res) => {
-      farm.schema.set(res);
+    .then(() => {
+      const schemata = farm.schema.get();
+      expect(schemata).to.have.all.keys([
+        'asset', 'log', 'plan', 'quantity', 'taxonomy_term', 'user',
+      ]);
+      const terms = farm.schema.get('taxonomy_term');
+      expect(terms).to.have.all.keys([
+        'animal_type',
+        'crop_family',
+        'log_category',
+        'material_type',
+        'unit',
+        'plant_type',
+        'season',
+      ]);
       const season = farm.schema.get('taxonomy_term', 'season');
       expect(season).to.have.nested.property('properties.type.const', 'taxonomy_term--season');
     })
     .catch(reportError));
+  it('fetches the schema for a specified entity (\'log\') and bundle (\'activity\').', () => session
+    .then(() => farm.schema.fetch('log', 'activity'))
+    .then((res) => {
+      expect(res).to.have.nested.property('data.properties.type.const', 'log--activity');
+    }).catch(reportError));
+  it('fetches the schema for a specified entity (\'log\') and type (\'log--activity\').', () => session
+    .then(() => farm.schema.fetch('log', 'log--activity'))
+    .then((res) => {
+      expect(res).to.have.nested.property('data.properties.type.const', 'log--activity');
+    }).catch(reportError));
+  it('fetches the schema for a specified type (\'log--activity\').', () => session
+    .then(() => farm.schema.fetch('log--activity'))
+    .then((res) => {
+      expect(res).to.have.nested.property('data.properties.type.const', 'log--activity');
+    }).catch(reportError));
+  it('fetches schemata for all bundles of a specified entity.', () => session
+    .then(() => farm.schema.fetch('log'))
+    .then((res) => {
+      expect(res).to.have.nested.property('data.activity.properties.type.const', 'log--activity');
+    }).catch(reportError));
   it('create an activity log, send it to the server and delete it', () => {
     const activity = farm.log.create({ type: 'log--activity', name: 'did some stuff' });
     const { id } = activity;

@@ -4,7 +4,6 @@ import fetchEntity from './fetch.js';
 import sendEntity from './send.js';
 import oauth from './oauth.js';
 import defaultEntities, { entityMethods } from '../entities.js';
-import fetchSchema from './schema.js';
 
 /** The methods for transmitting farmOS data structures, such as assets, logs,
  * etc, to a farmOS server.
@@ -12,6 +11,14 @@ import fetchSchema from './schema.js';
  * @property {import('./fetch.js').fetchEntity} fetch
  * @property {import('./send.js').sendEntity} send
  * @property {import('./delete.js').deleteEntity} delete
+ */
+
+/**
+ * Fetch JSON Schema documents for farmOS data structures.
+ * @typedef {Function} FetchSchema
+ * @param {string} [entity] The farmOS entity for which you wish to retrieve schemata.
+ * @param {string} [bundle] The entity bundle for which you wish to retrieve schemata.
+ * @returns {Promise<EntitySchemata|BundleSchemata|JsonSchema>}
  */
 
 /**
@@ -30,7 +37,7 @@ import fetchSchema from './schema.js';
  * @property {Function} [getToken]
  * @property {Function} info
  * @property {Object} schema
- * @property {Function} schema.fetch
+ * @property {FetchSchema} schema.fetch
  * @property {ClientEntityMethods} asset
  * @property {ClientEntityMethods} log
  * @property {ClientEntityMethods} plan
@@ -81,7 +88,9 @@ export default function client(host, options) {
       return request('/api');
     },
     schema: {
-      fetch: fetchSchema(request, entities),
+      fetch(entity, bundle) {
+        return request(`/api/${entity}/${bundle}/resource/schema`);
+      },
     },
     ...entityMethods(({ nomenclature: { name } }) => ({
       delete: deleteEntity(name, request),

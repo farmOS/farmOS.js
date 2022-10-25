@@ -1,4 +1,6 @@
+import append from 'ramda/src/append.js';
 import curry from 'ramda/src/curry.js';
+import evolve from 'ramda/src/evolve.js';
 import reduce from 'ramda/src/reduce.js';
 
 /** @type {(x: any) => Boolean} */
@@ -25,3 +27,42 @@ export const createObserver = () => {
   };
   return { subscribe, next };
 };
+
+/**
+ * @template D
+ */
+/**
+/**
+ * @typedef {{ data: D, fulfilled: any[], rejected: any[] }} AltogetherResult
+ * @property {D} data
+ * @property {any[]} fulfilled
+ * @property {any[]} rejected
+ */
+/**
+ * @typedef {(promises: Promise[]) => AltogetherResult} AltogetherPartial
+ */
+
+/**
+ * Handles a list of promises of compatible type that will be executed in parallel.
+ * It wraps `Promise.allSettled()` and partitions the results based on their status,
+ * 'fulfilled' or 'rejected', while also applying a transform function that iterates
+ * through all fulfilled values and returns the cumulated result as 'data'.
+ * @typedef {Function} altogether
+ * @param {Function} transform
+ * @param {D} [initData=null]
+ * @param {Promise[]} [promises=[]]
+ * @returns {Promise<AltogetherPartial|AltogetherResult>}
+ */
+export const altogether = curry((transform, initData, promises) =>
+  Promise.allSettled(promises || []).then(reduce((all, result) => {
+    const { reason, value, status } = result;
+    if (status === 'fulfilled') {
+      return evolve({
+        data: d => transform(value, d),
+        fulfilled: append(value),
+      }, all);
+    }
+    return evolve({
+      rejected: append(reason),
+    }, all);
+  }, { data: initData || null, fulfilled: [], rejected: [] })));
