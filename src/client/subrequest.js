@@ -182,6 +182,16 @@ export default function useSubrequests(farm) {
         // they are separated as "posthoc" (ie, "after the fact") dependencies.
         concurrentIds.forEach((reqId) => {
           const uuid = `{{${requestId}.body@$.data.id}}`;
+          const data = [{
+            id: `{{${reqId}.body@$.data[*].id}}`,
+            type: `{{${reqId}.body@$.data[*].type}}`,
+            // The revision id mainly required for quantities, but it doesn't
+            // hurt to add it for all relationship post requests.
+            meta: {
+              target_revision_id: `{{${reqId}.body@$.data[*].attributes.drupal_internal__revision_id}}`,
+              drupal_internal__target_id: `{{${reqId}.body@$.data[*].attributes.drupal_internal__id}}`,
+            },
+          }];
           const blueprint = {
             requestId: `${requestId}.${field}`,
             // Note the entity's relationship endpoint is used here.
@@ -189,12 +199,7 @@ export default function useSubrequests(farm) {
             waitFor: [reqId, requestId],
             action: 'create',
             headers,
-            body: JSON.stringify({
-              data: [{
-                id: `{{${reqId}.body@$.data[*].id}}`,
-                type: path([reqId, 'type'], ready),
-              }],
-            }),
+            body: JSON.stringify({ data }),
           };
           posthoc.push(blueprint);
         });
