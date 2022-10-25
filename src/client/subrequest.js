@@ -59,6 +59,23 @@ function parseContentId(string) {
   };
 }
 
+function parseCommand(reqId) {
+  const pathSegments = reqId.split('::');
+  const lastPathSegment = pathSegments[pathSegments.length - 1];
+  const [command] = lastPathSegment.split(':');
+  return command;
+}
+const commandRelations = {
+  $find: 'array',
+  $create: 'object',
+  $createIfNotFound: 'object',
+};
+function parseDataToken(requestId) {
+  const fieldCommand = parseCommand(requestId);
+  const wildcard = commandRelations[fieldCommand] === 'array' ? '[*]' : '';
+  return `${requestId}.body@$.data${wildcard}`;
+}
+
 // Determine if a relationship for a given schema is one-to-one (ie, 'object')
 // or one-to-many (ie, 'array').
 const typeOfRelationship = (schema, field) => path([
@@ -182,14 +199,15 @@ export default function useSubrequests(farm) {
         // they are separated as "posthoc" (ie, "after the fact") dependencies.
         concurrentIds.forEach((reqId) => {
           const uuid = `{{${requestId}.body@$.data.id}}`;
+          const dataToken = parseDataToken(reqId);
           const data = [{
-            id: `{{${reqId}.body@$.data[*].id}}`,
-            type: `{{${reqId}.body@$.data[*].type}}`,
-            // The revision id mainly required for quantities, but it doesn't
-            // hurt to add it for all relationship post requests.
+            id: `{{${dataToken}.id}}`,
+            type: `{{${dataToken}.type}}`,
+            // The target's revision id is required primarily for quantities,
+            // but it doesn't hurt to add it for all others as well.
             meta: {
-              target_revision_id: `{{${reqId}.body@$.data[*].attributes.drupal_internal__revision_id}}`,
-              drupal_internal__target_id: `{{${reqId}.body@$.data[*].attributes.drupal_internal__id}}`,
+              target_revision_id: `{{${dataToken}.attributes.drupal_internal__revision_id}}`,
+              drupal_internal__target_id: `{{${dataToken}.attributes.drupal_internal__id}}`,
             },
           }];
           const blueprint = {
