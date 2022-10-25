@@ -164,7 +164,7 @@ export default function useSubrequests(farm) {
           // they will be added independently as post hoc requests.
           waitFor.push(reqId);
           const resource = {
-            id: `{{${reqId}.body@$.id}}`,
+            id: `{{${reqId}.body@$.data.id}}`,
             type: path([reqId, 'type'], ready),
           };
           resolved[field] = resource;
