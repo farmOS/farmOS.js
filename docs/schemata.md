@@ -45,25 +45,6 @@ farm.schema.set(schemata);
 farm.schema.set('log', schemata.log);
 ```
 
-One caveat to be aware of, however, is that calls to `farm.schema.set` will overwrite the existing schemata to whatever depth you call the parameters. So if you previously had schemata for harvest logs and equipment assets, but then called:
-
-```js
-const activityLogJSONSchema = { /** JSON Schema */ };
-farm.schema.set({ log: { activity: activityLogJSONSchema } });
-const harvest = farm.log.create({ type: 'log--harvest' }); // THROWS!
-const equipment = farm.asset.create({ type: 'asset--equipment' }); // THROWS!
-```
-
-Those calls to create a new harvest log and equipment asset will throw, because the schemata for them are no longer set. To avoid that scenario, it would have been better to call:
-
-```js
-farm.schema.set('log', 'activity', activityLogJSONSchema);
-const harvest = farm.log.create({ type: 'log--harvest' }); // works
-const equipment = farm.asset.create({ type: 'log--equipment' }); // works
-```
-
-In this last example, only the activity log schema would have been overwritten, preserving the original schemata for harvest logs and equipment assets.
-
 ### Instantiate your farm with the `schemata` option
 If schemata are available to your application when you instantiate `farmOS`, you can also provide a `schemata` option to the constructor. This option should have as its value an object, containing each entity as a key (eg, `'log'`), whose value is an object containing each entity type as a key (eg, `'log--activity'`), whose value is the corresponding schema for that entity type.
 

@@ -125,9 +125,6 @@ export default function model(options = {}) {
         const { bundle = type1 } = parseEntityType(type1);
         setSchemata(entity, bundle, schema);
       });
-      Object.keys(schemata[entity]).forEach((bundle) => {
-        if (!(bundle in bundleSchemata)) delete schemata[bundle];
-      });
       return clone(schemata)[entity];
     }
     if (args.length === 3
