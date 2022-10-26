@@ -1,5 +1,5 @@
 const farmOS = require('../dist/cjs/farmOS').default;
-const localServerConfig = require('../local-server-config.js');
+const localServerConfig = require('../test/local-server-config.js');
 const { writeSchema } = require('./fs-utils.js');
 
 const $idURI = (entity, bundle) =>

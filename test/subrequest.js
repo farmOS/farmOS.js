@@ -2,7 +2,7 @@ const chai = require('chai');
 const { mergeRight } = require('ramda');
 const farmOS = require('../dist/cjs/farmOS').default;
 const { useSubrequests } = require('../dist/cjs/farmOS');
-const localServerConfig = require('../local-server-config');
+const localServerConfig = require('./local-server-config');
 const { reportError } = require('./report');
 
 const { expect } = chai;

@@ -1,5 +1,5 @@
 const client = require('../../dist/cjs/client').default;
-const localServerConfig = require('../../local-server-config');
+const localServerConfig = require('../local-server-config');
 
 const {
   host, clientId, username, password,

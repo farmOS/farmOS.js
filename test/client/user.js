@@ -1,5 +1,5 @@
 const chai = require('chai');
-const localServerConfig = require('../../local-server-config');
+const localServerConfig = require('../local-server-config');
 const { reportError } = require('../report');
 const { farm, session } = require('./client');
 

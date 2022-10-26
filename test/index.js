@@ -1,7 +1,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const farmOS = require('../dist/cjs/farmOS').default;
-const localServerConfig = require('../local-server-config');
+const localServerConfig = require('./local-server-config');
 const { reportError } = require('./report');
 
 chai.use(chaiAsPromised);

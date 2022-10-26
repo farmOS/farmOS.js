@@ -2,3 +2,4 @@ node_modules/**
 dist/**
 report.json
 errors.json
+.env
