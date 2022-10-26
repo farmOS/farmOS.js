@@ -1,4 +1,6 @@
 # Introduction
+## ⚠️ __WARNING: EXPERIMENTAL!__ ⚠️
+__PLEASE READ:__ As farmOS.js version 2.0.0 approaches its general release, be aware that there have recently been, and may continue to be, breaking changes in the `beta.x` releases. Most notably, the `2.0.0-beta.12` contains [several breaking changes](https://github.com/farmOS/farmOS.js/pull/70). It is advised that if you use any of these beta releases you be careful to pin your dependencies to an exact version number in your `package.json` file's dependencies.
 
 ## Motivation
 farmOS.js is a JavaScript library for working with farmOS data structures and interacting with farmOS servers.
