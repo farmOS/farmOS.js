@@ -49,6 +49,9 @@ associated metadata and schemata.</p>
 <dd><p>The methods for transmitting farmOS data structures, such as assets, logs,
 etc, to a farmOS server.</p>
 </dd>
+<dt><a href="#FetchSchema">FetchSchema</a> ⇒ <code>Promise.&lt;(EntitySchemata|BundleSchemata|JsonSchema)&gt;</code></dt>
+<dd><p>Fetch JSON Schema documents for farmOS data structures.</p>
+</dd>
 <dt><a href="#AuthMixin">AuthMixin</a> ⇒ <code>Object.&lt;string, function()&gt;</code></dt>
 <dd></dd>
 <dt><a href="#FarmClient">FarmClient</a> : <code>Object</code></dt>
@@ -279,6 +282,18 @@ etc, to a farmOS server.
 | send | <code>sendEntity</code> | 
 | delete | <code>deleteEntity</code> | 
 
+<a name="FetchSchema"></a>
+
+## FetchSchema ⇒ <code>Promise.&lt;(EntitySchemata\|BundleSchemata\|JsonSchema)&gt;</code>
+Fetch JSON Schema documents for farmOS data structures.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [entity] | <code>string</code> | The farmOS entity for which you wish to retrieve schemata. |
+| [bundle] | <code>string</code> | The entity bundle for which you wish to retrieve schemata. |
+
 <a name="AuthMixin"></a>
 
 ## AuthMixin ⇒ <code>Object.&lt;string, function()&gt;</code>
@@ -311,7 +326,7 @@ from a farmOS Drupal 9 server using JSON:API.
 | [getToken] | <code>function</code> | 
 | info | <code>function</code> | 
 | schema | <code>Object</code> | 
-| schema.fetch | <code>function</code> | 
+| schema.fetch | [<code>FetchSchema</code>](#FetchSchema) | 
 | asset | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 | log | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 | plan | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
