@@ -10,6 +10,7 @@ import parseFilter from './parse-filter.js';
  * @typedef {Object} FetchOptions
  * @property {Object} [filter]
  * @property {Object} [filterTransforms]
+ * @property {Array|String} [include]
  * @property {Number} [limit]
  * @property {Object} [sort]
  */
@@ -35,18 +36,31 @@ const parseSort = compose(
   defaultTo({}),
 );
 
+/** @type {(sort: Array) => String} */
+const parseIncludeArray = reduce(
+  (params, str) => `${params || '&include='}${params ? ',' : ''}${str}`,
+  '',
+);
+/** @type {(sort: Array|String?) => String} */
+const parseInclude = include => {
+  if (Array.isArray(include)) return parseIncludeArray(include);
+  if (!include || typeof include !== 'string') return '';
+  return `&include=${include}`;
+};
+
 /**
  * @param {FetchOptions} options
  * @returns {String}
  */
 export function parseFetchParams(options = {}) {
   const {
-    filter, filterTransforms, limit, sort,
+    filter, filterTransforms, include, limit, sort,
   } = options;
   const filterParams = parseFilter(filter, { filterTransforms });
   const limitParams = parseLimit(limit);
   const sortParams = parseSort(sort);
-  return filterParams + limitParams + sortParams;
+  const includeParams = parseInclude(include);
+  return filterParams + limitParams + sortParams + includeParams;
 }
 
 /**

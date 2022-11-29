@@ -113,12 +113,16 @@ export default function adapter(model, opts) {
       ...connection[shortName],
       /** @type {(options: import('../fetch.js').FetchOptions) => Promise} */
       fetch: (options) => {
-        const { filter, limit, sort } = options;
+        const {
+          filter, include, limit, sort,
+        } = options;
         const validTypes = Object.keys(model.schema.get(name)).map(b => `${name}--${b}`);
         const bundleRequests = splitFilterByType(filter, validTypes).map((f) => {
           const { type, ...tFilter } = f;
           /** @type {import('../fetch.js').FetchOptions} */
-          const fetchOptions = { ...tFilter, limit, sort };
+          const fetchOptions = {
+            ...tFilter, include, limit, sort,
+          };
           const { bundle } = parseEntityType(type);
           if (name in fieldTransforms && bundle in fieldTransforms[name]) {
             fetchOptions.filterTransforms = fieldTransforms[name][bundle];
@@ -128,15 +132,16 @@ export default function adapter(model, opts) {
         });
         const concatBundle = (response, data) => {
           const bundle = response.flatMap(path(['data', 'data']));
-          return data.concat(bundle);
+          const included = response.flatMap(path(['data', 'included']));
+          return data.concat(bundle).concat(included).filter(o => !!o);
         };
         return altogether(concatBundle, [], bundleRequests)
-          .then(transformFetchResponse(name));
+          .then(transformFetchResponse);
       },
       send: data => connection[shortName].send(
         parseEntityType(data.type).bundle,
         transformLocalEntity(data, fieldTransforms),
-      ).then(transformSendResponse(name)),
+      ).then(transformSendResponse),
     }), entities),
   };
 }

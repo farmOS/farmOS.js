@@ -187,6 +187,10 @@ export const transformLocalEntity = (data, transforms) => compose(
   dissoc('meta'),
   evolve({
     attributes: {
+      /**
+       * @see https://github.com/farmOS/farmOS.js/issues/74
+       */
+      archived: dropMilliseconds,
       timestamp: dropMilliseconds,
       ...safeTransforms(data.type, transforms),
     },
@@ -208,34 +212,38 @@ const makeFieldChanges = (attrs, rels) => ({
 });
 
 const emptyAttrs = { created: null, changed: null, drupal_internal__id: null };
-const transformRemoteEntity = (entName, setLastSync = false) => ({
-  id, type, attributes = emptyAttrs, relationships = {},
-}) => ({
-  id,
-  type,
-  meta: {
-    created: safeIso(attributes.created),
-    changed: safeIso(attributes.changed),
-    fieldChanges: makeFieldChanges(attributes, relationships),
-    conflicts: [],
-    remote: {
-      lastSync: setLastSync ? new Date().toISOString() : null,
-      url: `/${entName}/${attributes.drupal_internal__id}`,
-      meta: {
-        attributes: pick(drupalMetaFields.attributes, attributes),
-        relationships: pick(drupalMetaFields.relationships, relationships),
+const transformRemoteEntity = (setLastSync = false) => (remote) => {
+  const {
+    id, type, attributes = emptyAttrs, relationships = {},
+  } = remote;
+  const { entity } = parseEntityType(type);
+  return {
+    id,
+    type,
+    meta: {
+      created: safeIso(attributes.created),
+      changed: safeIso(attributes.changed),
+      fieldChanges: makeFieldChanges(attributes, relationships),
+      conflicts: [],
+      remote: {
+        lastSync: setLastSync ? new Date().toISOString() : null,
+        url: `/${entity}/${attributes.drupal_internal__id}`,
+        meta: {
+          attributes: pick(drupalMetaFields.attributes, attributes),
+          relationships: pick(drupalMetaFields.relationships, relationships),
+        },
       },
     },
-  },
-  attributes: transformRemoteAttributes(attributes),
-  relationships: transformRemoteRelationships(relationships),
+    attributes: transformRemoteAttributes(attributes),
+    relationships: transformRemoteRelationships(relationships),
+  };
+};
+
+export const transformFetchResponse = evolve({
+  data: map(transformRemoteEntity(false)),
 });
 
-export const transformFetchResponse = name => evolve({
-  data: map(transformRemoteEntity(name)),
-});
-
-export const transformSendResponse = name => compose(
-  transformRemoteEntity(name, true),
+export const transformSendResponse = compose(
+  transformRemoteEntity(true),
   path(['data', 'data']),
 );

@@ -188,6 +188,21 @@ const request = farm.log.fetch({ filter, limit: Infinity })
 
 It's especially important, when using a `limit` of `Infinity`, to combine it with a reasonable filter query, to keep the duration of the request cycle as short as possible, or to otherwise be prepared to accommodate long cycles without degrading performance or user experience.
 
+### Including relationship data with fetch requests
+Often when fetching an entity that has a relationship to another entity, you will want to read more than just the `id` and `type` of that related entity, so you can have it included in the same response. To do so, you can add an `include` option to fetch requests, as a string or array of strings. The related entities, if found, will then be included in the response data:
+
+```js
+const filter = { type: 'log--activity', id: activity.id };
+const include = ['equipment'];
+farm.log.fetch({ filter, include }).then((response) => {
+  const { data: [remoteActivity, remoteEquipment] } = response;
+  const { attributes: { name: activityName } } = remoteActivity;
+  console.log(activityName); // => 'Disced north field with tractor'
+  const { attributes: { name: equipName } } = remoteEquipment;
+  console.log(equipName); // => 'Farmall H Tractor'
+});
+```
+
 ## Sending and deleting entities
 Sending entities to a remote server is much more straightforward in comparison:
 

@@ -59,12 +59,24 @@ describe('farmOS', function () {
     .then((res) => {
       expect(res).to.have.nested.property('data.activity.properties.type.const', 'log--activity');
     }).catch(reportError));
-  it('create an activity log, send it to the server and delete it', () => {
-    const activity = farm.log.create({ type: 'log--activity', name: 'did some stuff' });
-    const { id } = activity;
-    return farm.log.send(activity)
-      .then(() => farm.log.fetch({ filter: { type: 'log--activity', id } }))
-      .then(({ data: [remoteActivity] }) => {
+  it('creates an activity log and equipment asset, sends them to the server, then fetches both using include option', () => {
+    const equipment = farm.asset.create({ type: 'asset--equipment', name: 'really good tractor' });
+    const { id: equipmentId } = equipment;
+    const activity = farm.log.create({
+      type: 'log--activity',
+      attributes: { name: 'did some stuff' },
+      relationships: { equipment: [{ id: equipmentId, type: 'asset--equipment' }] },
+    });
+    const { id: activityId } = activity;
+    const filter = { type: 'log--activity', id: activityId };
+    const include = ['equipment'];
+    return farm.asset.send(equipment)
+      .then(() => farm.log.send(activity))
+      .then(() => farm.log.fetch({ filter, include }))
+      .then((response) => {
+        expect(response).to.have.property('data').that.has.lengthOf(2);
+        const { data: [remoteActivity, remoteEquipment] } = response;
+        expect(remoteEquipment).to.have.nested.property('attributes.name', 'really good tractor');
         const updatedActivity = farm.log.update(activity, { name: 'did some more stuff' });
         const mergedActivity = farm.log.merge(updatedActivity, remoteActivity);
         const {
@@ -72,9 +84,14 @@ describe('farmOS', function () {
         } = mergedActivity;
         const nameChangedAfterStatus = new Date(nameChanged) > new Date(statusChanged);
         expect(nameChangedAfterStatus).to.be.true;
-        return farm.log.delete('activity', id);
+        return farm.log.delete('activity', activityId);
       })
-      .then(() => farm.log.fetch({ filter: { type: 'log--activity', id } }))
+      .then(() => farm.log.fetch({ filter: { type: 'log--activity', id: activityId } }))
+      .then((results) => {
+        expect(results.data).to.have.lengthOf(0);
+        return farm.asset.delete('equipment', equipmentId);
+      })
+      .then(() => farm.asset.fetch({ filter: { type: 'asset--equipment', id: equipmentId } }))
       .then((results) => {
         expect(results.data).to.have.lengthOf(0);
       })
