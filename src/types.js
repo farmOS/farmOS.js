@@ -1,5 +1,7 @@
 import compose from 'ramda/src/compose';
+import defaultTo from 'ramda/src/defaultTo';
 import match from 'ramda/src/match';
+import unary from 'ramda/src/unary';
 
 /**
  * @type {RegExp} Identifies valid format for an entity type (eg 'log--activity)
@@ -11,10 +13,11 @@ export const entityTypeRegEx = /(\w+)--(\w+)/;
  * @param {String} type A possible entity type (eg, 'log--activity').
  * @returns {{ type?: String, entity?: String, bundle?: String }}
  *  */
-export const parseEntityType = compose(
+export const parseEntityType = unary(compose(
   ([type, entity, bundle]) => ({ type, entity, bundle }),
   match(entityTypeRegEx),
-);
+  defaultTo(''),
+));
 /**
  * @type {(fields?: Object) => Object} Takes any object containing entity data,
  * such as props or fields, then normalizes the type, bundle & field.
