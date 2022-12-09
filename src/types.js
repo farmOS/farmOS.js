@@ -16,8 +16,8 @@ export const parseEntityType = compose(
   match(entityTypeRegEx),
 );
 /**
- * @type {() => Object} Takes any object containing entity data, such as props
- * or fields, then normalizes the type, bundle & field.
+ * @type {(fields?: Object) => Object} Takes any object containing entity data,
+ * such as props or fields, then normalizes the type, bundle & field.
  * @param {{ type?: String, entity?: String, bundle?: string }} fields
  * @returns {{ type?: String, entity?: String, bundle?: String }}
  */
