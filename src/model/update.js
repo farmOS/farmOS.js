@@ -27,7 +27,8 @@ const updateEntity = (schemata) => (entity, props) => {
   const now = new Date().toISOString();
   const entityCopy = clone(entity);
   const propsCopy = clone(props);
-  const { meta = {} } = entityCopy;
+  const defaultRemote = { lastSync: null, url: null, meta: null };
+  const { meta = { created: now, remote: defaultRemote } } = entityCopy;
   let { changed = now } = meta;
   const { fieldChanges = {}, conflicts = [] } = meta;
   const updateFields = (fieldType) => {

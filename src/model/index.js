@@ -162,7 +162,7 @@ export default function model(options = {}) {
     },
     meta: {
       isUnsynced(entity) {
-        const { changed, remote: { lastSync } } = entity.meta;
+        const { changed, remote: { lastSync = null } = {} } = entity.meta;
         return lastSync === null || changed > lastSync;
       },
     },
