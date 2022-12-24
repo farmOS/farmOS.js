@@ -56,7 +56,7 @@ export function splitFilterByType(filter, validTypes) {
         if (tMatch) {
           // The matching filter, the current filter, or both can be arrays,
           // so concat onto an empty array to flatten them and reassign it.
-          tMatch.filter = [].concat(tMatch.filter, tFilter);
+          tMatch.filter = [].concat(tMatch.filter, tFilter.filter);
         } else {
           // Otherwise, add the whole object as-is.
           filtersByType.push(tFilter);
