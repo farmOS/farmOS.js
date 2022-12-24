@@ -48,18 +48,18 @@ export function splitFilterByType(filter, validTypes) {
   // evaluated recursively.
   if (Array.isArray(filter.$or) || Array.isArray(filter)) {
     (filter.$or || filter).forEach((f) => {
-      splitFilterByType(f, validTypes).forEach((tFilter) => {
-        // Instead of just adding every tFilter to tiltersByType, look for a
-        // matching filter that's already been added.
-        const tMatch = filtersByType.find(fbt => fbt.type === tFilter.type);
+      splitFilterByType(f, validTypes).forEach((fbtA) => {
+        // Instead of just adding every filterByType to the list, look for a
+        // matching type that's already been added.
+        const fbtB = filtersByType.find(fbtZ => fbtZ.type === fbtA.type);
         // If so, combine them into a single object w/ an array of filters.
-        if (tMatch) {
-          // The matching filter, the current filter, or both can be arrays,
+        if (fbtB) {
+          // Both matching and current filters can be an array or single filter,
           // so concat onto an empty array to flatten them and reassign it.
-          tMatch.filter = [].concat(tMatch.filter, tFilter.filter);
+          fbtB.filter = [].concat(fbtB.filter, fbtA.filter);
+        // Otherwise, add the new filterByType to the list entirely as-is.
         } else {
-          // Otherwise, add the whole object as-is.
-          filtersByType.push(tFilter);
+          filtersByType.push(fbtA);
         }
       });
     });
