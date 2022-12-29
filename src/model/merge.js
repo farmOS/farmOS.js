@@ -85,7 +85,7 @@ const mergeEntity = (schemata) => (local, remote) => {
     meta: {
       fieldChanges: localChanges,
       changed: localChanged = now,
-      remote: { lastSync: localLastSync = null },
+      remote: { lastSync: localLastSync = null } = {},
     },
   } = localCopy;
 
@@ -95,7 +95,7 @@ const mergeEntity = (schemata) => (local, remote) => {
     meta: {
       fieldChanges: remoteChanges,
       changed: remoteChanged = now,
-      remote: { lastSync: remoteLastSync = null },
+      remote: { lastSync: remoteLastSync = null } = {},
     },
   } = remoteCopy;
 

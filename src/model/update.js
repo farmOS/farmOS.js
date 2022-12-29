@@ -27,10 +27,12 @@ const updateEntity = (schemata) => (entity, props) => {
   const now = new Date().toISOString();
   const entityCopy = clone(entity);
   const propsCopy = clone(props);
-  const defaultRemote = { lastSync: null, url: null, meta: null };
-  const { meta = { created: now, remote: defaultRemote } } = entityCopy;
+  const { meta = {} } = entityCopy;
   let { changed = now } = meta;
-  const { fieldChanges = {}, conflicts = [] } = meta;
+  const {
+    conflicts = [], created = now, fieldChanges = {}, remote = {},
+  } = meta;
+  const { lastSync = null, url = null, meta: remoteMeta = null } = remote;
   const updateFields = (fieldType) => {
     const fields = { ...entityCopy[fieldType] };
     listProperties(schema, fieldType).forEach((name) => {
@@ -52,10 +54,15 @@ const updateEntity = (schemata) => (entity, props) => {
     attributes,
     relationships,
     meta: {
-      ...meta,
       changed,
-      fieldChanges,
       conflicts,
+      created,
+      fieldChanges,
+      remote: {
+        lastSync,
+        meta: remoteMeta,
+        url,
+      },
     },
   };
 };
