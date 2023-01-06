@@ -78,11 +78,20 @@ export default function model(options = {}) {
   /**
    * Retrieve all schemata that have been previously set, or the schemata of a
    * particular entity, or one bundle's schema, if specified.
-   * @param {String} [entity] The name of a farmOS entity (eg, 'asset', 'log', etc).
-   * @param {String} [bundle] The entity's bundle (eg, 'activity' for type 'log--activity').
+   * @param {...String} args
    * @returns {EntitySchemata|BundleSchemata|JsonSchemaDereferenced}
    */
-  function getSchemata(entity, bundle) {
+  function getSchemata(...args) {
+    let entity = args[0];
+    let bundle = args[1];
+    if (args.length === 2 && typeof args[1] === 'string') {
+      const parsed = parseEntityType(args[1]);
+      if (parsed.type) ({ bundle } = parsed);
+    }
+    if (args.length === 1 && typeof args[0] === 'string') {
+      const parsed = parseEntityType(args[0]);
+      if (parsed.type) ({ entity, bundle } = parsed);
+    }
     if (schemata[entity] && schemata[entity][bundle]) {
       return clone(schemata[entity][bundle]);
     }
