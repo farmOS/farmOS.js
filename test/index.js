@@ -23,7 +23,7 @@ describe('farmOS', function () {
     .then(() => {
       const schemata = farm.schema.get();
       expect(schemata).to.have.all.keys([
-        'asset', 'log', 'plan', 'quantity', 'taxonomy_term', 'user',
+        'asset', 'file', 'log', 'plan', 'quantity', 'taxonomy_term', 'user',
       ]);
       const terms = farm.schema.get('taxonomy_term');
       expect(terms).to.have.all.keys([

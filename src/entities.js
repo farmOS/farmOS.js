@@ -73,6 +73,17 @@ export default {
     },
     defaultOptions,
   },
+  file: {
+    nomenclature: {
+      name: 'file',
+      shortName: 'file',
+      plural: 'files',
+      shortPlural: 'files',
+      display: 'File',
+      displayPlural: 'Files',
+    },
+    defaultOptions,
+  },
   log: {
     nomenclature: {
       name: 'log',

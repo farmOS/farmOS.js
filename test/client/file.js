@@ -12,6 +12,7 @@ describe('file', function () {
     type: 'log--observation',
     attributes: { name: 'Node File Test' },
   };
+  let fileId;
   const filename = 'node_file_test.txt';
   const files = { file: [{ data: '#noop\n', filename }] };
   it('sends a file with a log', () => session()
@@ -20,6 +21,14 @@ describe('file', function () {
       expect(response).to.have.nested.property('data.data.id', log.id);
       expect(response).to.have.nested.property('data.data.relationships.file.data')
         .that.has.a.lengthOf(1);
+      fileId = response.data.data.relationships.file.data[0].id;
+      return farm.file.fetch('file', { filter: { id: fileId } });
+    })
+    .then((response) => {
+      expect(response).to.have.nested.property('data.data').that.has.a.lengthOf(1);
+      const file = response.data.data[0];
+      expect(file).to.have.property('id', fileId);
+      expect(file).to.have.nested.property('attributes.filename', filename);
       return farm.log.delete('observation', log.id);
     })
     .then(() => farm.log.fetch('observation', { filter: { id: log.id } }))
