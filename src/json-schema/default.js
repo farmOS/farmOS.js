@@ -37,7 +37,7 @@ const getDefault = (schema, path = [], options = {}) => {
   /** @type {(sub: SchemaFunctor) => Array|Object} */
   const mapGetDef = map(getDef);
 
-  if (hasLogicalKeyword(subschema)) {
+  if (hasLogicalKeyword(subschema) && subschema.type === 'object') {
     return evolve({
       allOf: mapGetDef,
       anyOf: mapGetDef,
