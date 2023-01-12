@@ -72,10 +72,15 @@ const commandRelations = {
   $create: 'object',
   $createIfNotFound: 'object',
 };
-function parseDataToken(requestId) {
-  const fieldCommand = parseCommand(requestId);
-  const wildcard = commandRelations[fieldCommand] === 'array' ? '[*]' : '';
-  return `${requestId}.body@$.data${wildcard}`;
+// Formatter for JSONPath tokens, defaults to one-to-one ('object') relation.
+const fmtDataToken = (requestId, field, relation = 'object') =>
+  `{{${requestId}.body@$.data${relation === 'array' ? '[*]' : ''}.${field}}}`;
+// Format the data token, but parse the requestId first to determine if it's for
+// a one-to-one or one-to-many relationship, based on the command.
+function parseDataToken(requestId, field) {
+  const command = parseCommand(requestId);
+  const relation = commandRelations[command];
+  return fmtDataToken(requestId, field, relation);
 }
 
 // Determine if a relationship for a given schema is one-to-one (ie, 'object')
@@ -183,7 +188,7 @@ export default function useSubrequests(farm) {
           // they will be added independently as post hoc requests.
           waitFor.push(reqId);
           const resource = {
-            id: `{{${reqId}.body@$.data.id}}`,
+            id: fmtDataToken(reqId, 'id'),
             type: path([reqId, 'type'], ready),
           };
           resolved[field] = resource;
@@ -200,22 +205,23 @@ export default function useSubrequests(farm) {
         // in the same batch, but subsequent to the original subrequest; hence,
         // they are separated as "posthoc" (ie, "after the fact") dependencies.
         concurrentIds.forEach((reqId) => {
-          const uuid = `{{${requestId}.body@$.data.id}}`;
-          const dataToken = parseDataToken(reqId);
+          const dRevId = 'attributes.drupal_internal__revision_id';
+          const dId = 'attributes.drupal_internal__id';
           const data = [{
-            id: `{{${dataToken}.id}}`,
-            type: `{{${dataToken}.type}}`,
+            id: parseDataToken(reqId, 'id'),
+            type: parseDataToken(reqId, 'type'),
             // The target's revision id is required primarily for quantities,
             // but it doesn't hurt to add it for all others as well.
             meta: {
-              target_revision_id: `{{${dataToken}.attributes.drupal_internal__revision_id}}`,
-              drupal_internal__target_id: `{{${dataToken}.attributes.drupal_internal__id}}`,
+              target_revision_id: parseDataToken(reqId, dRevId),
+              drupal_internal__target_id: parseDataToken(reqId, dId),
             },
           }];
+          const basePath = `${BASE_URI}/${entity}/${bundle}/${fmtDataToken(requestId, 'id')}`;
           const blueprint = {
             requestId: `${requestId}.${field}`,
             // Note the entity's relationship endpoint is used here.
-            uri: `${BASE_URI}/${entity}/${bundle}/${uuid}/relationships/${field}`,
+            uri: `${basePath}/relationships/${field}`,
             waitFor: [reqId, requestId],
             action: 'create',
             headers,
