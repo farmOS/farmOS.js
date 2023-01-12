@@ -49,13 +49,15 @@ const dropKeywords = pickBy((v, k) => !isKeyword(k));
 // will have Content-Ids of 'update-input#uri{0}' and 'update-input#uri{1}',
 // respectively. Therefore, each Content-Id is parsed so the subresponse can be
 // more easily matched with its corresponding subrequest.
-const contentIdRE = /([^#\s]+)(#(body|uri)\{(\d)\})?$/;
+const contentIdRE = /([^#\s]+)((?:#(?:body|uri)\{\d\}){0,2}$)/;
+const bodyRE = /(#body\{\d+\})/;
+const uriRE = /(#uri\{\d+\})/;
 function parseContentId(string) {
-  const [
-    contentId, requestId, fragment, key, index,
-  ] = match(contentIdRE, string);
+  const [contentId, requestId, fragment] = match(contentIdRE, string);
+  const [, body = null] = match(bodyRE, fragment || '');
+  const [, uri = null] = match(uriRE, fragment || '');
   return {
-    contentId, requestId, fragment, key, index,
+    contentId, requestId, fragment, body, uri,
   };
 }
 
