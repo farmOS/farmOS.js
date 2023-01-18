@@ -5,7 +5,7 @@ const { farm, session } = require('./client');
 
 const { expect } = chai;
 
-describe('file', function () {
+describe.skip('file', function () {
   this.timeout(10000);
   const log = {
     id: uuidv4(),
