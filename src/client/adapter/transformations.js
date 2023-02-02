@@ -2,6 +2,7 @@ import compose from 'ramda/src/compose.js';
 import dissoc from 'ramda/src/dissoc.js';
 import evolve from 'ramda/src/evolve.js';
 import filter from 'ramda/src/filter.js';
+import has from 'ramda/src/has.js';
 import map from 'ramda/src/map.js';
 import mapObjIndexed from 'ramda/src/mapObjIndexed';
 import omit from 'ramda/src/omit.js';
@@ -9,6 +10,7 @@ import pick from 'ramda/src/pick.js';
 import prop from 'ramda/src/prop.js';
 import path from 'ramda/src/path.js';
 import replace from 'ramda/src/replace.js';
+import unless from 'ramda/src/unless.js';
 import { getPath } from '../../json-schema/index.js';
 import { parseEntityType } from '../../types.js';
 import { isObject } from '../../utils.js';
@@ -35,6 +37,7 @@ const transformsByMetafield = {
  */
 export const generateFieldTransforms = (schemata) => {
   const formats = transformsByFormat;
+  /** @type {FieldTransforms} */
   const transforms = {};
   const entities = Object.keys(schemata);
   entities.forEach((entity) => {
@@ -162,20 +165,27 @@ export const transformD9Schema = (d9Schema) => {
 };
 
 /**
- * @typedef {Object<String, Function>} BundleTransforms
- * @typedef {Object<String, BundleTransforms>} EntityTransforms
- * @typedef {Object<String, EntityTransforms>} FieldTransforms
+ * @typedef {Object.<string, function>} BundleTransforms
+ * @typedef {Object.<string, BundleTransforms>} EntityTransforms
+ * @typedef {Object.<string, EntityTransforms>} FieldTransforms
  */
 /**
+ * @typedef {Function} safeTransforms
  * @param {String} type Entity type (eg, 'log--activity')
- * @param {FieldTransforms} fns Collection of tranform functions
- * @returns {Object<string, object>}
+ * @param {FieldTransforms} [fns] Collection of tranform functions
+ * @returns {BundleTransforms}
  */
 const safeTransforms = (type, fns = {}) => {
   const { entity, bundle } = parseEntityType(type);
   const transforms = fns[entity] && fns[entity][bundle];
   return transforms || {};
 };
+
+/**
+ * @type {(relationship: object|array) => object} For nesting relationships and
+ * other fields withn objects under the property 'data'.
+ */
+const nestData = unless(has('data'), data => ({ data }));
 
 /**
  * For transforming local entities into acceptable format for D9 JSON:API farmOS.
@@ -194,7 +204,7 @@ export const transformLocalEntity = (data, transforms) => compose(
       timestamp: dropMilliseconds,
       ...safeTransforms(data.type, transforms),
     },
-    relationships: map(r => ({ data: r })),
+    relationships: map(nestData),
   }),
 )(data);
 
