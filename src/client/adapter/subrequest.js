@@ -23,10 +23,10 @@ import startsWith from 'ramda/src/startsWith';
 import test from 'ramda/src/test';
 import uniqBy from 'ramda/src/uniqBy';
 import { validate } from 'uuid';
-import entities from '../entities';
-import { parseEntityType, parseTypeFromFields, splitFilterByType } from '../types';
-import { generateFieldTransforms, transformLocalEntity, transformRemoteEntity } from './adapter/transformations';
-import { parseFetchParams } from './fetch';
+import entities from '../../entities';
+import { parseEntityType, parseTypeFromFields, splitFilterByType } from '../../types';
+import { generateFieldTransforms, transformLocalEntity, transformRemoteEntity } from './transformations';
+import { parseFetchParams } from '../fetch';
 
 // Constants for sending requests via Drupal's JSON:API module.
 const BASE_URI = '/api';

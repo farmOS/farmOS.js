@@ -11,7 +11,7 @@ import {
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
 import { altogether } from '../../utils.js';
-import withSubrequests from '../subrequest.js';
+import withSubrequests from './subrequest.js';
 
 /**
  * @typedef {import('../../utils').AltogetherResult} AltogetherResult
