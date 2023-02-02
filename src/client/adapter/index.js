@@ -73,6 +73,8 @@ export default function adapter(model, opts) {
       return response;
     });
 
+  const sendWithSubrequest = withSubrequests(model, connection);
+
   return {
     ...connection,
     schema: {
@@ -141,15 +143,14 @@ export default function adapter(model, opts) {
           .then(transformFetchResponse);
       },
       send(entity, options) {
-        if (!is(Object, options.subrequest) && !is(Array, entity)) {
-          const { bundle } = parseTypeFromFields(entity);
-          const data = transformLocalEntity(entity, fieldTransforms);
-          return connection[shortName]
-            .send(bundle, data, options)
-            .then(transformSendResponse);
+        const hasSubrequest = options && is(Object, options.subrequest);
+        if (hasSubrequest || is(Array, entity)) {
+          return sendWithSubrequest(entity, options);
         }
-        const sendWithSubrequest = withSubrequests(model, connection);
-        return sendWithSubrequest(entity, options);
+        const { bundle } = parseTypeFromFields(entity);
+        const data = transformLocalEntity(entity, fieldTransforms);
+        return connection[shortName].send(bundle, data, options)
+          .then(transformSendResponse);
       },
     }), entities),
   };

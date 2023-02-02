@@ -588,7 +588,7 @@ export default function withSubrequests(model, connection) {
     chain(Object.values),
     map(prop('data')),
   );
-  return async function sendWithSubrequest(data, options) {
+  return function sendWithSubrequest(data, options) {
     const subrequest = toSubrequest(data, options);
     const requests = parseSubrequest(subrequest, '$ROOT');
     return chainSubrequests(requests).then(transformSubresponses);
