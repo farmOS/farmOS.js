@@ -1,13 +1,17 @@
+import allPass from 'ramda/src/allPass';
 import any from 'ramda/src/any';
 import assoc from 'ramda/src/assoc';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
 import evolve from 'ramda/src/evolve';
 import rFilter from 'ramda/src/filter';
+import hasPath from 'ramda/src/hasPath';
+import is from 'ramda/src/is';
 import map from 'ramda/src/map';
 import mapObjIndexed from 'ramda/src/mapObjIndexed';
 import match from 'ramda/src/match';
 import mergeRight from 'ramda/src/mergeRight';
+import mergeWith from 'ramda/src/mergeWith';
 import partition from 'ramda/src/partition';
 import path from 'ramda/src/path';
 import pick from 'ramda/src/pick';
@@ -16,10 +20,12 @@ import prop from 'ramda/src/prop';
 import reduce from 'ramda/src/reduce';
 import sort from 'ramda/src/sort';
 import startsWith from 'ramda/src/startsWith';
+import test from 'ramda/src/test';
 import uniqBy from 'ramda/src/uniqBy';
+import { validate } from 'uuid';
 import entities from '../entities';
 import { parseEntityType, parseTypeFromFields, splitFilterByType } from '../types';
-import { generateFieldTransforms, transformLocalEntity } from './adapter/transformations';
+import { generateFieldTransforms, transformLocalEntity, transformRemoteEntity } from './adapter/transformations';
 import { parseFetchParams } from './fetch';
 
 // Constants for sending requests via Drupal's JSON:API module.
@@ -33,7 +39,7 @@ const headers = {
 // Fields that contain a subrequest are separated as dependent fields, distinct
 // from constant fields, whose values are known immediately.
 const isKeyword = startsWith('$');
-const isSubrequest = o => any(isKeyword, Object.keys(o));
+const isSubrequest = o => any(isKeyword, Object.keys(o || {}));
 const splitFields = partition(isSubrequest);
 
 // For use with fetch filters, to keep only their constant fields and drop any
@@ -90,7 +96,7 @@ const typeOfRelationship = (schema, field) => path([
 ], schema);
 
 // Wrapper merely provides an instance of FarmObject via dependency injection.
-export default function useSubrequests(farm) {
+export default function withSubrequests(model, connection) {
   // Called before any requests have been sent, unlike resolveDependencies. This
   // is mutually recursive with parseSubrequests, and is how each subrequest and
   // its child subrequests are assigned their priority number, which accordingly
@@ -103,7 +109,7 @@ export default function useSubrequests(farm) {
     Object.entries(dependentFields).forEach(([field, sub]) => {
       const nextPrefix = `${requestId}.${field}`;
       dependencies[field] = [];
-      const requests = parseSubrequest(sub, {}, nextPrefix);
+      const requests = parseSubrequest(sub, nextPrefix);
       Object.entries(requests).forEach(([reqId, req]) => {
         dependencies[field].push(reqId);
         if (req.priority > priority) priority = req.priority;
@@ -124,7 +130,7 @@ export default function useSubrequests(farm) {
     const {
       bundle, dependencies, entity, requestId,
     } = fieldData;
-    const schema = farm.schema.get(entity, bundle);
+    const schema = model.schema.get(entity, bundle);
 
     // Resolved fields include data from prior request batches, as well as concurrent
     // requests that do not require a post hoc subrequest.
@@ -243,7 +249,7 @@ export default function useSubrequests(farm) {
 
   // Convert an entity or array of entities into Drupal format, then stringify.
   function fmtLocalData(raw) {
-    const transforms = generateFieldTransforms(farm.schema.get());
+    const transforms = generateFieldTransforms(model.schema.get());
     const data = Array.isArray(raw)
       ? raw.map(d => transformLocalEntity(d, transforms))
       : transformLocalEntity(raw, transforms);
@@ -255,13 +261,25 @@ export default function useSubrequests(farm) {
     if (typeof entity !== 'string' || !(entity in entities)) return null;
     const { [entity]: { nomenclature: { shortName } } } = entities;
     if (!shortName || typeof method !== 'string') return null;
-    const { [shortName]: { [method]: fn } } = farm;
+    let { [shortName]: { [method]: fn } } = model;
+    if (typeof fn !== 'function') ({ [shortName]: { [method]: fn } } = connection);
     if (typeof fn !== 'function') return null;
     return fn(...args);
   }
 
   const commands = {
+    map(keyword, args, prefix, options) {
+      const command = this[keyword];
+      if (Array.isArray(args)) {
+        return args.reduce((subs, value, i) => ({
+          ...subs,
+          ...command(value, `${prefix}.${i}`, options),
+        }), {});
+      }
+      return command(args, prefix, options);
+    },
     $create(fields, prefix) {
+      if (Array.isArray(fields)) return this.map('$create', fields, prefix);
       const fieldData = parseDependentFields(fields, '$create', prefix);
       const {
         bundle, constants, dependencies, entity, priority, subrequests, requestId, type,
@@ -295,7 +313,7 @@ export default function useSubrequests(farm) {
     },
     $find(filter, prefix, opts) {
       const { $createIfNotFound, $limit, $sort } = opts;
-      const schemata = farm.schema.get();
+      const schemata = model.schema.get();
       const filterTransforms = generateFieldTransforms(schemata);
       const validTypes = Object.entries(schemata)
         .flatMap(([e, s]) => Object.keys(s).map(b => `${e}--${b}`));
@@ -359,13 +377,51 @@ export default function useSubrequests(farm) {
       };
       return subrequests;
     },
+    $update(fields, prefix) {
+      if (Array.isArray(fields)) this.map('$update', fields, prefix);
+      if (!validate(fields.id)) return commands.$create(fields, prefix);
+      const fieldData = parseDependentFields(fields, '$update', prefix);
+      const {
+        bundle, constants, dependencies, entity, priority, subrequests, requestId, type,
+      } = fieldData;
+      const blueprint = (ready, prior) => {
+        const {
+          resolved, posthoc, unresolved, waitFor,
+        } = resolveDependencies(fieldData, ready, prior);
+        unresolved.forEach((field) => {
+          const msg = `Unable to resolve ${field} field while updating `
+            + `${bundle} ${entity}. Request ID: ${requestId}`;
+          console.warn(msg);
+        });
+        const action = 'update';
+        const data = callEntityMethod(entity, 'update', constants, resolved);
+        if (!data) return [];
+        const body = fmtLocalData(data);
+        const uri = `${BASE_URI}/${entity}/${bundle}/${fields.id}`;
+        const current = {
+          action, body, headers, requestId, uri, waitFor,
+        };
+        return [current, ...posthoc];
+      };
+      return {
+        ...subrequests,
+        [requestId]: {
+          blueprint, bundle, dependencies, entity, priority, type,
+        },
+      };
+    },
   };
 
-  function parseSubrequest(subrequest = {}, options = {}, prefix = '$ROOT') {
-    const [[k, v], ...rest] = Object.entries(subrequest);
-    let opts = { ...options, ...Object.fromEntries(rest) };
-    if (k in commands) return commands[k](v, prefix, opts);
-    if (rest.length === 0) {
+  const splitCommandsAndOptions = compose(
+    map(Object.fromEntries),
+    partition(([key]) => key in commands),
+    Object.entries,
+  );
+
+  /** @type {(subrequest?: Object, prefix?: String) => Object.<string, object>} */
+  function parseSubrequest(subrequest = {}, prefix = '$ROOT') {
+    const [comms, options] = splitCommandsAndOptions(subrequest);
+    if (Object.keys(comms).length < 1) {
       const joinedOpts = Object.keys(options).join(', ');
       const joinedActs = Object.keys(commands).join(', ');
       const msg = `Missing or invalid command in subrequest at ${prefix}. `
@@ -373,10 +429,13 @@ export default function useSubrequests(farm) {
       + `Include one of the following valid commands instead: ${joinedActs}.`;
       throw new Error(msg);
     }
-    if (isKeyword(k)) opts = { ...opts, [k]: v };
-    return parseSubrequest(Object.fromEntries(rest), opts, prefix);
+    return Object.entries(comms).reduce((prevSubs, [keyword, args]) => {
+      const nextSub = commands.map(keyword, args, prefix, options);
+      return { ...prevSubs, ...nextSub };
+    }, {});
   }
 
+  /** @type {(requests: Object, responses?: Array, priority?: Number) => Promise<Array>} */
   function chainSubrequests(requests, responses = [], priority = 0) {
     // Separate requests with the current priority level from all later requests.
     const [ready, next] = partition(r => r.priority === priority, requests);
@@ -482,21 +541,56 @@ export default function useSubrequests(farm) {
     };
 
     const data = concatBlueprints(ready);
-    const promise = farm.remote.request(SUB_URL, { method: 'POST', data })
+    const promise = connection.request(SUB_URL, { method: 'POST', data })
       .then(concatSubresponses);
     if (Object.keys(next).length === 0) return promise;
     return promise.then(done => chainSubrequests(next, done, priority + 1));
   }
 
-  return {
-    parse: parseSubrequest,
-    chain: chainSubrequests,
-    send(subrequest, data) {
-      const root = { data: { $ROOT: { data } } };
-      const responses = [];
-      if (data) responses.push(root);
-      const requests = parseSubrequest(subrequest);
-      return chainSubrequests(requests, responses);
-    },
+  // Convert the initial data of a send request, either an entity or an array of
+  // entities, into a subrequest with either a single $create or $update
+  // command, depending on
+  function toSubrequest(data, options) {
+    if (Array.isArray(data)) {
+      const concatSubs = (a, b) => [].concat(a).concat(b);
+      return data.reduce((prevSubs, subData) => {
+        const nextSub = toSubrequest(subData, options);
+        return mergeWith(concatSubs, prevSubs, nextSub);
+      }, {});
+    }
+    let { subrequest: fields = {} } = options;
+    if (is(Function, options.subrequest)) fields = options.subrequest(data);
+    const isPostRequest = !data.id || model.meta.isUnsynced(data);
+    const command = isPostRequest ? '$create' : '$update';
+    const fieldTransforms = generateFieldTransforms(model.schema.get());
+    const remote = transformLocalEntity(data, fieldTransforms);
+    const {
+      id, type, attributes, relationships,
+    } = remote;
+    fields = { ...relationships, ...fields };
+    const argument = {
+      id, type, ...attributes, ...fields,
+    };
+    return { [command]: argument };
+  }
+
+  const rootRE = /^\$ROOT(\.?\d?)::\$(create|update):\w+--\w+$/g;
+  const isRootRequest = compose(
+    test(rootRE),
+    prop('requestId'),
+  );
+  const hasData = hasPath(['body', 'data']);
+  const hasRootData = allPass([isRootRequest, hasData]);
+  const transformSubresponses = compose(
+    map(transformRemoteEntity(true)),
+    map(path(['body', 'data'])),
+    rFilter(hasRootData),
+    chain(Object.values),
+    map(prop('data')),
+  );
+  return async function sendWithSubrequest(data, options) {
+    const subrequest = toSubrequest(data, options);
+    const requests = parseSubrequest(subrequest, '$ROOT');
+    return chainSubrequests(requests).then(transformSubresponses);
   };
 }

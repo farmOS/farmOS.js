@@ -222,7 +222,7 @@ const makeFieldChanges = (attrs, rels) => ({
 });
 
 const emptyAttrs = { created: null, changed: null, drupal_internal__id: null };
-const transformRemoteEntity = (setLastSync = false) => (remote) => {
+export const transformRemoteEntity = (setLastSync = false) => (remote) => {
   const {
     id, type, attributes = emptyAttrs, relationships = {},
   } = remote;

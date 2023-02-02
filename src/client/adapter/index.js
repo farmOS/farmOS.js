@@ -1,15 +1,17 @@
 import compose from 'ramda/src/compose.js';
 import rFilter from 'ramda/src/filter.js';
+import is from 'ramda/src/is';
 import map from 'ramda/src/map.js';
 import path from 'ramda/src/path.js';
 import client from '../index.js';
 import defaultEntities, { entityMethods } from '../../entities.js';
-import { parseEntityType, splitFilterByType } from '../../types.js';
+import { parseEntityType, parseTypeFromFields, splitFilterByType } from '../../types.js';
 import {
   generateFieldTransforms, transformD9Schema, transformLocalEntity,
   transformFetchResponse, transformSendResponse,
 } from './transformations.js';
 import { altogether } from '../../utils.js';
+import withSubrequests from '../subrequest.js';
 
 /**
  * @typedef {import('../../utils').AltogetherResult} AltogetherResult
@@ -138,11 +140,17 @@ export default function adapter(model, opts) {
         return altogether(concatBundle, [], bundleRequests)
           .then(transformFetchResponse);
       },
-      send: (data, options) => connection[shortName].send(
-        parseEntityType(data.type).bundle,
-        transformLocalEntity(data, fieldTransforms),
-        options,
-      ).then(transformSendResponse),
+      send(entity, options) {
+        if (!is(Object, options.subrequest) && !is(Array, entity)) {
+          const { bundle } = parseTypeFromFields(entity);
+          const data = transformLocalEntity(entity, fieldTransforms);
+          return connection[shortName]
+            .send(bundle, data, options)
+            .then(transformSendResponse);
+        }
+        const sendWithSubrequest = withSubrequests(model, connection);
+        return sendWithSubrequest(entity, options);
+      },
     }), entities),
   };
 }

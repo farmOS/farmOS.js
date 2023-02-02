@@ -1,7 +1,5 @@
 const chai = require('chai');
-const { mergeRight } = require('ramda');
 const farmOS = require('../dist/cjs/farmOS').default;
-const { useSubrequests } = require('../dist/cjs/farmOS');
 const localServerConfig = require('./local-server-config');
 const { reportError } = require('./report');
 
@@ -11,148 +9,119 @@ const {
 } = localServerConfig;
 const remote = { host, clientId };
 
-const sub1 = {
-  $create: {
-    type: 'log--input',
-    name: 'west field bed 12',
-    location: {
-      $find: {
-        type: 'asset--land',
-        status: 'active',
-        land_type: 'bed',
-        name: 'west field bed 12',
-        is_location: true,
-      },
-      $limit: 1,
-      $createIfNotFound: true,
-    },
-    category: {
-      $find: {
-        type: 'taxonomy_term--log_category',
-        name: 'pest_disease_control',
-      },
-      $limit: 1,
-      $createIfNotFound: true,
-    },
-    owner: {
-      $find: {
-        type: 'user--user',
-        mail: 'admin@our-sci.net',
-      },
-      $limit: 1,
-      $createIfNotFound: true,
-    },
-    quantity: {
-      $create: {
-        type: 'quantity--standard',
-        label: 'hhh',
-        measure: 'weight',
-        units: {
-          $find: {
-            type: 'taxonomy_term--unit',
-            name: 'US_gal_acre',
+describe('subrequest', function () {
+  this.timeout(10000);
+  const farm = farmOS({ remote });
+  const session = farm.remote.authorize(username, password);
+
+  this.beforeAll(() => session.then(() => farm.schema.fetch()).then(farm.schema.set));
+
+  it('Send both a quantity and a log with subrequests', () => session.then(() => {
+    const quantF = farm.quantity.create({
+      type: 'quantity--standard',
+      label: 'fff',
+      measure: 'weight',
+      inventory_asset: null,
+    });
+    const quantG = farm.quantity.create({
+      type: 'quantity--standard',
+      label: 'ggg',
+      measure: 'weight',
+      inventory_asset: null,
+    });
+    const quantH = farm.quantity.create({
+      type: 'quantity--standard',
+      label: 'hhh',
+      measure: 'volume',
+      inventory_asset: null,
+    });
+    const quantities = [quantF, quantG, quantH];
+
+    const quantOptions = {
+      /**
+       * Use a method called `subrequest` that takes an entity parameter, corresponding
+       * to each of the entities in the array being sent, and returns a query object.
+       */
+      subrequest(quant) {
+        const { attributes: { measure } } = quant;
+        const unitName = measure === 'volume' ? 'US_gal' : 'US_gal_acre';
+        return {
+          units: {
+            $find: {
+              type: 'taxonomy_term--unit',
+              name: unitName,
+            },
+            $sort: {
+              weight: 'DESC',
+            },
+            $limit: 1,
+            $createIfNotFound: true,
           },
-          $sort: {
-            weight: 'DESC',
+        };
+      },
+      /**
+       * Alternatively, the subrequest option can be a simple object, which will be
+       * applied as the subrequest for every quantity in the array being sent.
+       */
+      // subrequest: {
+      //   units: {
+      //     $find: {
+      //       type: 'taxonomy_term--unit',
+      //       name: 'US_gal_acre',
+      //     },
+      //     $sort: {
+      //       weight: 'DESC',
+      //     },
+      //     $limit: 1,
+      //     $createIfNotFound: true,
+      //   },
+      // },
+    };
+
+    return farm.quantity.send(quantities, quantOptions);
+  }).then((responses) => {
+    expect(responses).to.have.a.lengthOf(3);
+    const [quantF, quantG, quantH] = responses;
+    expect(quantF).to.have.nested.property('attributes.measure', 'weight');
+    expect(quantG).to.have.nested.property('attributes.measure', 'weight');
+    expect(quantH).to.have.nested.property('attributes.measure', 'volume');
+    const { relationships: { units: { id: unitF } } } = quantF;
+    const { relationships: { units: { id: unitG } } } = quantG;
+    const { relationships: { units: { id: unitH } } } = quantH;
+    expect(unitF).to.equal(unitG);
+    expect(unitG).not.to.equal(unitH);
+
+    const quantity = responses.map(({ id, type }) => ({ id, type }));
+    const log = farm.log.create({ type: 'log--input', quantity });
+    const logOptions = {
+      subrequest: {
+        location: {
+          $find: {
+            type: 'asset--land',
+            status: 'active',
+            land_type: 'bed',
+            name: 'west field bed 12',
+            is_location: true,
+          },
+          $limit: 1,
+          $createIfNotFound: true,
+        },
+        category: {
+          $find: {
+            type: 'taxonomy_term--log_category',
+            name: 'pest_disease_control',
           },
           $limit: 1,
           $createIfNotFound: true,
         },
       },
-    },
-  },
-};
+    };
 
-/**
- * These tests currently fail b/c the server's relationship endpoint behaves unexpectedly.
- * {@see https://github.com/farmOS/farmOS.js/blob/d1d4ee3913ba9017ec125ab3d2aa2f0a9bf88631/src/client/subrequest.js#L184-L202}
- * {@see https://jsonapi.org/format/#crud-updating-to-many-relationships}
- */
-describe('subrequest', function () {
-  this.timeout(10000);
-  const farm = farmOS({ remote });
-  const session = farm.remote.authorize(username, password);
-  const subrequests = useSubrequests(farm);
-
-  const fetchAll = () => Promise.all([
-    farm.log.fetch({ filter: { type: 'log--input', name: 'west field bed 12' } }),
-    farm.quantity.fetch({ filter: { type: 'quantity--standard', label: 'hhh' } }),
-    farm.asset.fetch({ filter: { type: 'asset--land', name: 'west field bed 12' } }),
-    farm.term.fetch({ filter: { type: 'taxonomy_term--log_category', name: 'pest_disease_control' } }),
-    farm.term.fetch({ filter: { type: 'taxonomy_term--unit', name: 'US_gal_acre' } }),
-  ]);
-
-  const cleanup = (shortName, bundle, response) =>
-    response.data.map(d => farm[shortName].delete(bundle, d.id));
-  const cleanupAll = ([logs, quantities, locations, categories, units]) => Promise.all([
-    cleanup('log', 'input', logs),
-    cleanup('quantity', 'standard', quantities),
-    cleanup('asset', 'land', locations),
-  ].flat()).then(() => Promise.all([
-    // These terms can only be deleted AFTER the entities referencing them have been.
-    cleanup('term', 'log_category', categories),
-    cleanup('term', 'unit', units),
-  ].flat()));
-
-  this.beforeAll(() => session.then(() => farm.schema.fetch()).then(farm.schema.set));
-
-  it('parses a subrequest', () => {
-    const parsed = subrequests.parse(sub1);
-    const requestIds = [
-      '$ROOT::$create:log--input.location::$find:asset--land',
-      '$ROOT::$create:log--input.location::$createIfNotFound:asset--land',
-      '$ROOT::$create:log--input.category::$find:taxonomy_term--log_category',
-      '$ROOT::$create:log--input.category::$createIfNotFound:taxonomy_term--log_category',
-      '$ROOT::$create:log--input.owner::$find:user--user',
-      '$ROOT::$create:log--input.owner::$createIfNotFound:user--user',
-      '$ROOT::$create:log--input.quantity::$create:quantity--standard.units::'
-        + '$find:taxonomy_term--unit',
-      '$ROOT::$create:log--input.quantity::$create:quantity--standard.units::'
-        + '$createIfNotFound:taxonomy_term--unit',
-      '$ROOT::$create:log--input.quantity::$create:quantity--standard',
-      '$ROOT::$create:log--input',
-    ];
-    expect(parsed, 'Response ID\'s').to.have.all.keys(requestIds);
-  });
-  it('sends a request with multiple subrequests', () => subrequests.send(sub1)
-    .then((responses) => {
-      const contentIds = [
-        // First batch of requests.
-        '$ROOT::$create:log--input.location::$find:asset--land',
-        '$ROOT::$create:log--input.category::$find:taxonomy_term--log_category',
-        '$ROOT::$create:log--input.owner::$find:user--user',
-        '$ROOT::$create:log--input.quantity::$create:quantity--standard.units'
-          + '::$find:taxonomy_term--unit',
-        // Second batch of requests.
-        '$ROOT::$create:log--input.owner::$createIfNotFound:user--user',
-        '$ROOT::$create:log--input.quantity::$create:quantity--standard',
-        '$ROOT::$create:log--input',
-        '$ROOT::$create:log--input.quantity#uri{0}#body{0}',
-        '$ROOT::$create:log--input.quantity#uri{1}#body{0}',
-      ];
-
-      const subresponses = responses.map(sub => sub.data).reduce(mergeRight, {});
-      expect(subresponses, 'Content ID\'s').to.have.all.keys(contentIds);
-    })
-    .then(fetchAll)
-    .then(([logs, quantities, locations, categories, units]) => {
-      expect(logs, 'logs').to.have.property('data').that.has.a.lengthOf(1);
-      expect(quantities, 'quantities').to.have.property('data').that.has.a.lengthOf(1);
-      expect(locations, 'locations').to.have.property('data').that.has.a.lengthOf(1);
-      expect(categories, 'categories').to.have.property('data').that.has.a.lengthOf(1);
-      expect(units, 'units').to.have.property('data').that.has.a.lengthOf(1);
-
-      const { data: [log] } = logs;
-      const { data: [quantity] } = quantities;
-      expect(log, 'location id')
-        .to.have.nested.property('relationships.location[0].id', locations.data[0].id);
-      expect(log, 'category id')
-        .to.have.nested.property('relationships.category[0].id', categories.data[0].id);
-      expect(log, 'quantity id')
-        .to.have.nested.property('relationships.quantity[0].id', quantities.data[0].id);
-      expect(quantity, 'units id')
-        .to.have.nested.property('relationships.units.id', units.data[0].id);
-    })
-    .catch(reportError));
-  this.afterAll(() => fetchAll().then(cleanupAll));
+    return farm.log.send(log, logOptions);
+  }).then((responses) => {
+    expect(responses).to.have.a.lengthOf(1);
+    const [log] = responses;
+    expect(log).to.have.nested.property('relationships.quantity')
+      .that.has.a.lengthOf(3);
+  }).catch(reportError));
 });
