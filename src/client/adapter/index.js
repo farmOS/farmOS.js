@@ -138,9 +138,10 @@ export default function adapter(model, opts) {
         return altogether(concatBundle, [], bundleRequests)
           .then(transformFetchResponse);
       },
-      send: data => connection[shortName].send(
+      send: (data, options) => connection[shortName].send(
         parseEntityType(data.type).bundle,
         transformLocalEntity(data, fieldTransforms),
+        options,
       ).then(transformSendResponse),
     }), entities),
   };
