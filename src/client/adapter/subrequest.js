@@ -96,6 +96,8 @@ const typeOfRelationship = (schema, field) => path([
   'properties', 'relationships', 'properties', field, 'type',
 ], schema);
 
+const fmtRequestId = (prefix, command, type) => `${prefix}::${command}:${type}`;
+
 // Wrapper merely provides an instance of FarmObject via dependency injection.
 export default function withSubrequests(model, connection) {
   // Called before any requests have been sent, unlike resolveDependencies. This
@@ -105,7 +107,7 @@ export default function withSubrequests(model, connection) {
   function parseDependentFields(fields, command, prefix) {
     const [dependentFields, constants] = splitFields(fields);
     const { bundle, entity, type } = parseTypeFromFields(constants);
-    const requestId = `${prefix}::${command}:${type}`;
+    const requestId = fmtRequestId(prefix, command, type);
     const dependencies = {}; let priority = 0; const subrequests = {};
     Object.entries(dependentFields).forEach(([field, sub]) => {
       const nextPrefix = `${requestId}.${field}`;
@@ -345,7 +347,7 @@ export default function withSubrequests(model, connection) {
       filtersByType.forEach(({ type, filter: typeFilter }) => {
         const { entity, bundle } = parseEntityType(type);
         // The initial fetch request with filter & other search parameters.
-        const requestId = `${prefix}::$find:${type}`;
+        const requestId = fmtRequestId(prefix, '$find', type);
         // Nested subrequests are disallowed in $find commands, meaning they have
         // no dependencies, and so should always be included in the first batch of
         // subrequests; hence, they will always have a priority of 0.
@@ -369,7 +371,7 @@ export default function withSubrequests(model, connection) {
       // Arbitrarily pop the first type.
       const [{ type, filter: typeFilter }] = filtersByType;
       const { entity, bundle } = parseEntityType(type);
-      const requestId = `${prefix}::$createIfNotFound:${type}`;
+      const requestId = fmtRequestId(prefix, '$createIfNotFound', type);
       // A list of request ids is created before the above requestId is added to
       // the subrequests object, and before the blueprint is evaluated.
       const findRequestIds = Object.keys(subrequests);
