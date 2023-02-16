@@ -78,6 +78,7 @@ const commandRelations = {
   $find: 'array',
   $create: 'object',
   $createIfNotFound: 'object',
+  $update: 'object',
 };
 // Formatter for JSONPath tokens, defaults to one-to-one ('object') relation.
 const fmtDataToken = (requestId, field, relation = 'object') =>
