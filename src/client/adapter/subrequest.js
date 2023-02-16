@@ -3,6 +3,7 @@ import any from 'ramda/src/any';
 import assoc from 'ramda/src/assoc';
 import chain from 'ramda/src/chain';
 import compose from 'ramda/src/compose';
+import equals from 'ramda/src/equals';
 import evolve from 'ramda/src/evolve';
 import rFilter from 'ramda/src/filter';
 import hasPath from 'ramda/src/hasPath';
@@ -267,10 +268,31 @@ export default function withSubrequests(model, connection) {
     return fn(...args);
   }
 
+  // const { compare } = new Intl.Collator();
+  // const sortKeys = obj => sort(([k1], [k2]) => compare(k1, k2), Object.keys(obj));
+  // function getCommandFingerprint(keyword, args, prefix, options) {
+  // }
+  // function isOneTimeCommand(command, options = {}) {
+  //   if (options.$once) return true;
+  //   if (command.startsWith('$find') && options.$createIfNotFound) return true;
+  //   return false;
+  // }
   const commands = {
     map(keyword, args, prefix, options) {
       const command = this[keyword];
       if (Array.isArray(args)) {
+        // console.log('MAPPING: ', keyword);
+        // console.log('args', args);
+        // console.log('options', options);
+        // if (isOneTimeCommand(keyword, options)) {
+        //   const tailOptions = { ...options, $createIfNotFound: false, $once: false };
+        //   return args.reduce((subs, argument, i) => {
+        //     const headIndex = args.findIndex(equals(argument));
+        //     const opts = headIndex === i ? options : tailOptions;
+        //     const sub = command(argument, `${prefix}.${i}`, opts);
+        //     return { ...subs, ...sub };
+        //   }, {});
+        // }
         return args.reduce((subs, value, i) => ({
           ...subs,
           ...command(value, `${prefix}.${i}`, options),
@@ -372,8 +394,13 @@ export default function withSubrequests(model, connection) {
       };
       // Because $find requests are always priority 0, this will always be 1.
       const priority = 1;
+      // $createIfNotFound is a one-time-command, which should not be repeated,
+      // so provide this fingerprint so it can be deduplicated.
+      const fingerprint = {
+        keyword: '$createIfNotFound', args: filter, prefix, options: opts,
+      };
       subrequests[requestId] = {
-        blueprint, bundle, entity, priority, type,
+        blueprint, bundle, entity, fingerprint, priority, type,
       };
       return subrequests;
     },
@@ -417,6 +444,54 @@ export default function withSubrequests(model, connection) {
     partition(([key]) => key in commands),
     Object.entries,
   );
+
+  // Commands like $createIfNotFound should only be used once, so remove duplicates.
+  function dedupeOneTimeCommands(subrequests) {
+    const replacements = new Map();
+    const deduped = Object.entries(subrequests).reduce((subs, [requestId, sub], i, all) => {
+      if (is(Object, sub.fingerprint)) {
+        if (sub.fingerprint.keyword === '$createIfNotFound') {
+          const isEqual = compose(
+            equals(sub.fingerprint.args),
+            path([1, 'fingerprint', 'args']),
+          );
+          const firstIndex = all.findIndex(isEqual);
+          if (firstIndex !== i) {
+            const [firstReqId] = all[firstIndex];
+            replacements.set(requestId, firstReqId);
+            return subs;
+          }
+        }
+      }
+      return { ...subs, [requestId]: sub };
+    }, {});
+    // Search for JSONPath tokens that contain any of the duplicate request ids
+    // and replace them with the request id of the first subrequest that matched
+    // the same fingerprint.
+    const replaceTokens = initStr => Array.from(replacements.entries())
+      .reduce((prev, [dupeReqId, firstReqId]) => {
+        // Use the RegExp constructor with a template literal as the pattern, so
+        // the function parameterss can be included in the expression, bounded
+        // by "{{" and ".body@$" to make sure it matches only the full request id.
+        const tokenPattern = `\\{\\{${dupeReqId}.body@$`
+          .replaceAll('$', '\\$')
+          .replaceAll('.', '\\.');
+        const tokenRE = new RegExp(tokenPattern, 'g');
+        return prev.replaceAll(tokenRE, `{{${firstReqId}.body@$`);
+      }, initStr);
+    // Swap an entire string for another if it's a duplicate.
+    const swap = reqId => (replacements.has(reqId) ? replacements.get(reqId) : reqId);
+    const replaceOneTimeCommands = map(evolve({
+      blueprint: map(evolve({
+        body: replaceTokens,
+        uri: replaceTokens,
+        waitFor: map(swap),
+      })),
+      dependencies: map(map(swap)),
+    }));
+    const replaced = replaceOneTimeCommands(deduped);
+    return replaced;
+  }
 
   /** @type {(subrequest?: Object, prefix?: String) => Object.<string, object>} */
   function parseSubrequest(subrequest = {}, prefix = '$ROOT') {
@@ -500,6 +575,7 @@ export default function withSubrequests(model, connection) {
     const resolveBlueprints = compose(
       chain(prop('blueprint')),
       Object.values,
+      dedupeOneTimeCommands,
       concatConcurrentRequests,
       sortByDependencies,
       Object.entries,
@@ -591,6 +667,9 @@ export default function withSubrequests(model, connection) {
   return function sendWithSubrequest(data, options) {
     const subrequest = toSubrequest(data, options);
     const requests = parseSubrequest(subrequest, '$ROOT');
-    return chainSubrequests(requests).then(transformSubresponses);
+    return chainSubrequests(requests).then((raw) => {
+      const responses = transformSubresponses(raw);
+      return responses;
+    });
   };
 }

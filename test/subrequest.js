@@ -12,14 +12,25 @@ const remote = { host, clientId };
 describe('subrequest', function () {
   this.timeout(10000);
   const farm = farmOS({ remote });
-  const session = farm.remote.authorize(username, password);
+  const session = farm.remote.authorize(username, password)
+    .then(() => farm.schema.fetch().then(farm.schema.set));
 
   const fetchAll = () => Promise.all([
-    farm.log.fetch({ filter: { type: 'log--input', name: 'west field bed 12' } }),
-    farm.quantity.fetch({ filter: { type: 'quantity--standard', label: ['fff', 'ggg', 'hhh'] } }),
-    farm.asset.fetch({ filter: { type: 'asset--land', name: 'west field bed 12' } }),
-    farm.term.fetch({ filter: { type: 'taxonomy_term--log_category', name: 'pest_disease_control' } }),
-    farm.term.fetch({ filter: { type: 'taxonomy_term--unit', name: ['US_gal', 'US_gal_acre'] } }),
+    farm.log.fetch({
+      filter: { type: 'log--input', name: 'application in west field' },
+    }),
+    farm.quantity.fetch({
+      filter: { type: 'quantity--standard', label: ['fff', 'ggg', 'hhh'] },
+    }),
+    farm.asset.fetch({
+      filter: { type: 'asset--land', name: 'west field bed 12' },
+    }),
+    farm.term.fetch({
+      filter: { type: 'taxonomy_term--log_category', name: 'pest_disease_control' },
+    }),
+    farm.term.fetch({
+      filter: { type: 'taxonomy_term--unit', name: ['US_gal', 'US_gal_acre'] },
+    }),
   ]);
 
   const cleanup = (shortName, bundle, response) =>
@@ -104,7 +115,9 @@ describe('subrequest', function () {
     return farm.quantity.send(quantities, quantOptions);
   }).then((responses) => {
     expect(responses).to.have.a.lengthOf(3);
-    const [quantF, quantG, quantH] = responses;
+    const sorted = responses.sort((a, b) =>
+      a.attributes.label.localeCompare(b.attributes.label));
+    const [quantF, quantG, quantH] = sorted;
     expect(quantF).to.have.nested.property('attributes.measure', 'weight');
     expect(quantG).to.have.nested.property('attributes.measure', 'weight');
     expect(quantH).to.have.nested.property('attributes.measure', 'volume');
@@ -115,7 +128,9 @@ describe('subrequest', function () {
     expect(unitG).not.to.equal(unitH);
 
     const quantity = responses.map(({ id, type }) => ({ id, type }));
-    const log = farm.log.create({ type: 'log--input', quantity });
+    const log = farm.log.create({
+      type: 'log--input', name: 'application in west field', quantity,
+    });
     const logOptions = {
       subrequest: {
         location: {
@@ -146,7 +161,8 @@ describe('subrequest', function () {
     const [log] = responses;
     expect(log).to.have.nested.property('relationships.quantity')
       .that.has.a.lengthOf(3);
+    return session;
   }).catch(reportError));
 
-  this.afterAll(() => fetchAll().then(cleanupAll).then(reportError));
+  this.afterAll(() => fetchAll().then(cleanupAll).catch(reportError));
 });
