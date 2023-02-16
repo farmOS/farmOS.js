@@ -72,10 +72,6 @@ describe('subrequest', function () {
     const quantities = [quantF, quantG, quantH];
 
     const quantOptions = {
-      /**
-       * Use a method called `subrequest` that takes an entity parameter, corresponding
-       * to each of the entities in the array being sent, and returns a query object.
-       */
       subrequest(quant) {
         const { attributes: { measure } } = quant;
         const unitName = measure === 'volume' ? 'US_gal' : 'US_gal_acre';
@@ -93,23 +89,6 @@ describe('subrequest', function () {
           },
         };
       },
-      /**
-       * Alternatively, the subrequest option can be a simple object, which will be
-       * applied as the subrequest for every quantity in the array being sent.
-       */
-      // subrequest: {
-      //   units: {
-      //     $find: {
-      //       type: 'taxonomy_term--unit',
-      //       name: 'US_gal_acre',
-      //     },
-      //     $sort: {
-      //       weight: 'DESC',
-      //     },
-      //     $limit: 1,
-      //     $createIfNotFound: true,
-      //   },
-      // },
     };
 
     return farm.quantity.send(quantities, quantOptions);

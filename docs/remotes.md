@@ -63,7 +63,59 @@ farm.remote.info().then((res) => { /** etc */ });
 
 For farmOS based on Drupal 9 and JSON:API, this is essentially a shorthand for requesting the `/api` endpoint.
 
-## Subrequests ⚠️ __WARNING: EXPERIMENTAL!__ ⚠️
+## Subrequests
 To reduce the number of roundtrip requests, the [Drupal `subrequests` module](https://www.drupal.org/project/subrequests) is included in most farmOS instances. A special syntax is employed in farmOS.js, however, which allows for more concise and intuitive descriptions of the subrequest dependency graph.
 
-Because this is still experimental, it should not be used in production, as there are known issues with its implementation. Until it is considered stable, refer to the [`test/subrequest.js`](https://github.com/farmOS/farmOS.js/blob/main/test/subrequest.js) for the most up-to-date examples on its usage.
+When sending entities to the remote, an additional `subrequest` query object can be included in the options parameter:
+
+```js
+const quantH = farm.quantity.create({
+  type: 'quantity--standard', label: 'hhh', measure: 'volume',
+});
+const options = {
+  subrequest: {
+    units: {
+      $find: {
+        type: 'taxonomy_term--unit',
+        name: 'US_gal',
+      },
+      $sort: {
+        weight: 'DESC',
+      },
+      $limit: 1,
+      $createIfNotFound: true,
+    },
+  },
+};
+farm.quantity.send(quantH, options);
+```
+
+This subrequest will try to find a unit with a `name` of `'US_gal'` and update the quantity's `units` field. It will select the first result (ie, `{ $limit: 1 }`) found in descending order based on the taxonomy term's hierarchical `weight` (ie, `{ $sort: { weight: 'DESC' } }`). If no results are found, it will create the unit with all the specified fields, then update the quantity's `units` field.
+
+In the case that the first parameter to `.send()` is an array of entities, rather than a single entity, these operations will be applied to each entity in the array in succession. Alternatively, the `subrequest` option can be a function that takes an entity parameter, corresponding to each of the entities in the array being sent, and returns a subrequest query object:
+
+```js
+const quantities = [quantF, quantG, quantH];
+const options = {
+  subrequest(quant) {
+    const { attributes: { measure } } = quant;
+    const unitName = measure === 'volume' ? 'US_gal' : 'US_gal_acre';
+    return {
+      units: {
+        $find: {
+          type: 'taxonomy_term--unit',
+          name: unitName,
+        },
+        $sort: {
+          weight: 'DESC',
+        },
+        $limit: 1,
+        $createIfNotFound: true,
+      },
+    };
+  },
+};
+farm.quantity.send(quantities, options);
+```
+
+Refer to the [`test/subrequest.js`](https://github.com/farmOS/farmOS.js/blob/main/test/subrequest.js) for more detailed examples on its usage.
