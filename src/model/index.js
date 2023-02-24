@@ -47,6 +47,7 @@ import { createObserver, isObject } from '../utils.js';
  * @property {Object} meta
  * @property {Function} meta.isUnsynced
  * @property {ModelEntityMethods} asset
+ * @property {ModelEntityMethods} file
  * @property {ModelEntityMethods} log
  * @property {ModelEntityMethods} plan
  * @property {ModelEntityMethods} quantity

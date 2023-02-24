@@ -55,6 +55,7 @@ export const defaultOptions = { byType, byFormat };
 /**
  * @typedef {Object.<String, EntityConfig>} DefaultEntities
  * @property {EntityConfig} asset
+ * @property {EntityConfig} file
  * @property {EntityConfig} log
  * @property {EntityConfig} plan
  * @property {EntityConfig} quantity

@@ -39,6 +39,7 @@ import defaultEntities, { entityMethods } from '../entities.js';
  * @property {Object} schema
  * @property {FetchSchema} schema.fetch
  * @property {ClientEntityMethods} asset
+ * @property {ClientEntityMethods} file
  * @property {ClientEntityMethods} log
  * @property {ClientEntityMethods} plan
  * @property {ClientEntityMethods} quantity

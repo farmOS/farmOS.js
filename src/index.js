@@ -36,6 +36,7 @@ export { splitFilterByType } from './types.js';
  * @property {Function} [remote.authorize]
  * @property {Function} [remote.getToken]
  * @property {FarmEntityMethods} asset
+ * @property {FarmEntityMethods} file
  * @property {FarmEntityMethods} log
  * @property {FarmEntityMethods} plan
  * @property {FarmEntityMethods} quantity
