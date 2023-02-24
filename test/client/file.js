@@ -14,7 +14,8 @@ describe.skip('file', function () {
   };
   let fileId;
   const filename = 'node_file_test.txt';
-  const files = { file: [{ data: '#noop\n', filename }] };
+  const data = '#noop\n';
+  const files = { file: [{ data, filename }] };
   it('sends a file with a log', () => session()
     .then(() => farm.log.send('observation', log, { files }))
     .then((response) => {
@@ -29,6 +30,12 @@ describe.skip('file', function () {
       const file = response.data.data[0];
       expect(file).to.have.property('id', fileId);
       expect(file).to.have.nested.property('attributes.filename', filename);
+      expect(file).to.have.nested.property('attributes.uri.url').that.is.a('string');
+      const { attributes: { uri: { url } } } = file;
+      return farm.request({ url, responseType: 'text' });
+    })
+    .then((response) => {
+      expect(response).to.have.property('data', data);
       return farm.log.delete('observation', log.id);
     })
     .then(() => farm.log.fetch('observation', { filter: { id: log.id } }))
