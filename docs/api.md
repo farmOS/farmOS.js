@@ -115,6 +115,7 @@ associated metadata and schemata, and for interacting with farmOS servers.
 | [remote.authorize] | <code>function</code> | 
 | [remote.getToken] | <code>function</code> | 
 | asset | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
+| file | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | log | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | plan | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
 | quantity | [<code>FarmEntityMethods</code>](#FarmEntityMethods) | 
@@ -208,6 +209,7 @@ associated metadata and schemata.
 | meta | <code>Object</code> | 
 | meta.isUnsynced | <code>function</code> | 
 | asset | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
+| file | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
 | log | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
 | plan | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
 | quantity | [<code>ModelEntityMethods</code>](#ModelEntityMethods) | 
@@ -238,21 +240,20 @@ Create a farm model for generating and manipulating farmOS data structures.
 
 
 * [model](#model) ⇒ [<code>FarmModel</code>](#FarmModel)
-    * [~getSchemata([entity], [bundle])](#model..getSchemata) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
+    * [~getSchemata(...args)](#model..getSchemata) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
     * [~setSchemata(...args)](#model..setSchemata)
 
 <a name="model..getSchemata"></a>
 
-### model~getSchemata([entity], [bundle]) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
+### model~getSchemata(...args) ⇒ [<code>EntitySchemata</code>](#EntitySchemata) \| [<code>BundleSchemata</code>](#BundleSchemata) \| [<code>JsonSchemaDereferenced</code>](#JsonSchemaDereferenced)
 Retrieve all schemata that have been previously set, or the schemata of a
 particular entity, or one bundle's schema, if specified.
 
 **Kind**: inner method of [<code>model</code>](#model)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| [entity] | <code>String</code> | The name of a farmOS entity (eg, 'asset', 'log', etc). |
-| [bundle] | <code>String</code> | The entity's bundle (eg, 'activity' for type 'log--activity'). |
+| Param | Type |
+| --- | --- |
+| ...args | <code>String</code> | 
 
 <a name="model..setSchemata"></a>
 
@@ -328,6 +329,7 @@ from a farmOS Drupal 9 server using JSON:API.
 | schema | <code>Object</code> | 
 | schema.fetch | [<code>FetchSchema</code>](#FetchSchema) | 
 | asset | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
+| file | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 | log | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 | plan | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
 | quantity | [<code>ClientEntityMethods</code>](#ClientEntityMethods) | 
@@ -418,6 +420,7 @@ Create a farm client for interacting with farmOS servers.
 | Name | Type |
 | --- | --- |
 | asset | [<code>EntityConfig</code>](#EntityConfig) | 
+| file | [<code>EntityConfig</code>](#EntityConfig) | 
 | log | [<code>EntityConfig</code>](#EntityConfig) | 
 | plan | [<code>EntityConfig</code>](#EntityConfig) | 
 | quantity | [<code>EntityConfig</code>](#EntityConfig) | 
