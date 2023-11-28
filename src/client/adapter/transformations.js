@@ -15,6 +15,11 @@ import { getPath } from '../../json-schema/index.js';
 import { parseEntityType } from '../../types.js';
 import { isObject } from '../../utils.js';
 
+/**
+ * @typedef {import('../../json-schema/reference').JsonSchema} JsonSchema
+ * @typedef {import('../../entities.js').Entity} Entity
+ */
+
 const dropMilliseconds = replace(/\.\d\d\d/, '');
 const safeIso = t => t && new Date(t).toISOString();
 const safeUnix = t => t && Math.floor(new Date(t).valueOf() / 1000);
@@ -58,6 +63,9 @@ export const generateFieldTransforms = (schemata) => {
   return transforms;
 };
 
+/**
+ * @typedef {{ attributes: string[], relationships: string[] }} MetaFields
+ */
 export const drupalMetaFields = {
   attributes: [
     'created',
@@ -121,7 +129,12 @@ const transformResourceSchema = (subschema) => {
   return { type, title, items: resourceSchema };
 };
 
-export const transformD9Schema = (d9Schema) => {
+/**
+ * @param {JsonSchema} d9Schema
+ * @param {MetaFields} [metaFields]
+ * @returns {JsonSchema}
+ */
+export const transformD9Schema = (d9Schema, metaFields = drupalMetaFields) => {
   const {
     $id, $schema, title, definitions: { type, attributes, relationships },
   } = d9Schema;
@@ -142,11 +155,11 @@ export const transformD9Schema = (d9Schema) => {
   });
   const transformAttributesSchema = compose(
     transformAttributeFields,
-    removeDrupalMetaSchemas(drupalMetaFields.attributes),
+    removeDrupalMetaSchemas(metaFields.attributes),
   );
   const transformRelationshipsSchema = compose(
     transformRelationshipFields,
-    removeDrupalMetaSchemas(drupalMetaFields.relationships.concat(`${entity}_type`)),
+    removeDrupalMetaSchemas(metaFields.relationships.concat(`${entity}_type`)),
   );
 
   return {
@@ -208,46 +221,54 @@ export const transformLocalEntity = (data, transforms) => compose(
   }),
 )(data);
 
-const transformRemoteAttributes = compose(
-  evolve({ timestamp: safeIso }),
-  omit(drupalMetaFields.attributes),
-);
-const transformRemoteRelationships = compose(
-  map(prop('data')),
-  omit(drupalMetaFields.attributes),
-);
-const makeFieldChanges = (attrs, rels) => ({
-  ...map(() => safeIso(attrs.changed), omit(drupalMetaFields.attributes, attrs)),
-  ...map(() => safeIso(rels.changed), omit(drupalMetaFields.relationships, rels)),
-});
+/**
+ * @param {boolean} [setLastSync=false]
+ * @param {MetaFields} [metaFields=drupalMetaFields]
+ * @returns {(remote: Entity) => Entity}
+ */
+export function transformRemoteEntity(setLastSync = false, metaFields = drupalMetaFields) {
+  const transformRemoteAttributes = compose(
+    evolve({ timestamp: safeIso }),
+    omit(metaFields.attributes),
+  );
+  const transformRemoteRelationships = compose(
+    map(prop('data')),
+    omit(metaFields.attributes),
+  );
+  const makeFieldChanges = (attrs, rels) => ({
+    ...map(() => safeIso(attrs.changed), omit(metaFields.attributes, attrs)),
+    ...map(() => safeIso(rels.changed), omit(metaFields.relationships, rels)),
+  });
 
-const emptyAttrs = { created: null, changed: null, drupal_internal__id: null };
-export const transformRemoteEntity = (setLastSync = false) => (remote) => {
-  const {
-    id, type, attributes = emptyAttrs, relationships = {},
-  } = remote;
-  const { entity } = parseEntityType(type);
-  return {
-    id,
-    type,
-    meta: {
-      created: safeIso(attributes.created),
-      changed: safeIso(attributes.changed),
-      fieldChanges: makeFieldChanges(attributes, relationships),
-      conflicts: [],
-      remote: {
-        lastSync: setLastSync ? new Date().toISOString() : null,
-        url: `/${entity}/${attributes.drupal_internal__id}`,
-        meta: {
-          attributes: pick(drupalMetaFields.attributes, attributes),
-          relationships: pick(drupalMetaFields.relationships, relationships),
+  const emptyAttrs = { created: null, changed: null, drupal_internal__id: null };
+  return (remote) => {
+    const {
+      id, type, attributes = emptyAttrs, relationships = {},
+    } = remote;
+    const { entity } = parseEntityType(type);
+
+    return {
+      id,
+      type,
+      meta: {
+        created: safeIso(attributes.created),
+        changed: safeIso(attributes.changed),
+        fieldChanges: makeFieldChanges(attributes, relationships),
+        conflicts: [],
+        remote: {
+          lastSync: setLastSync ? new Date().toISOString() : null,
+          url: `/${entity}/${attributes.drupal_internal__id}`,
+          meta: {
+            attributes: pick(metaFields.attributes, attributes),
+            relationships: pick(metaFields.relationships, relationships),
+          },
         },
       },
-    },
-    attributes: transformRemoteAttributes(attributes),
-    relationships: transformRemoteRelationships(relationships),
+      attributes: transformRemoteAttributes(attributes),
+      relationships: transformRemoteRelationships(relationships),
+    };
   };
-};
+}
 
 export const transformFetchResponse = evolve({
   data: map(transformRemoteEntity(false)),

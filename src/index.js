@@ -3,9 +3,11 @@ import d9JsonApiAdapter from './client/adapter/index.js';
 import model from './model/index.js';
 import defaultEntities from './entities.js';
 
-export { default as entities } from './entities.js';
 export { default as client } from './client/index.js';
 export { default as parseFilter } from './client/parse-filter.js';
+export { transformD9Schema } from './client/adapter/transformations.js';
+export { default as entities } from './entities.js';
+export * as jsonSchema from './json-schema/index.js';
 export { default as model } from './model/index.js';
 export { splitFilterByType } from './types.js';
 
